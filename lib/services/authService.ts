@@ -36,10 +36,11 @@ class AuthService {
   /**
    * Login with email and password
    * Separates validation, authentication, and session management
+   * Returns immediately for fast login experience
    */
   async login(email: string, password: string): Promise<AuthResponse> {
     try {
-      // Validate inputs
+      // Validate inputs synchronously
       if (!this.validateEmail(email)) {
         return { success: false, error: 'Invalid email format' };
       }
@@ -48,7 +49,7 @@ class AuthService {
         return { success: false, error: 'Password must be at least 8 characters' };
       }
 
-      // Authenticate user
+      // Authenticate user (synchronous operation)
       const user = authenticateUser(email, password);
       if (!user) {
         return { success: false, error: 'Invalid email or password' };
@@ -66,17 +67,21 @@ class AuthService {
       // Generate tokens (in production, call backend)
       const tokens = this.generateTokens(tokenPayload);
 
-      // Store tokens securely
+      // Store tokens securely (synchronous)
       this.storeTokens(tokens);
 
-      // Store user role in both localStorage and cookie for middleware access
+      // Store user role in localStorage
+      localStorage.setItem('auth_user_id', user.id);
       localStorage.setItem('auth_user_role', user.role);
+      
+      // Set cookies for middleware (async but non-blocking)
       if (typeof document !== 'undefined') {
         document.cookie = `user_role=${user.role}; path=/; max-age=3600; SameSite=Lax`;
+        document.cookie = `auth_token=${tokens.token}; path=/; max-age=3600; SameSite=Lax`;
       }
 
-      // Set up automatic token refresh
-      this.setupTokenRefresh();
+      // Set up automatic token refresh in the background
+      setTimeout(() => this.setupTokenRefresh(), 0);
 
       return {
         success: true,

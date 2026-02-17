@@ -42,24 +42,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check for existing session on mount
   useEffect(() => {
-    const checkExistingAuth = async () => {
+    const checkExistingAuth = () => {
       setIsLoading(true);
       try {
+        // Use synchronous check with localStorage - faster than async
         const storedUserId = localStorage.getItem('auth_user_id');
-        if (storedUserId) {
+        const storedRole = localStorage.getItem('auth_user_role');
+        
+        if (storedUserId && storedRole) {
           const retrievedUser = getUserById(storedUserId);
           if (retrievedUser) {
             const { password: _, ...userWithoutPassword } = retrievedUser as any;
             setUser(userWithoutPassword as AuthUser);
           } else {
+            // User not found, clear auth
             localStorage.removeItem('auth_user_id');
             localStorage.removeItem('auth_user_role');
+            localStorage.removeItem('auth_token');
           }
         }
       } catch (error) {
         console.error('Auth check error:', error);
       } finally {
-        setIsLoading(false);
+        // Use requestIdleCallback for non-critical UI updates
+        if (typeof requestIdleCallback !== 'undefined') {
+          requestIdleCallback(() => setIsLoading(false));
+        } else {
+          setIsLoading(false);
+        }
       }
     };
 

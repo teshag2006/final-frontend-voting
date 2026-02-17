@@ -172,53 +172,138 @@ export default function LoginPage() {
               </CardContent>
             </Card>
 
-            {/* Contestant */}
+            {/* Contestant 1 */}
             <Card className="border-green-700 bg-green-950 cursor-pointer hover:bg-green-900 transition"
               onClick={() => handleQuickLogin('contestant@example.com', 'Contestant@123456')}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-green-300 text-sm">Contestant</CardTitle>
+                <CardTitle className="text-green-300 text-sm">Contestant #1 (LA)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div>
-                  <p className="text-green-200 font-mono">contestant@example.com</p>
-                  <p className="text-green-300 font-mono">Contestant@123456</p>
+                  <p className="text-green-200 font-mono text-xs">contestant@example.com</p>
+                  <p className="text-green-300 font-mono text-xs">Contestant@123456</p>
                 </div>
-                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white">
-                  Use Contestant Account
+                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white text-xs">
+                  Use Account
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Media */}
+            {/* Contestant 2 */}
+            <Card className="border-green-700 bg-green-950 cursor-pointer hover:bg-green-900 transition"
+              onClick={() => handleQuickLogin('maria.garcia@example.com', 'Contestant@123456')}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-green-300 text-sm">Contestant #2 (Madrid)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div>
+                  <p className="text-green-200 font-mono text-xs">maria.garcia@example.com</p>
+                  <p className="text-green-300 font-mono text-xs">Contestant@123456</p>
+                </div>
+                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white text-xs">
+                  Use Account
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Contestant 3 */}
+            <Card className="border-green-700 bg-green-950 cursor-pointer hover:bg-green-900 transition"
+              onClick={() => handleQuickLogin('alex.chen@example.com', 'Contestant@123456')}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-green-300 text-sm">Contestant #3 (Shanghai)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div>
+                  <p className="text-green-200 font-mono text-xs">alex.chen@example.com</p>
+                  <p className="text-green-300 font-mono text-xs">Contestant@123456</p>
+                </div>
+                <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white text-xs">
+                  Use Account
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Media #1 */}
             <Card className="border-purple-700 bg-purple-950 cursor-pointer hover:bg-purple-900 transition"
               onClick={() => handleQuickLogin('media@example.com', 'Media@123456')}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-purple-300 text-sm">Media</CardTitle>
+                <CardTitle className="text-purple-300 text-sm">Media #1 (New York)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div>
-                  <p className="text-purple-200 font-mono">media@example.com</p>
-                  <p className="text-purple-300 font-mono">Media@123456</p>
+                  <p className="text-purple-200 font-mono text-xs">media@example.com</p>
+                  <p className="text-purple-300 font-mono text-xs">Media@123456</p>
                 </div>
-                <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                  Use Media Account
+                <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs">
+                  Use Account
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Voter */}
-            <Card className="border-cyan-700 bg-cyan-950 cursor-pointer hover:bg-cyan-900 transition"
-              onClick={() => handleQuickLogin('voter@example.com', 'Voter@123456')}>
+            {/* Media 2 */}
+            <Card className="border-purple-700 bg-purple-950 cursor-pointer hover:bg-purple-900 transition"
+              onClick={() => handleQuickLogin('press@example.com', 'Media@123456')}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-cyan-300 text-sm">Voter</CardTitle>
+                <CardTitle className="text-purple-300 text-sm">Media #2 (London)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div>
-                  <p className="text-cyan-200 font-mono">voter@example.com</p>
-                  <p className="text-cyan-300 font-mono">Voter@123456</p>
+                  <p className="text-purple-200 font-mono text-xs">press@example.com</p>
+                  <p className="text-purple-300 font-mono text-xs">Media@123456</p>
                 </div>
-                <Button size="sm" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white">
-                  Use Voter Account
+                <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs">
+                  Use Account
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Voter #1 */}
+            <Card className="border-cyan-700 bg-cyan-950 cursor-pointer hover:bg-cyan-900 transition"
+              onClick={() => handleQuickLogin('voter@example.com', 'Voter@123456')}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-cyan-300 text-sm">Voter #1 (Toronto)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div>
+                  <p className="text-cyan-200 font-mono text-xs">voter@example.com</p>
+                  <p className="text-cyan-300 font-mono text-xs">Voter@123456</p>
+                </div>
+                <Button size="sm" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
+                  Use Account
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Voter #2 */}
+            <Card className="border-cyan-700 bg-cyan-950 cursor-pointer hover:bg-cyan-900 transition"
+              onClick={() => handleQuickLogin('james.smith@example.com', 'Voter@123456')}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-cyan-300 text-sm">Voter #2 (Sydney)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div>
+                  <p className="text-cyan-200 font-mono text-xs">james.smith@example.com</p>
+                  <p className="text-cyan-300 font-mono text-xs">Voter@123456</p>
+                </div>
+                <Button size="sm" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
+                  Use Account
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Voter #3 */}
+            <Card className="border-cyan-700 bg-cyan-950 cursor-pointer hover:bg-cyan-900 transition"
+              onClick={() => handleQuickLogin('lisa.anderson@example.com', 'Voter@123456')}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-cyan-300 text-sm">Voter #3 (Berlin)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div>
+                  <p className="text-cyan-200 font-mono text-xs">lisa.anderson@example.com</p>
+                  <p className="text-cyan-300 font-mono text-xs">Voter@123456</p>
+                </div>
+                <Button size="sm" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
+                  Use Account
                 </Button>
               </CardContent>
             </Card>
