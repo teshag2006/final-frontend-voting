@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/auth/phone-input';
 import { OtpInput } from '@/components/auth/otp-input';
@@ -126,7 +127,7 @@ export default function VerifyPhonePage() {
   };
 
   // Resend countdown timer effect
-  useState(() => {
+  useEffect(() => {
     if (resendCountdown <= 0) return;
 
     const interval = setInterval(() => {
@@ -140,10 +141,10 @@ export default function VerifyPhonePage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  });
+  }, [resendCountdown]);
 
   // Timer effect for OTP expiry
-  useState(() => {
+  useEffect(() => {
     if (stage !== 'otp') return;
 
     const interval = setInterval(() => {
@@ -160,7 +161,7 @@ export default function VerifyPhonePage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  });
+  }, [stage]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -301,9 +302,4 @@ export default function VerifyPhonePage() {
       </div>
     </div>
   );
-}
-
-// Helper function
-function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ');
 }
