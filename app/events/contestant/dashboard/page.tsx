@@ -1,18 +1,12 @@
-import type { Metadata } from 'next';
-import { getDashboardOverview } from '@/lib/api';
+'use client';
+
 import { mockDashboardOverview } from '@/lib/dashboard-mock';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { DollarSign, TrendingUp, Gift, CheckCircle } from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'Dashboard Overview | Contestant Portal',
-  description: 'Monitor your voting performance and statistics',
-};
-
-export default async function DashboardPage() {
-  const apiData = await getDashboardOverview();
-  const data = apiData || mockDashboardOverview;
+export default function DashboardPage() {
+  const data = mockDashboardOverview;
 
   const { metrics, vote_snapshots, top_countries, integrity_status } = data;
 
@@ -231,3 +225,4 @@ function getCountryFlag(countryCode: string): string {
   };
   return flags[countryCode] || '🌍';
 }
+

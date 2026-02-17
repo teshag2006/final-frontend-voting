@@ -17,7 +17,7 @@ export type AuditActionType =
   | 'PASSWORD_RESET'
   | 'FORCE_LOGOUT';
 
-interface AuditEntry {
+export interface AuditEntry {
   id: string;
   timestamp: string;
   action: AuditActionType;
@@ -127,3 +127,4 @@ export function RoleAuditTable({ entries, isLoading = false }: RoleAuditTablePro
     </div>
   );
 }
+

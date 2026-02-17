@@ -75,9 +75,7 @@ async function CategoryContent({
     limit: 1000, // Fetch all to extract countries
   });
 
-  const uniqueCountries = Array.from(
-    new Set(allCountriesResponse.data.map((c) => c.country))
-  ).sort();
+  const uniqueCountries = Array.from(new Set<string>(allCountriesResponse.data.map((c: any): string => String(c.country)))).sort();
 
   return (
     <>
@@ -186,3 +184,5 @@ function CategoryPageSkeleton() {
     </div>
   );
 }
+
+

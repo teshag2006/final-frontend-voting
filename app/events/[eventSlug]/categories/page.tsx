@@ -7,11 +7,14 @@ import { CategorySummary } from "@/components/category/category-summary";
 import { ContestantListCard } from "@/components/category/contestant-list-card";
 import { Pagination } from "@/components/category/pagination";
 import { EventCountdown } from "@/components/events/event-countdown";
+import { Suspense } from "react";
 
 // Mock data
 import { mockCategories } from "@/lib/event-details-mock";
 import { mockEvents } from "@/lib/events-mock";
 import { getEventBySlug, getCategoriesForEvent, getContestantsForEvent } from "@/lib/mock-data-generator";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -74,7 +77,9 @@ export default async function CategoriesPage({
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Filters */}
-          <CategoryFilters />
+          <Suspense fallback={<div className="h-10" />}>
+            <CategoryFilters />
+          </Suspense>
 
           {/* Category Summary */}
           <CategorySummary categoriesCount={categories.length} />

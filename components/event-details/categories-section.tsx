@@ -2,13 +2,13 @@ import type { Category } from "@/types/category";
 import { CategoryCard } from "./category-card";
 
 interface CategoriesSectionProps {
-  categories: Category[];
+  categories?: Category[];
   eventSlug: string;
   isVotingActive?: boolean;
 }
 
 export function CategoriesSection({
-  categories,
+  categories = [],
   eventSlug,
   isVotingActive = true,
 }: CategoriesSectionProps) {

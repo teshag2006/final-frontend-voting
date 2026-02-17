@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+ 'use client';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminHeader } from '@/components/admin/admin-header';
@@ -16,11 +17,6 @@ import {
   generateJobsOverTimeData,
   generateProcessingLatencyData,
 } from '@/lib/queue-job-mock';
-
-export const metadata: Metadata = {
-  title: 'Queue & Job Monitor - Admin',
-  description: 'Monitor and manage background job queues and processing',
-};
 
 export default function JobsPage() {
   // Generate mock data for this session

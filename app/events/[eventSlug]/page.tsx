@@ -128,8 +128,7 @@ export default async function EventDetailsPage({
         {/* Contestants Section */}
         <ContestantsSection
           contestants={contestants}
-          eventSlug={eventSlug}
-          isVotingActive={isActive}
+          isActive={isActive}
         />
 
         {/* Leaderboard Preview */}
@@ -141,10 +140,10 @@ export default async function EventDetailsPage({
         )}
 
         {/* Timeline */}
-        <EventTimelineCard event={event} />
+        <EventTimelineCard stats={stats} eventSlug={eventSlug} />
 
         {/* FAQ Section */}
-        <FAQSection faq={faq} />
+        <FAQSection items={faq} />
       </main>
 
       <Footer />

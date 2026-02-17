@@ -1,3 +1,5 @@
+'use client';
+
 import { MediaDashboardHeader } from '@/components/media/dashboard-header';
 import { MediaDashboardNav } from '@/components/media/dashboard-nav';
 import { FraudSummary } from '@/components/media/fraud-summary';
@@ -6,11 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { AlertTriangle } from 'lucide-react';
 import { mockFraudSummary } from '@/lib/media-mock';
-
-export const metadata = {
-  title: 'Fraud Transparency | Media Dashboard',
-  description: 'Read-only fraud detection statistics for transparency.',
-};
 
 const fraudTrendData = [
   { day: 'Mon', incidents: 12, resolved: 10 },
@@ -136,3 +133,4 @@ export default function MediaFraudPage() {
     </div>
   );
 }
+

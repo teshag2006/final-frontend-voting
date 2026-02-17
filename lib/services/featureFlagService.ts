@@ -1,6 +1,6 @@
 'use server';
 
-export type FeatureFlagKey = 
+export type FeatureFlagKey =
   | 'blockchain_anchor'
   | 'otp_requirement'
   | 'free_vote_policy'
@@ -16,17 +16,16 @@ export interface FeatureFlag {
   key: FeatureFlagKey;
   enabled: boolean;
   description: string;
-  rolloutPercentage: number; // 0-100 for gradual rollout
+  rolloutPercentage: number;
   targetRoles?: Array<'admin' | 'contestant' | 'media' | 'voter'>;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface FeatureFlagConfig {
+export type FeatureFlagConfig = {
   [key in FeatureFlagKey]: FeatureFlag;
-}
+};
 
-// Default feature flags - will be overridden by backend
 const defaultFlags: FeatureFlagConfig = {
   blockchain_anchor: {
     key: 'blockchain_anchor',
@@ -117,65 +116,40 @@ const defaultFlags: FeatureFlagConfig = {
   },
 };
 
-// In-memory cache for feature flags
-let flagCache: FeatureFlagConfig = defaultFlags;
-let cacheTimestamp = Date.now();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 5 * 60 * 1000;
 
 class FeatureFlagService {
   private cache: FeatureFlagConfig = defaultFlags;
   private cacheTime = Date.now();
 
-  /**
-   * Check if a feature flag is enabled for the user
-   */
-  isEnabled(
-    key: FeatureFlagKey,
-    userRole?: string,
-    userId?: string
-  ): boolean {
+  isEnabled(key: FeatureFlagKey, userRole?: string, userId?: string): boolean {
     const flag = this.getFlag(key);
     if (!flag || !flag.enabled) return false;
 
-    // Check role targeting
-    if (flag.targetRoles && userRole) {
-      if (!flag.targetRoles.includes(userRole as any)) {
-        return false;
-      }
+    if (flag.targetRoles && userRole && !flag.targetRoles.includes(userRole as any)) {
+      return false;
     }
 
-    // Check rollout percentage (simple hash-based)
-    if (flag.rolloutPercentage < 100) {
-      if (userId) {
-        const hash = this.simpleHash(userId + key);
-        return (hash % 100) < flag.rolloutPercentage;
-      }
+    if (flag.rolloutPercentage < 100 && userId) {
+      const hash = this.simpleHash(userId + key);
+      return hash % 100 < flag.rolloutPercentage;
     }
 
     return true;
   }
 
-  /**
-   * Get a specific feature flag
-   */
   getFlag(key: FeatureFlagKey): FeatureFlag | null {
     this.refreshCacheIfNeeded();
     return this.cache[key] || null;
   }
 
-  /**
-   * Get all feature flags
-   */
   getAllFlags(): FeatureFlagConfig {
     this.refreshCacheIfNeeded();
     return { ...this.cache };
   }
 
-  /**
-   * Get flags for a specific role
-   */
   getFlagsForRole(role: string): FeatureFlagConfig {
-    const result: FeatureFlagConfig = {} as FeatureFlagConfig;
+    const result = {} as FeatureFlagConfig;
     const allFlags = this.getAllFlags();
 
     Object.entries(allFlags).forEach(([key, flag]) => {
@@ -187,36 +161,25 @@ class FeatureFlagService {
     return result;
   }
 
-  /**
-   * Update feature flags (called from backend)
-   */
   updateFlags(newFlags: Partial<FeatureFlagConfig>): void {
     this.cache = { ...this.cache, ...newFlags };
     this.cacheTime = Date.now();
   }
 
-  /**
-   * Refresh cache from backend if needed
-   */
   private refreshCacheIfNeeded(): void {
     const now = Date.now();
     if (now - this.cacheTime > CACHE_TTL) {
-      // In production, fetch from backend API
-      // For now, use default flags
       this.cache = { ...defaultFlags };
       this.cacheTime = now;
     }
   }
 
-  /**
-   * Simple hash function for rollout percentage
-   */
   private simpleHash(input: string): number {
     let hash = 0;
-    for (let i = 0; i < input.length; i++) {
+    for (let i = 0; i < input.length; i += 1) {
       const char = input.charCodeAt(i);
       hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32bit integer
+      hash |= 0;
     }
     return Math.abs(hash);
   }

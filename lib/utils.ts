@@ -1,13 +1,9 @@
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { clsx, type ClassValue } from 'clsx';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return clsx(inputs);
 }
 
-/**
- * Format a date string to a readable format
- */
 export function formatDate(dateString: string | null | undefined): string {
   if (!dateString) return 'N/A';
   try {
@@ -22,9 +18,6 @@ export function formatDate(dateString: string | null | undefined): string {
   }
 }
 
-/**
- * Format a number as currency (USD)
- */
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -33,3 +26,11 @@ export function formatCurrency(amount: number): string {
     maximumFractionDigits: 0,
   }).format(amount);
 }
+
+
+export function formatTime(dateString: string | null | undefined): string {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+

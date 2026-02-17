@@ -8,29 +8,33 @@ interface EventOverviewProps {
 }
 
 function StatusBadge({ status }: { status: Event["status"] }) {
-  const config: Record<
-    Event["status"],
-    { label: string; bg: string; text: string }
-  > = {
-    active: { label: "OPEN", bg: "bg-accent", text: "text-accent-foreground" },
-    upcoming: {
+  const normalized = String(status).toUpperCase();
+  const config: Record<string, { label: string; bg: string; text: string }> = {
+    LIVE: { label: "OPEN", bg: "bg-accent", text: "text-accent-foreground" },
+    ACTIVE: { label: "OPEN", bg: "bg-accent", text: "text-accent-foreground" },
+    UPCOMING: {
       label: "COMING SOON",
       bg: "bg-amber-500",
       text: "text-primary-foreground",
     },
-    closed: {
+    CLOSED: {
       label: "CLOSED",
       bg: "bg-muted-foreground",
       text: "text-primary-foreground",
     },
-    cancelled: {
+    ARCHIVED: {
+      label: "CLOSED",
+      bg: "bg-muted-foreground",
+      text: "text-primary-foreground",
+    },
+    CANCELLED: {
       label: "CANCELLED",
       bg: "bg-destructive",
       text: "text-destructive-foreground",
     },
   };
 
-  const c = config[status];
+  const c = config[normalized] ?? config.CLOSED;
   return (
     <span
       className={cn(

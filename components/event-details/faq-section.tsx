@@ -10,10 +10,10 @@ import {
 } from "@/components/ui/accordion";
 
 interface FAQSectionProps {
-  items: FAQItem[];
+  items?: FAQItem[];
 }
 
-export function FAQSection({ items }: FAQSectionProps) {
+export function FAQSection({ items = [] }: FAQSectionProps) {
   if (items.length === 0) return null;
 
   return (

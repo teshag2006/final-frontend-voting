@@ -6,12 +6,12 @@ import { EventContestantCard } from "./event-contestant-card";
 import { useState } from "react";
 
 interface ContestantsSectionProps {
-  contestants: Contestant[];
+  contestants?: Contestant[];
   isActive: boolean;
 }
 
 export function ContestantsSection({
-  contestants,
+  contestants = [],
   isActive,
 }: ContestantsSectionProps) {
   const [filterCategory, setFilterCategory] = useState<string>("all");

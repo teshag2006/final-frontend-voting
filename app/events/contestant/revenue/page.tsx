@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
-import { getRevenueData } from '@/lib/api';
+'use client';
+
 import { mockRevenueData } from '@/lib/dashboard-mock';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import {
@@ -17,16 +17,10 @@ import {
 } from 'recharts';
 import { DollarSign, TrendingUp } from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'Revenue | Contestant Portal',
-  description: 'Track your revenue and payment analytics',
-};
-
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))'];
 
-export default async function RevenuePage() {
-  const apiData = await getRevenueData();
-  const data = apiData || mockRevenueData;
+export default function RevenuePage() {
+  const data = mockRevenueData;
 
   const { metrics, snapshots, payment_methods } = data;
 
@@ -140,3 +134,4 @@ export default async function RevenuePage() {
     </div>
   );
 }
+

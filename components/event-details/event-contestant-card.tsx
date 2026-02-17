@@ -26,6 +26,16 @@ export function EventContestantCard({
   disabled = false,
   className,
 }: EventContestantCardProps) {
+  const imageSrc =
+    (contestant as any).photo_url ||
+    (contestant as any).image_url ||
+    "/images/placeholder.jpg";
+  const totalVotes = Number(
+    (contestant as any).total_votes ?? (contestant as any).votes ?? 0
+  );
+  const categoryName =
+    (contestant as any).category_name ?? (contestant as any).category ?? "General";
+
   return (
     <div
       className={cn(
@@ -59,7 +69,7 @@ export function EventContestantCard({
         {/* Avatar */}
         <div className="relative h-20 w-20 overflow-hidden rounded-full ring-2 ring-border">
           <Image
-            src={contestant.photo_url}
+            src={imageSrc}
             alt={contestant.name}
             fill
             className="object-cover"
@@ -80,13 +90,13 @@ export function EventContestantCard({
         <h3 className="text-sm font-bold text-foreground truncate">
           {contestant.name}
         </h3>
-        <p className="text-xs text-muted-foreground">{contestant.category_name}</p>
+        <p className="text-xs text-muted-foreground">{categoryName}</p>
       </div>
 
       {/* Votes */}
       <div className="px-4 pb-2 text-center">
         <span className="text-2xl font-bold text-foreground tabular-nums">
-          {contestant.total_votes.toLocaleString()}
+          {totalVotes.toLocaleString()}
         </span>
         <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground ml-1">
           Votes

@@ -5,7 +5,7 @@ import type { LeaderboardEntry } from "@/types/event";
 import { cn } from "@/lib/utils";
 
 interface LeaderboardPreviewProps {
-  entries: LeaderboardEntry[];
+  entries?: LeaderboardEntry[];
   eventSlug: string;
   className?: string;
 }
@@ -63,7 +63,7 @@ function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
 }
 
 export function LeaderboardPreview({
-  entries,
+  entries = [],
   eventSlug,
   className,
 }: LeaderboardPreviewProps) {

@@ -1,6 +1,8 @@
 import { ReactNode } from 'react';
 import { ProtectedRouteWrapper } from '@/components/auth/protected-route-wrapper';
 
+export const dynamic = 'force-dynamic';
+
 interface VoterLayoutProps {
   children: ReactNode;
 }

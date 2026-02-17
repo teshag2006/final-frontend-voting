@@ -210,10 +210,11 @@ export default function AdminEventsPage() {
             setSelectedEvent(undefined);
           }}
           onSubmit={handleModalSubmit}
-          initialData={selectedEvent}
+          initialData={selectedEvent ? { ...selectedEvent, description: selectedEvent.description ?? '' } : undefined}
           isLoading={isLoading}
         />
       </div>
     </ProtectedRouteWrapper>
   );
 }
+

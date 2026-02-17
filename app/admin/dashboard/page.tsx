@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+'use client';
+
 import { AdminHeader } from '@/components/admin/admin-header';
 import { SystemMetrics } from '@/components/admin/system-metrics';
 import { VoteActivityChart } from '@/components/admin/vote-activity-chart';
@@ -17,11 +18,6 @@ import {
   generateBlockchainStatus,
   generateSystemEventsFeed,
 } from '@/lib/admin-overview-mock';
-
-export const metadata: Metadata = {
-  title: 'Admin Dashboard - System Overview',
-  description: 'Real-time monitoring and analytics for the voting platform',
-};
 
 export default function AdminDashboardPage() {
   // Generate all mock data for this session

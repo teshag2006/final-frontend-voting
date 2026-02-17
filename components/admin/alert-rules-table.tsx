@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NotificationSeverityBadge } from './notification-severity-badge';
 import { type AlertRule } from '@/types/notifications';
-import { Edit2, Toggle, Trash2 } from 'lucide-react';
+import { Edit2, ToggleLeft, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface AlertRulesTableProps {
@@ -134,7 +134,7 @@ export function AlertRulesTable({ rules, isLoading, onEdit, onToggle, onDelete }
                     className="h-8 w-8 p-0"
                     title={rule.enabled ? 'Disable' : 'Enable'}
                   >
-                    <Toggle className="w-4 h-4" />
+                    <ToggleLeft className="w-4 h-4" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -163,3 +163,4 @@ export function AlertRulesTable({ rules, isLoading, onEdit, onToggle, onDelete }
     </div>
   );
 }
+

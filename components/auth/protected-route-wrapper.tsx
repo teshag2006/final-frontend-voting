@@ -11,6 +11,7 @@ interface ProtectedRouteWrapperProps {
   children: ReactNode;
   requiredRole?: UserRole | UserRole[];
   fallbackUrl?: string;
+  autoSignInWith?: UserRole;
 }
 
 function ProtectedRouteContent({
@@ -89,3 +90,4 @@ export function ProtectedRouteWrapper({
     </AuthProvider>
   );
 }
+

@@ -1,12 +1,9 @@
+'use client';
+
 import { MediaDashboardHeader } from '@/components/media/dashboard-header';
 import { MediaDashboardNav } from '@/components/media/dashboard-nav';
 import { Card } from '@/components/ui/card';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
-export const metadata = {
-  title: 'Analytics | Media Dashboard',
-  description: 'Detailed voting analytics and statistics.',
-};
 
 const votesOverTimeData = [
   { time: '00:00', votes: 2400 },
@@ -183,3 +180,4 @@ export default function MediaAnalyticsPage() {
     </div>
   );
 }
+

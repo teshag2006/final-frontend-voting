@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
-import { getAnalyticsData } from '@/lib/api';
+'use client';
+
 import { mockAnalyticsData } from '@/lib/dashboard-mock';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import {
@@ -16,14 +16,8 @@ import {
 } from 'recharts';
 import { AlertCircle, CheckCircle, Trash2 } from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'Vote Analytics | Contestant Portal',
-  description: 'Detailed voting analytics and insights',
-};
-
-export default async function AnalyticsPage() {
-  const apiData = await getAnalyticsData();
-  const data = apiData || mockAnalyticsData;
+export default function AnalyticsPage() {
+  const data = mockAnalyticsData;
 
   const { daily_votes, hourly_distribution, fraud_metrics } = data;
 
@@ -169,3 +163,4 @@ export default async function AnalyticsPage() {
     </div>
   );
 }
+

@@ -3,6 +3,7 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RoleBadge, type RoleType } from './role-badge';
+export type { RoleType };
 
 export type PermissionAction = 'view' | 'create' | 'update' | 'delete';
 
@@ -135,3 +136,4 @@ export function PermissionsMatrix({
     </div>
   );
 }
+

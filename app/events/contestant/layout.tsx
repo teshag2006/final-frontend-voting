@@ -5,6 +5,8 @@ import { DashboardSidebar } from '@/components/dashboard/sidebar';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { DashboardNavTabs } from '@/components/dashboard/dashboard-nav-tabs';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Contestant Dashboard | Miss & Mr Africa',
   description: 'Monitor your votes, rankings, and analytics.',

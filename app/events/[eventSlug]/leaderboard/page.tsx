@@ -47,6 +47,17 @@ export default async function LeaderboardPage({
 
   // Fetch leaderboard data - in production, this would call your API with event context
   const data = getMockLeaderboardData(event.id);
+  const stats = {
+    totalVotes:
+      data?.totalVotes ??
+      data?.leaderboard?.reduce(
+        (sum: number, entry: any) => sum + Number(entry?.totalVotes ?? 0),
+        0
+      ) ??
+      0,
+    totalContestants: data?.leaderboard?.length ?? 0,
+    activeCategories: data?.categories?.length ?? 0,
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -89,28 +100,32 @@ export default async function LeaderboardPage({
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <p className="text-sm text-slate-600">Total Votes</p>
             <p className="mt-2 text-2xl font-bold text-slate-900">
-              {data.stats.totalVotes.toLocaleString()}
+              {Number(stats.totalVotes).toLocaleString()}
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <p className="text-sm text-slate-600">Total Contestants</p>
             <p className="mt-2 text-2xl font-bold text-slate-900">
-              {data.stats.totalContestants}
+              {stats.totalContestants}
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <p className="text-sm text-slate-600">Active Categories</p>
             <p className="mt-2 text-2xl font-bold text-slate-900">
-              {data.stats.activeCategories}
+              {stats.activeCategories}
             </p>
           </div>
         </div>
 
         {/* Filters */}
-        <LeaderboardFilters />
+        <LeaderboardFilters categories={data.categories ?? []} />
 
         {/* Podium */}
-        <LeaderboardPodium podium={data.podium} eventSlug={eventSlug} />
+        <LeaderboardPodium
+          first={data.podium.first}
+          second={data.podium.second}
+          third={data.podium.third}
+        />
 
         {/* Full Table */}
         <div className="mt-12">
@@ -118,8 +133,7 @@ export default async function LeaderboardPage({
             Full Standings
           </h2>
           <LeaderboardTable
-            entries={data.leaderboard}
-            eventSlug={eventSlug}
+            contestants={data.leaderboard ?? []}
           />
         </div>
 
