@@ -19,6 +19,8 @@ export default function VerifyPhonePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [phoneError, setPhoneError] = useState('');
   const [otpError, setOtpError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [resendCountdown, setResendCountdown] = useState(0);
   const otpStartTime = useRef<number>(0);
   const [timeRemaining, setTimeRemaining] = useState(300);
 
@@ -104,18 +106,41 @@ export default function VerifyPhonePage() {
     setOtp('');
     setOtpError('');
     setError(null);
+    setSuccessMessage('');
     setIsLoading(true);
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       otpStartTime.current = Date.now();
       setTimeRemaining(300);
+      setResendCountdown(60);
+      setSuccessMessage('Code resent successfully!');
+      
+      // Auto-dismiss success message
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setOtpError('Failed to resend OTP. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Resend countdown timer effect
+  useState(() => {
+    if (resendCountdown <= 0) return;
+
+    const interval = setInterval(() => {
+      setResendCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  });
 
   // Timer effect for OTP expiry
   useState(() => {
@@ -170,6 +195,13 @@ export default function VerifyPhonePage() {
                     : 'We sent a 6-digit code to your phone. Enter it below.'}
                 </p>
               </div>
+
+              {/* Success Message */}
+              {successMessage && (
+                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700">
+                  {successMessage}
+                </div>
+              )}
 
               {/* Error Banner */}
               {error && (
@@ -235,10 +267,17 @@ export default function VerifyPhonePage() {
                   <button
                     type="button"
                     onClick={handleResendOtp}
-                    disabled={isLoading}
-                    className="w-full text-center text-blue-600 hover:text-blue-700 text-sm font-medium disabled:opacity-50"
+                    disabled={isLoading || resendCountdown > 0}
+                    className={cn(
+                      'w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition-colors',
+                      resendCountdown > 0
+                        ? 'text-gray-500 bg-gray-100 cursor-not-allowed'
+                        : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                    )}
                   >
-                    Didn't receive the code? Resend
+                    {resendCountdown > 0
+                      ? `Resend code in ${resendCountdown}s`
+                      : "Didn't receive the code? Resend"}
                   </button>
                 </form>
               )}
