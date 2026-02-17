@@ -69,6 +69,12 @@ class AuthService {
       // Store tokens securely
       this.storeTokens(tokens);
 
+      // Store user role in both localStorage and cookie for middleware access
+      localStorage.setItem('auth_user_role', user.role);
+      if (typeof document !== 'undefined') {
+        document.cookie = `user_role=${user.role}; path=/; max-age=3600; SameSite=Lax`;
+      }
+
       // Set up automatic token refresh
       this.setupTokenRefresh();
 
@@ -261,6 +267,12 @@ class AuthService {
     localStorage.setItem('auth_token', tokens.token);
     localStorage.setItem('refresh_token', tokens.refreshToken);
     localStorage.setItem('token_expires_at', tokens.expiresAt.toString());
+
+    // Also set cookies for middleware to read during SSR/route protection
+    if (typeof document !== 'undefined') {
+      // Set auth_token cookie
+      document.cookie = `auth_token=${tokens.token}; path=/; max-age=3600; SameSite=Lax`;
+    }
   }
 
   /**

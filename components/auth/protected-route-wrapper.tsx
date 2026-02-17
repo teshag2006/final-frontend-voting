@@ -1,7 +1,6 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { AuthProvider } from '@/context/AuthContext';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -79,15 +78,14 @@ export function ProtectedRouteWrapper({
   requiredRole,
   fallbackUrl,
 }: ProtectedRouteWrapperProps) {
+  // Use the AuthProvider from the root layout - don't nest providers
   return (
-    <AuthProvider>
-      <ProtectedRouteContent
-        requiredRole={requiredRole}
-        fallbackUrl={fallbackUrl}
-      >
-        {children}
-      </ProtectedRouteContent>
-    </AuthProvider>
+    <ProtectedRouteContent
+      requiredRole={requiredRole}
+      fallbackUrl={fallbackUrl}
+    >
+      {children}
+    </ProtectedRouteContent>
   );
 }
 

@@ -102,7 +102,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Store auth info in localStorage and cookies
       localStorage.setItem('auth_user_id', response.user.id);
       localStorage.setItem('auth_user_role', response.user.role);
-      // Tokens are stored by authService
+      
+      // Set cookie for middleware access
+      if (typeof document !== 'undefined') {
+        document.cookie = `user_role=${response.user.role}; path=/; max-age=3600; SameSite=Lax`;
+        document.cookie = `auth_token=${response.token}; path=/; max-age=3600; SameSite=Lax`;
+      }
+      // Tokens are also stored by authService
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       setError(errorMessage);

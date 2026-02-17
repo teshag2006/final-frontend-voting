@@ -44,8 +44,25 @@ export default function LoginPage() {
     }
 
     try {
-      await login(email, password);
-      router.push('/');
+      const response = await login(email, password);
+      // Redirect directly based on role instead of going through home page
+      const userRole = localStorage.getItem('auth_user_role');
+      switch (userRole) {
+        case 'admin':
+          router.push('/admin/dashboard');
+          break;
+        case 'contestant':
+          router.push('/events/contestant/dashboard');
+          break;
+        case 'media':
+          router.push('/media/dashboard');
+          break;
+        case 'voter':
+          router.push('/voter/dashboard');
+          break;
+        default:
+          router.push('/');
+      }
     } catch (err) {
       setLocalError('Invalid email or password. Please try again.');
     }

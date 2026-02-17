@@ -14,11 +14,6 @@ import {
   mockBlockchainStatus,
 } from '@/lib/media-mock';
 
-export const metadata = {
-  title: 'Media Dashboard | Voting Platform',
-  description: 'Real-time media broadcasting dashboard with voting analytics.',
-};
-
 export default function MediaDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">

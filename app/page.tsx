@@ -9,6 +9,7 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Still loading auth state, don't redirect yet
     if (isLoading) return;
 
     // Not authenticated - go to login
@@ -17,25 +18,28 @@ export default function HomePage() {
       return;
     }
 
-    // Route based on user role
-    switch (user?.role) {
-      case 'admin':
-        router.push('/admin/dashboard');
-        break;
-      case 'contestant':
-        router.push('/events/contestant/dashboard');
-        break;
-      case 'media':
-        router.push('/media/dashboard');
-        break;
-      case 'voter':
-        router.push('/voter/dashboard');
-        break;
-      default:
-        router.push('/events');
+    // Authenticated with user - route based on role
+    if (user) {
+      switch (user.role) {
+        case 'admin':
+          router.push('/admin/dashboard');
+          break;
+        case 'contestant':
+          router.push('/events/contestant/dashboard');
+          break;
+        case 'media':
+          router.push('/media/dashboard');
+          break;
+        case 'voter':
+          router.push('/voter/dashboard');
+          break;
+        default:
+          router.push('/events');
+      }
     }
   }, [user, isLoading, isAuthenticated, router]);
 
+  // Show loading state while redirecting
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-900">
       <div className="text-center">
