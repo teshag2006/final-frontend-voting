@@ -1,0 +1,619 @@
+openapi: 3.0.0
+info:
+  title: Voting Platform API
+  description: Comprehensive API for voting platform with admin, contestant, media, and voter roles
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: https://votingplatform.com/support
+    email: api@votingplatform.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://api.votingplatform.com/api/v1
+    description: Production server
+  - url: https://staging-api.votingplatform.com/api/v1
+    description: Staging server
+  - url: http://localhost:3001/api/v1
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: User authentication endpoints
+  - name: Users
+    description: User management endpoints
+  - name: Profile
+    description: User profile endpoints
+  - name: Notifications
+    description: Notification endpoints
+  - name: Events
+    description: Event management endpoints
+  - name: Contestants
+    description: Contestant management endpoints
+  - name: Votes
+    description: Voting endpoints
+  - name: Admin
+    description: Admin dashboard endpoints
+  - name: Moderation
+    description: Content moderation endpoints
+  - name: Analytics
+    description: Analytics and reporting endpoints
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Enter JWT token
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "user-001"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        name:
+          type: string
+          example: "John Doe"
+        role:
+          type: string
+          enum: [admin, contestant, media, voter]
+          example: "voter"
+        avatar:
+          type: string
+          format: uri
+        profile:
+          $ref: '#/components/schemas/UserProfile'
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+        createdAt:
+          type: string
+          format: date-time
+
+    UserProfile:
+      type: object
+      properties:
+        bio:
+          type: string
+        location:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        verified:
+          type: boolean
+        verificationDate:
+          type: string
+          format: date-time
+
+    UserPreferences:
+      type: object
+      properties:
+        emailNotifications:
+          type: boolean
+        pushNotifications:
+          type: boolean
+        theme:
+          type: string
+          enum: [light, dark, system]
+        language:
+          type: string
+        twoFactorEnabled:
+          type: boolean
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [upcoming, live, completed]
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        image:
+          type: string
+          format: uri
+        totalContestants:
+          type: integer
+        totalVotes:
+          type: integer
+
+    Contestant:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        bio:
+          type: string
+        image:
+          type: string
+          format: uri
+        category:
+          type: string
+        totalVotes:
+          type: integer
+        status:
+          type: string
+          enum: [active, inactive, disqualified]
+        rank:
+          type: integer
+
+    Vote:
+      type: object
+      properties:
+        id:
+          type: string
+        eventId:
+          type: string
+        contestantId:
+          type: string
+        voteType:
+          type: string
+          enum: [free, paid]
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        receipt:
+          type: string
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [info, success, warning, error]
+        title:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        code:
+          type: string
+        details:
+          type: object
+
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: User registration
+      description: Register a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+                - role
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                name:
+                  type: string
+                role:
+                  type: string
+                  enum: [voter, contestant, media]
+      responses:
+        '201':
+          description: Registration successful
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+
+  /profile:
+    get:
+      tags:
+        - Profile
+      summary: Get current user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+
+    patch:
+      tags:
+        - Profile
+      summary: Update user profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                profile:
+                  $ref: '#/components/schemas/UserProfile'
+      responses:
+        '200':
+          description: Profile updated successfully
+
+  /profile/preferences:
+    patch:
+      tags:
+        - Profile
+      summary: Update user preferences
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferences'
+      responses:
+        '200':
+          description: Preferences updated successfully
+
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: Get user notifications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Notifications retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /events:
+    get:
+      tags:
+        - Events
+      summary: Get all events
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [upcoming, live, completed]
+      responses:
+        '200':
+          description: Events retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+
+  /events/{eventId}:
+    get:
+      tags:
+        - Events
+      summary: Get event details
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Event details retrieved
+
+  /events/{eventId}/contestants:
+    get:
+      tags:
+        - Contestants
+      summary: Get contestants for event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: Contestants retrieved
+
+  /votes/submit:
+    post:
+      tags:
+        - Votes
+      summary: Submit a vote
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - eventId
+                - contestantId
+              properties:
+                eventId:
+                  type: string
+                contestantId:
+                  type: string
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Vote recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Vote'
+
+  /admin/users:
+    get:
+      tags:
+        - Users
+      summary: Get all users (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users list retrieved
+        '403':
+          description: Forbidden - Admin access required
+
+  /admin/dashboard/overview:
+    get:
+      tags:
+        - Admin
+      summary: Get dashboard overview (Admin only)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data retrieved
+        '403':
+          description: Forbidden - Admin access required
+
+  /admin/moderation/queue:
+    get:
+      tags:
+        - Moderation
+      summary: Get moderation queue (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Moderation queue retrieved
+        '403':
+          description: Forbidden - Admin access required
+
+  /admin/analytics/votes:
+    get:
+      tags:
+        - Analytics
+      summary: Get vote analytics (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Analytics retrieved
+        '403':
+          description: Forbidden - Admin access required

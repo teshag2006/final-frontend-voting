@@ -1,0 +1,321 @@
+export type UserRole = 'admin' | 'contestant' | 'media' | 'voter' | 'public';
+
+export interface UserPreferences {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  theme: 'light' | 'dark' | 'system';
+  language: string;
+  twoFactorEnabled: boolean;
+}
+
+export interface UserProfile {
+  bio: string;
+  phone?: string;
+  location?: string;
+  website?: string;
+  birthDate?: string;
+  verified: boolean;
+  verificationDate?: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  password: string;
+  name: string;
+  role: UserRole;
+  avatar?: string;
+  eventId?: string;
+  profile?: UserProfile;
+  preferences?: UserPreferences;
+  loginHistory?: LoginRecord[];
+  activeSessions?: SessionRecord[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface LoginRecord {
+  id: string;
+  timestamp: string;
+  ipAddress: string;
+  device: string;
+  location: string;
+  success: boolean;
+}
+
+export interface SessionRecord {
+  id: string;
+  device: string;
+  location: string;
+  lastActive: string;
+  createdAt: string;
+}
+
+// Mock users database for authentication
+// In production, this would be replaced with a real database
+export const mockUsers: User[] = [
+  {
+    id: 'admin-001',
+    email: 'admin@votingplatform.com',
+    password: 'Admin@123456',
+    name: 'Admin User',
+    role: 'admin',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
+    profile: {
+      bio: 'System Administrator',
+      verified: true,
+      verificationDate: '2024-01-01',
+    },
+    preferences: {
+      emailNotifications: true,
+      pushNotifications: true,
+      theme: 'dark',
+      language: 'en',
+      twoFactorEnabled: true,
+    },
+    createdAt: '2024-01-01T00:00:00Z',
+  },
+  {
+    id: 'admin-002',
+    email: 'sarah.johnson@votingplatform.com',
+    password: 'Admin@123456',
+    name: 'Sarah Johnson',
+    role: 'admin',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sarah',
+    profile: {
+      bio: 'Content Moderator',
+      location: 'New York, USA',
+      verified: true,
+      verificationDate: '2024-01-02',
+    },
+    preferences: {
+      emailNotifications: true,
+      pushNotifications: false,
+      theme: 'light',
+      language: 'en',
+      twoFactorEnabled: false,
+    },
+    createdAt: '2024-01-02T08:00:00Z',
+  },
+  {
+    id: 'contestant-001',
+    email: 'contestant@example.com',
+    password: 'Contestant@123456',
+    name: 'John Contestant',
+    role: 'contestant',
+    eventId: 'event-001',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=john',
+    profile: {
+      bio: 'Aspiring performer',
+      location: 'Los Angeles, USA',
+      phone: '+1-555-0101',
+      website: 'https://johncontestant.com',
+      verified: true,
+      verificationDate: '2024-02-01',
+    },
+    preferences: {
+      emailNotifications: true,
+      pushNotifications: true,
+      theme: 'dark',
+      language: 'en',
+      twoFactorEnabled: false,
+    },
+    createdAt: '2024-02-01T10:00:00Z',
+  },
+  {
+    id: 'contestant-002',
+    email: 'maria.garcia@example.com',
+    password: 'Contestant@123456',
+    name: 'Maria Garcia',
+    role: 'contestant',
+    eventId: 'event-001',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=maria',
+    profile: {
+      bio: 'Singer & Dancer from Spain',
+      location: 'Madrid, Spain',
+      verified: true,
+      verificationDate: '2024-02-03',
+    },
+    preferences: {
+      emailNotifications: true,
+      pushNotifications: true,
+      theme: 'dark',
+      language: 'es',
+      twoFactorEnabled: false,
+    },
+    createdAt: '2024-02-03T15:30:00Z',
+  },
+  {
+    id: 'contestant-003',
+    email: 'alex.chen@example.com',
+    password: 'Contestant@123456',
+    name: 'Alex Chen',
+    role: 'contestant',
+    eventId: 'event-002',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=alex',
+    profile: {
+      bio: 'Musician & Producer',
+      location: 'Shanghai, China',
+      verified: true,
+      verificationDate: '2024-02-05',
+    },
+    preferences: {
+      emailNotifications: false,
+      pushNotifications: true,
+      theme: 'dark',
+      language: 'zh',
+      twoFactorEnabled: false,
+    },
+    createdAt: '2024-02-05T09:00:00Z',
+  },
+  {
+    id: 'media-001',
+    email: 'media@example.com',
+    password: 'Media@123456',
+    name: 'Media Manager',
+    role: 'media',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=media',
+    profile: {
+      bio: 'Official Media Coordinator',
+      location: 'New York, USA',
+      verified: true,
+      verificationDate: '2024-01-10',
+    },
+    preferences: {
+      emailNotifications: true,
+      pushNotifications: true,
+      theme: 'dark',
+      language: 'en',
+      twoFactorEnabled: true,
+    },
+    createdAt: '2024-01-10T12:00:00Z',
+  },
+  {
+    id: 'media-002',
+    email: 'press@example.com',
+    password: 'Media@123456',
+    name: 'Press Officer',
+    role: 'media',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=press',
+    profile: {
+      bio: 'Press & Communications Lead',
+      location: 'London, UK',
+      verified: true,
+      verificationDate: '2024-01-12',
+    },
+    preferences: {
+      emailNotifications: true,
+      pushNotifications: false,
+      theme: 'light',
+      language: 'en',
+      twoFactorEnabled: false,
+    },
+    createdAt: '2024-01-12T14:00:00Z',
+  },
+  {
+    id: 'voter-001',
+    email: 'voter@example.com',
+    password: 'Voter@123456',
+    name: 'Emma Wilson',
+    role: 'voter',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=emma',
+    profile: {
+      bio: 'Music enthusiast',
+      location: 'Toronto, Canada',
+      verified: true,
+      verificationDate: '2024-03-01',
+    },
+    preferences: {
+      emailNotifications: true,
+      pushNotifications: true,
+      theme: 'dark',
+      language: 'en',
+      twoFactorEnabled: false,
+    },
+    createdAt: '2024-03-01T11:00:00Z',
+  },
+  {
+    id: 'voter-002',
+    email: 'james.smith@example.com',
+    password: 'Voter@123456',
+    name: 'James Smith',
+    role: 'voter',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=james',
+    profile: {
+      bio: 'Artist and Designer',
+      location: 'Sydney, Australia',
+      verified: true,
+      verificationDate: '2024-03-02',
+    },
+    preferences: {
+      emailNotifications: false,
+      pushNotifications: false,
+      theme: 'light',
+      language: 'en',
+      twoFactorEnabled: false,
+    },
+    createdAt: '2024-03-02T16:00:00Z',
+  },
+  {
+    id: 'voter-003',
+    email: 'lisa.anderson@example.com',
+    password: 'Voter@123456',
+    name: 'Lisa Anderson',
+    role: 'voter',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=lisa',
+    profile: {
+      bio: 'Creative Director',
+      location: 'Berlin, Germany',
+      verified: true,
+      verificationDate: '2024-03-03',
+    },
+    preferences: {
+      emailNotifications: true,
+      pushNotifications: true,
+      theme: 'dark',
+      language: 'de',
+      twoFactorEnabled: true,
+    },
+    createdAt: '2024-03-03T08:30:00Z',
+  },
+];
+
+/**
+ * Authenticate user with email and password
+ * Returns user without password if authentication succeeds
+ */
+export function authenticateUser(email: string, password: string): User | null {
+  const user = mockUsers.find(
+    (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+  );
+
+  if (!user) {
+    return null;
+  }
+
+  // Return user without password
+  const { password: _, ...userWithoutPassword } = user;
+  return userWithoutPassword as any;
+}
+
+/**
+ * Get user by ID
+ */
+export function getUserById(id: string): User | null {
+  const user = mockUsers.find((u) => u.id === id);
+  if (!user) return null;
+
+  const { password: _, ...userWithoutPassword } = user;
+  return userWithoutPassword as any;
+}
+
+/**
+ * Get user by email
+ */
+export function getUserByEmail(email: string): User | null {
+  const user = mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
+  if (!user) return null;
+
+  const { password: _, ...userWithoutPassword } = user;
+  return userWithoutPassword as any;
+}
