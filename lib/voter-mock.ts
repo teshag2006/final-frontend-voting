@@ -50,7 +50,7 @@ export const mockVoterVotes = {
       contestant: {
         firstName: 'Lydia',
         lastName: 'Mensa',
-        profileImageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
+        profileImageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
       },
       freeVotes: 3,
       paidVotes: 15,
@@ -64,7 +64,7 @@ export const mockVoterVotes = {
       contestant: {
         firstName: 'Lydia',
         lastName: 'Mensa',
-        profileImageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
+        profileImageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
       },
       freeVotes: 0,
       paidVotes: 10,
@@ -78,7 +78,7 @@ export const mockVoterVotes = {
       contestant: {
         firstName: 'Kojo',
         lastName: 'Danquah',
-        profileImageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200',
+        profileImageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
       },
       freeVotes: 2,
       paidVotes: 8,

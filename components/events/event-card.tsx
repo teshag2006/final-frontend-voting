@@ -28,7 +28,9 @@ export function EventCard({ event, featured = false }: EventCardProps) {
             src={event.banner_url || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&h=400&fit=crop'}
             alt={event.name}
             fill
-            className="object-cover hover:scale-105 transition-transform duration-300"
+            className="object-cover hover:scale-105 transition-transform duration-300 w-full h-full"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={featured}
           />
           <div className="absolute top-4 right-4 z-10">
             <Badge className={statusClass}>{statusLabel}</Badge>
