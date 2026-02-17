@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, DM_Sans } from 'next/font/google'
 import { AuthProvider } from '@/context/AuthContext'
 import { AutoSignInWrapper } from '@/components/auth/auto-signin-wrapper'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { OfflineIndicator } from '@/components/common/offline-indicator'
+import { Toaster } from '@/components/ui/toaster'
 
 import './globals.css'
 
@@ -34,11 +37,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
       <body className="font-sans antialiased">
-        <AuthProvider>
-          <AutoSignInWrapper>
-            {children}
-          </AutoSignInWrapper>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <AutoSignInWrapper>
+              {children}
+              <OfflineIndicator />
+              <Toaster />
+            </AutoSignInWrapper>
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )
