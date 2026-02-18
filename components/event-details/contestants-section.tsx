@@ -17,13 +17,13 @@ export function ContestantsSection({
   const [filterCategory, setFilterCategory] = useState<string>("all");
 
   const categories = Array.from(
-    new Set(contestants.map((c) => c.category_name))
+    new Set(contestants.map((c) => (c as any).category_name || (c as any).category || 'General'))
   );
 
   const filtered =
     filterCategory === "all"
       ? contestants
-      : contestants.filter((c) => c.category_name === filterCategory);
+      : contestants.filter((c) => ((c as any).category_name || (c as any).category) === filterCategory);
 
   return (
     <section>
