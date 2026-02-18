@@ -1,5 +1,3 @@
-'use server';
-
 export type FeatureFlagKey =
   | 'blockchain_anchor'
   | 'otp_requirement'

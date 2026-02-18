@@ -26,6 +26,10 @@ export function EventContestantCard({
   disabled = false,
   className,
 }: EventContestantCardProps) {
+  const contestantSlug = (contestant as any).slug || contestant.id;
+  const eventSlug = (contestant as any).event_slug || (contestant as any).eventSlug || "miss-africa-2024";
+  const profileHref = `/events/${eventSlug}/contestant/${contestantSlug}`;
+  const voteHref = `${profileHref}/vote`;
   const imageSrc =
     (contestant as any).photo_url ||
     (contestant as any).image_url ||
@@ -114,15 +118,15 @@ export function EventContestantCard({
           </button>
         ) : (
           <Link
-            href={`/vote/${contestant.id}`}
+            href={voteHref}
             className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-accent-foreground transition-all hover:bg-accent/90 active:scale-[0.97]"
           >
-            En Vote
+            Vote Now
             <ChevronRight className="h-3 w-3" />
           </Link>
         )}
         <Link
-          href={`/contestant/${contestant.id}`}
+          href={profileHref}
           className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
           Profile

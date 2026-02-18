@@ -58,7 +58,7 @@ export function TermsConsent({
             className="text-sm text-white/80 leading-relaxed cursor-pointer"
           >
             I agree to the{' '}
-            <a href="#" className="text-accent hover:underline font-semibold">
+            <a href="/terms" className="text-accent hover:underline font-semibold">
               terms & conditions
             </a>
           </Label>

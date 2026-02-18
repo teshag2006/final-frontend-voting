@@ -33,7 +33,7 @@ interface PaymentFiltersProps {
 }
 
 const statuses = [
-  { value: '', label: 'All Statuses' },
+  { value: 'all', label: 'All Statuses' },
   { value: 'PENDING', label: 'Pending' },
   { value: 'COMPLETED', label: 'Completed' },
   { value: 'FAILED', label: 'Failed' },
@@ -42,7 +42,7 @@ const statuses = [
 ];
 
 const fraudRisks = [
-  { value: '', label: 'All Risk Levels' },
+  { value: 'all', label: 'All Risk Levels' },
   { value: 'Low', label: 'Low' },
   { value: 'Medium', label: 'Medium' },
   { value: 'High', label: 'High' },
@@ -102,9 +102,10 @@ export function PaymentFilters({
 
         {/* Status */}
         <div className="w-full sm:w-40">
-          <Select value={filters.status} onValueChange={(value) =>
-            onFiltersChange({ ...filters, status: value })
-          }>
+          <Select
+            value={filters.status || 'all'}
+            onValueChange={(value) => onFiltersChange({ ...filters, status: value === 'all' ? '' : value })}
+          >
             <SelectTrigger disabled={isLoading} aria-label="Filter by status">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
@@ -122,14 +123,15 @@ export function PaymentFilters({
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Event */}
         <div className="flex-1">
-          <Select value={filters.event} onValueChange={(value) =>
-            onFiltersChange({ ...filters, event: value })
-          }>
+          <Select
+            value={filters.event || 'all'}
+            onValueChange={(value) => onFiltersChange({ ...filters, event: value === 'all' ? '' : value })}
+          >
             <SelectTrigger disabled={isLoading} aria-label="Filter by event">
               <SelectValue placeholder="All Events" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Events</SelectItem>
+              <SelectItem value="all">All Events</SelectItem>
               {events.map((e) => (
                 <SelectItem key={e.id} value={e.id}>
                   {e.name}
@@ -141,14 +143,15 @@ export function PaymentFilters({
 
         {/* Gateway */}
         <div className="flex-1">
-          <Select value={filters.gateway} onValueChange={(value) =>
-            onFiltersChange({ ...filters, gateway: value })
-          }>
+          <Select
+            value={filters.gateway || 'all'}
+            onValueChange={(value) => onFiltersChange({ ...filters, gateway: value === 'all' ? '' : value })}
+          >
             <SelectTrigger disabled={isLoading} aria-label="Filter by payment gateway">
               <SelectValue placeholder="All Gateways" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Gateways</SelectItem>
+              <SelectItem value="all">All Gateways</SelectItem>
               {gateways.map((g) => (
                 <SelectItem key={g} value={g}>
                   {g}
@@ -160,9 +163,10 @@ export function PaymentFilters({
 
         {/* Fraud Risk */}
         <div className="flex-1">
-          <Select value={filters.fraudRisk} onValueChange={(value) =>
-            onFiltersChange({ ...filters, fraudRisk: value })
-          }>
+          <Select
+            value={filters.fraudRisk || 'all'}
+            onValueChange={(value) => onFiltersChange({ ...filters, fraudRisk: value === 'all' ? '' : value })}
+          >
             <SelectTrigger disabled={isLoading} aria-label="Filter by fraud risk">
               <SelectValue placeholder="All Risk Levels" />
             </SelectTrigger>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { ReactNode } from 'react';
 import { ProtectedRouteWrapper } from '@/components/auth/protected-route-wrapper';
+import { AdminShell } from '@/components/admin/admin-shell';
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard',
@@ -18,7 +19,7 @@ export default function AdminLayout({
       autoSignInWith="admin"
       fallbackUrl="/events"
     >
-      {children}
+      <AdminShell>{children}</AdminShell>
     </ProtectedRouteWrapper>
   );
 }

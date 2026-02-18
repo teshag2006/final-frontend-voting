@@ -118,12 +118,16 @@ export function FraudFilters({
       </div>
 
       {/* Risk Level */}
-      <Select value={filters.riskLevel} onValueChange={(val) => handleFilterChange('riskLevel', val)} disabled={isLoading}>
+      <Select
+        value={filters.riskLevel || 'all'}
+        onValueChange={(val) => handleFilterChange('riskLevel', val === 'all' ? '' : val)}
+        disabled={isLoading}
+      >
         <SelectTrigger>
           <SelectValue placeholder="Risk Level: All" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Levels</SelectItem>
+          <SelectItem value="all">All Levels</SelectItem>
           <SelectItem value="LOW">Low (0-30)</SelectItem>
           <SelectItem value="MEDIUM">Medium (31-60)</SelectItem>
           <SelectItem value="HIGH">High (61-80)</SelectItem>
@@ -132,12 +136,16 @@ export function FraudFilters({
       </Select>
 
       {/* Status */}
-      <Select value={filters.status} onValueChange={(val) => handleFilterChange('status', val)} disabled={isLoading}>
+      <Select
+        value={filters.status || 'all'}
+        onValueChange={(val) => handleFilterChange('status', val === 'all' ? '' : val)}
+        disabled={isLoading}
+      >
         <SelectTrigger>
           <SelectValue placeholder="Status: All" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Statuses</SelectItem>
+          <SelectItem value="all">All Statuses</SelectItem>
           <SelectItem value="OPEN">Open</SelectItem>
           <SelectItem value="REVIEWED">Reviewed</SelectItem>
           <SelectItem value="BLOCKED">Blocked</SelectItem>
@@ -146,12 +154,16 @@ export function FraudFilters({
       </Select>
 
       {/* Fraud Type */}
-      <Select value={filters.fraudType} onValueChange={(val) => handleFilterChange('fraudType', val)} disabled={isLoading}>
+      <Select
+        value={filters.fraudType || 'all'}
+        onValueChange={(val) => handleFilterChange('fraudType', val === 'all' ? '' : val)}
+        disabled={isLoading}
+      >
         <SelectTrigger>
           <SelectValue placeholder="Type: All" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Types</SelectItem>
+          <SelectItem value="all">All Types</SelectItem>
           <SelectItem value="VOTE">Vote</SelectItem>
           <SelectItem value="PAYMENT">Payment</SelectItem>
           <SelectItem value="LOGIN">Login</SelectItem>
@@ -160,12 +172,16 @@ export function FraudFilters({
 
       {/* Event */}
       {eventOptions.length > 0 && (
-        <Select value={filters.event} onValueChange={(val) => handleFilterChange('event', val)} disabled={isLoading}>
+        <Select
+          value={filters.event || 'all'}
+          onValueChange={(val) => handleFilterChange('event', val === 'all' ? '' : val)}
+          disabled={isLoading}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Event: All" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Events</SelectItem>
+            <SelectItem value="all">All Events</SelectItem>
             {eventOptions.map((event) => (
               <SelectItem key={event} value={event}>
                 {event}

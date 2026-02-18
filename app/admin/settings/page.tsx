@@ -138,14 +138,64 @@ export default function SettingsPage() {
         <TabsContent value="event">
           <Card className="p-6">
             <h3 className="font-semibold text-slate-900 mb-6">Event Configuration</h3>
-            <p className="text-slate-600">Event configuration panel coming soon...</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Auto Publish Results</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {eventSettings.autoPublishResults ? 'Enabled' : 'Disabled'}
+                </p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Schedule Edits After Launch</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {eventSettings.allowScheduleEditsAfterLaunch ? 'Allowed' : 'Blocked'}
+                </p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Default Voting Duration</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {eventSettings.defaultVotingDurationHours} hours
+                </p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Max Contestants Per Category</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {eventSettings.maxContestantsPerCategory}
+                </p>
+              </div>
+            </div>
+            <div className="mt-6">
+              <Button onClick={() => handleSave('Event', eventSettings)}>Save Event Settings</Button>
+            </div>
           </Card>
         </TabsContent>
 
         <TabsContent value="payment">
           <Card className="p-6">
             <h3 className="font-semibold text-slate-900 mb-6">Payment Configuration</h3>
-            <p className="text-slate-600">Payment configuration panel coming soon...</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Primary Provider</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">{paymentSettings.primaryProvider}</p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Fallback Provider</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">{paymentSettings.fallbackProvider}</p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Settlement Currency</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">{paymentSettings.currency}</p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Retry Failed Payments</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {paymentSettings.retryFailedPayments ? 'Enabled' : 'Disabled'}
+                </p>
+              </div>
+            </div>
+            <div className="mt-6">
+              <Button onClick={() => handleSave('Payment', paymentSettings)}>Save Payment Settings</Button>
+            </div>
           </Card>
         </TabsContent>
 
@@ -162,21 +212,85 @@ export default function SettingsPage() {
         <TabsContent value="fraud">
           <Card className="p-6">
             <h3 className="font-semibold text-slate-900 mb-6">Fraud Detection Settings</h3>
-            <p className="text-slate-600">Fraud detection configuration panel coming soon...</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Velocity Threshold / Min</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">{fraudSettings.velocityThresholdPerMinute}</p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Trust Score Threshold</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">{fraudSettings.trustScoreThreshold}</p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Auto Block Critical Risk</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {fraudSettings.autoBlockCriticalRisk ? 'Enabled' : 'Disabled'}
+                </p>
+              </div>
+            </div>
+            <div className="mt-6">
+              <Button onClick={() => handleSave('Fraud Detection', fraudSettings)}>Save Fraud Settings</Button>
+            </div>
           </Card>
         </TabsContent>
 
         <TabsContent value="blockchain">
           <Card className="p-6">
             <h3 className="font-semibold text-slate-900 mb-6">Blockchain Settings</h3>
-            <p className="text-slate-600">Blockchain configuration panel coming soon...</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Network</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">{blockchainSettings.network}</p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Anchor Interval</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {blockchainSettings.autoAnchorIntervalMinutes} minutes
+                </p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Retry Attempts</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">{blockchainSettings.retries}</p>
+              </div>
+            </div>
+            <div className="mt-6">
+              <Button onClick={() => handleSave('Blockchain', blockchainSettings)}>Save Blockchain Settings</Button>
+            </div>
           </Card>
         </TabsContent>
 
         <TabsContent value="notifications">
           <Card className="p-6">
             <h3 className="font-semibold text-slate-900 mb-6">Notification Settings</h3>
-            <p className="text-slate-600">Notification configuration panel coming soon...</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Email Notifications</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {notificationSettings.emailEnabled ? 'Enabled' : 'Disabled'}
+                </p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">SMS Notifications</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {notificationSettings.smsEnabled ? 'Enabled' : 'Disabled'}
+                </p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">In-App Notifications</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {notificationSettings.inAppEnabled ? 'Enabled' : 'Disabled'}
+                </p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Critical Alerts Only</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {notificationSettings.criticalAlertsOnly ? 'Enabled' : 'Disabled'}
+                </p>
+              </div>
+            </div>
+            <div className="mt-6">
+              <Button onClick={() => handleSave('Notifications', notificationSettings)}>Save Notification Settings</Button>
+            </div>
           </Card>
         </TabsContent>
 

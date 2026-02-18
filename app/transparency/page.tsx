@@ -40,7 +40,7 @@ export default function TransparencyPage() {
                 <p className="text-sm text-gray-600">
                   <span className="font-bold">Block Number:</span> 19,450,234
                 </p>
-                <a href="#" className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1 mt-2">
+                <a href="/verify" className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1 mt-2">
                   View on Blockchain Explorer <ExternalLink className="h-3 w-3" />
                 </a>
               </div>

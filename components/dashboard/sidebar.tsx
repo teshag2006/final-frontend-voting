@@ -16,15 +16,15 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { href: '/contestant/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/contestant/ranking', label: 'Ranking', icon: Award },
-  { href: '/contestant/analytics', label: 'Vote Analytics', icon: BarChart3 },
-  { href: '/contestant/revenue', label: 'Revenue', icon: DollarSign },
-  { href: '/contestant/security', label: 'Trust & Security', icon: Shield },
-  { href: '/contestant/geographic', label: 'Geographic Votes', icon: Globe },
-  { href: '/contestant/sponsors', label: 'Sponsors', icon: Users },
-  { href: '/contestant/event', label: 'Event Details', icon: Calendar },
-  { href: '/contestant/notifications', label: 'Notifications', icon: Bell },
+  { href: '/events/contestant/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/events/contestant/ranking', label: 'Ranking', icon: Award },
+  { href: '/events/contestant/analytics', label: 'Vote Analytics', icon: BarChart3 },
+  { href: '/events/contestant/revenue', label: 'Revenue', icon: DollarSign },
+  { href: '/events/contestant/security', label: 'Trust & Security', icon: Shield },
+  { href: '/events/contestant/geographic', label: 'Geographic Votes', icon: Globe },
+  { href: '/events/contestant/sponsors', label: 'Sponsors', icon: Users },
+  { href: '/events/contestant/event', label: 'Event Details', icon: Calendar },
+  { href: '/events/contestant/notifications', label: 'Notifications', icon: Bell },
 ];
 
 export function DashboardSidebar() {

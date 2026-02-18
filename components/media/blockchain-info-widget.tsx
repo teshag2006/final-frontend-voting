@@ -12,6 +12,10 @@ export function BlockchainInfoWidget({ blockchain }: BlockchainInfoWidgetProps) 
   const anchorHash = blockchain?.latestAnchor?.transactionHash || '0xabc1234...789def';
   const blockNumber = blockchain?.latestAnchor?.blockNumber || 12894567;
   const timestamp = blockchain?.latestAnchor?.timestamp || 'Apr 24, 2024. 10:15 AM';
+  const explorerUrl =
+    typeof anchorHash === 'string' && anchorHash.startsWith('0x') && !anchorHash.includes('...')
+      ? `https://polygonscan.com/tx/${anchorHash}`
+      : 'https://polygonscan.com';
 
   return (
     <Card className="p-4 border-0 bg-white shadow-sm">
@@ -42,7 +46,7 @@ export function BlockchainInfoWidget({ blockchain }: BlockchainInfoWidgetProps) 
           className="w-full gap-2 border-blue-200 text-blue-600 hover:bg-blue-50"
           asChild
         >
-          <a href="#" target="_blank" rel="noopener noreferrer">
+          <a href={explorerUrl} target="_blank" rel="noopener noreferrer">
             <LinkIcon className="w-4 h-4" />
             View on Blockchain Explorer
           </a>

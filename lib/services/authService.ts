@@ -66,6 +66,10 @@ class AuthService {
       // Generate tokens (in production, call backend)
       const tokens = this.generateTokens(tokenPayload);
 
+      // Persist user identity metadata for middleware and session restoration.
+      localStorage.setItem('auth_user_id', tokenPayload.id);
+      localStorage.setItem('auth_user_role', tokenPayload.role);
+
       // Store tokens securely
       this.storeTokens(tokens);
 
@@ -261,6 +265,17 @@ class AuthService {
     localStorage.setItem('auth_token', tokens.token);
     localStorage.setItem('refresh_token', tokens.refreshToken);
     localStorage.setItem('token_expires_at', tokens.expiresAt.toString());
+
+    // Mirror auth state in cookies so Next.js middleware can authorize routes.
+    if (typeof document !== 'undefined') {
+      const expires = new Date(tokens.expiresAt).toUTCString();
+      document.cookie = `auth_token=${encodeURIComponent(tokens.token)}; path=/; expires=${expires}; SameSite=Lax`;
+
+      const role = localStorage.getItem('auth_user_role');
+      if (role) {
+        document.cookie = `user_role=${encodeURIComponent(role)}; path=/; expires=${expires}; SameSite=Lax`;
+      }
+    }
   }
 
   /**

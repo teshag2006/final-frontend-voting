@@ -28,7 +28,7 @@ interface ContestantFiltersProps {
 }
 
 const statusOptions = [
-  { value: '', label: 'All Statuses' },
+  { value: 'all', label: 'All Statuses' },
   { value: 'PENDING', label: 'Pending' },
   { value: 'APPROVED', label: 'Approved' },
   { value: 'REJECTED', label: 'Rejected' },
@@ -82,12 +82,16 @@ export function ContestantFilters({
           />
         </div>
 
-        <Select value={filters.category} onValueChange={(value) => onFiltersChange({ ...filters, category: value })} disabled={isLoading}>
+        <Select
+          value={filters.category || 'all'}
+          onValueChange={(value) => onFiltersChange({ ...filters, category: value === 'all' ? '' : value })}
+          disabled={isLoading}
+        >
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
             {categories.map((cat) => (
               <SelectItem key={cat.id} value={cat.id}>
                 {cat.name}
@@ -96,7 +100,11 @@ export function ContestantFilters({
           </SelectContent>
         </Select>
 
-        <Select value={filters.status} onValueChange={(value) => onFiltersChange({ ...filters, status: value })} disabled={isLoading}>
+        <Select
+          value={filters.status || 'all'}
+          onValueChange={(value) => onFiltersChange({ ...filters, status: value === 'all' ? '' : value })}
+          disabled={isLoading}
+        >
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>

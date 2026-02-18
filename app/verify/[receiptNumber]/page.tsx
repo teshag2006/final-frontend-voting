@@ -91,11 +91,11 @@ export default async function VerifyDetailPage({
           detection and blockchain anchoring system.
         </p>
         <div className="flex justify-center gap-4 text-xs">
-          <a href="#" className="hover:text-slate-900">
+          <a href="/terms" className="hover:text-slate-900">
             Terms & Conditions
           </a>
           <span>•</span>
-          <a href="#" className="hover:text-slate-900">
+          <a href="/privacy" className="hover:text-slate-900">
             Privacy Policy
           </a>
           <span>•</span>

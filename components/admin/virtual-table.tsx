@@ -132,11 +132,11 @@ export function VirtualTable<T extends Record<string, any>>({
           .map((col) => (
             <Select
               key={String(col.key)}
-              value={filters[col.key] || ''}
+              value={filters[col.key] || 'all'}
               onValueChange={(value) =>
                 setFilters((prev) => ({
                   ...prev,
-                  [col.key]: value || undefined,
+                  [col.key]: value === 'all' ? undefined : value,
                 }))
               }
             >
@@ -144,7 +144,7 @@ export function VirtualTable<T extends Record<string, any>>({
                 <SelectValue placeholder={`Filter by ${col.label}`} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 {Array.from(new Set(data.map((row) => row[col.key]))).map((val) => (
                   <SelectItem key={String(val)} value={String(val)}>
                     {String(val)}

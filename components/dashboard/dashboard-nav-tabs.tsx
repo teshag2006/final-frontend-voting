@@ -21,47 +21,47 @@ export function DashboardNavTabs() {
   const tabs = [
     {
       name: 'Overview',
-      href: '/contestant/dashboard',
+      href: '/events/contestant/dashboard',
       icon: LayoutDashboard,
     },
     {
       name: 'Ranking',
-      href: '/contestant/ranking',
+      href: '/events/contestant/ranking',
       icon: TrendingUp,
     },
     {
       name: 'Analytics',
-      href: '/contestant/analytics',
+      href: '/events/contestant/analytics',
       icon: BarChart3,
     },
     {
       name: 'Revenue',
-      href: '/contestant/revenue',
+      href: '/events/contestant/revenue',
       icon: DollarSign,
     },
     {
       name: 'Security',
-      href: '/contestant/security',
+      href: '/events/contestant/security',
       icon: Shield,
     },
     {
       name: 'Geographic',
-      href: '/contestant/geographic',
+      href: '/events/contestant/geographic',
       icon: Globe,
     },
     {
       name: 'Sponsors',
-      href: '/contestant/sponsors',
+      href: '/events/contestant/sponsors',
       icon: Handshake,
     },
     {
       name: 'Event',
-      href: '/contestant/event',
+      href: '/events/contestant/event',
       icon: Calendar,
     },
     {
       name: 'Notifications',
-      href: '/contestant/notifications',
+      href: '/events/contestant/notifications',
       icon: Bell,
     },
   ];

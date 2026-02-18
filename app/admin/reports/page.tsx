@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,27 +104,134 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="revenue">
-          <Card className="p-8 text-center">
-            <p className="text-slate-600">Revenue & Payments reporting interface coming soon...</p>
-          </Card>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <Card className="p-4">
+                <p className="text-sm text-slate-600">Total Transactions</p>
+                <p className="mt-1 text-2xl font-bold text-slate-900">{paymentMetrics.totalTransactions.toLocaleString()}</p>
+              </Card>
+              <Card className="p-4">
+                <p className="text-sm text-slate-600">Success Rate</p>
+                <p className="mt-1 text-2xl font-bold text-emerald-700">{paymentMetrics.successRate}%</p>
+              </Card>
+              <Card className="p-4">
+                <p className="text-sm text-slate-600">Average Ticket Size</p>
+                <p className="mt-1 text-2xl font-bold text-slate-900">${paymentMetrics.averageTicketSize}</p>
+              </Card>
+            </div>
+            <Card className="overflow-hidden">
+              <div className="border-b p-4">
+                <h3 className="font-semibold text-slate-900">Gateway Breakdown</h3>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Provider</TableHead>
+                    <TableHead className="text-right">Amount (USD)</TableHead>
+                    <TableHead className="text-right">Share</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paymentMetrics.providers.map((provider: any) => {
+                    const total = paymentMetrics.providers.reduce((sum: number, p: any) => sum + p.amount, 0);
+                    const share = total > 0 ? ((provider.amount / total) * 100).toFixed(1) : '0.0';
+                    return (
+                      <TableRow key={provider.name}>
+                        <TableCell className="font-medium">{provider.name}</TableCell>
+                        <TableCell className="text-right">${provider.amount.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{share}%</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="fraud">
-          <Card className="p-8 text-center">
-            <p className="text-slate-600">Fraud & Risk analysis interface coming soon...</p>
-          </Card>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+              <Card className="p-4">
+                <p className="text-sm text-slate-600">Total Cases</p>
+                <p className="mt-1 text-2xl font-bold text-slate-900">{fraudMetrics.totalCases}</p>
+              </Card>
+              <Card className="p-4">
+                <p className="text-sm text-slate-600">Resolved Cases</p>
+                <p className="mt-1 text-2xl font-bold text-emerald-700">{fraudMetrics.resolvedCases}</p>
+              </Card>
+              <Card className="p-4">
+                <p className="text-sm text-slate-600">Critical Cases</p>
+                <p className="mt-1 text-2xl font-bold text-red-700">{fraudMetrics.criticalCases}</p>
+              </Card>
+              <Card className="p-4">
+                <p className="text-sm text-slate-600">Votes Removed</p>
+                <p className="mt-1 text-2xl font-bold text-amber-700">{fraudMetrics.votesRemoved.toLocaleString()}</p>
+              </Card>
+            </div>
+            <Card className="p-6">
+              <h3 className="font-semibold text-slate-900">Risk Posture</h3>
+              <p className="mt-2 text-sm text-slate-600">
+                Mock analytics indicate elevated fraud pressure in high-volume windows. Queue depth and review throughput are healthy.
+              </p>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="logs">
-          <Card className="p-8 text-center">
-            <p className="text-slate-600">System logs and audit trails interface coming soon...</p>
+          <Card className="overflow-hidden">
+            <div className="border-b p-4">
+              <h3 className="font-semibold text-slate-900">System Logs</h3>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Log ID</TableHead>
+                  <TableHead>Level</TableHead>
+                  <TableHead>Message</TableHead>
+                  <TableHead className="text-right">Timestamp</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {systemLogs.map((log: any) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="font-medium">{log.id}</TableCell>
+                    <TableCell>{log.level}</TableCell>
+                    <TableCell>{log.message}</TableCell>
+                    <TableCell className="text-right text-xs text-slate-500">
+                      {new Date(log.timestamp).toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </Card>
         </TabsContent>
 
         <TabsContent value="custom">
-          <Card className="p-8 text-center">
-            <p className="text-slate-600">Custom report builder interface coming soon...</p>
-          </Card>
+          <div className="space-y-6">
+            <Card className="p-6">
+              <h3 className="font-semibold text-slate-900">Saved Report Templates</h3>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border p-4">
+                  <p className="font-medium text-slate-900">Revenue Reconciliation</p>
+                  <p className="mt-1 text-sm text-slate-600">Payments, refunds, and payout consistency checks.</p>
+                </div>
+                <div className="rounded-lg border p-4">
+                  <p className="font-medium text-slate-900">Fraud Escalation Digest</p>
+                  <p className="mt-1 text-sm text-slate-600">Critical cases with unresolved actions and SLA timers.</p>
+                </div>
+                <div className="rounded-lg border p-4">
+                  <p className="font-medium text-slate-900">Contestant Momentum</p>
+                  <p className="mt-1 text-sm text-slate-600">Daily voting trend, rank movement, and conversion signals.</p>
+                </div>
+                <div className="rounded-lg border p-4">
+                  <p className="font-medium text-slate-900">Operational Health</p>
+                  <p className="mt-1 text-sm text-slate-600">Queue throughput, cache hit rates, and webhook reliability.</p>
+                </div>
+              </div>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

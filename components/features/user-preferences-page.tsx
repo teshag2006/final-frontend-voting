@@ -145,7 +145,7 @@ export function UserPreferencesPage({
           <Alert>
             <AlertDescription>
               Your data is always encrypted and never sold to third parties. Read our{' '}
-              <a href="#" className="text-accent hover:underline">
+              <a href="/privacy" className="text-accent hover:underline">
                 privacy policy
               </a>
               .

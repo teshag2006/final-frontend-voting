@@ -26,23 +26,19 @@ export default function VoterDashboard() {
   };
 
   const handleVoteClick = () => {
-    // In production, navigate to vote selection page
-    console.log('Vote clicked');
+    router.push('/events');
   };
 
   const handleBuyMoreVotes = () => {
-    // In production, navigate to purchase page
-    console.log('Buy more votes clicked');
+    router.push('/vote/checkout');
   };
 
   const handleManageSessions = () => {
-    // In production, open sessions modal
-    console.log('Manage sessions clicked');
+    router.push('/voter/settings');
   };
 
   const handleReVerify = () => {
-    // In production, open verification modal
-    console.log('Re-verify clicked');
+    router.push('/verify-phone');
   };
 
   return (
@@ -135,15 +131,15 @@ export default function VoterDashboard() {
           <div className="text-center text-xs text-muted-foreground sm:text-sm">
             <p>© 2026 Campus Star. All votes are secured and blockchain-anchored.</p>
             <p className="mt-2">
-              <a href="#" className="text-primary hover:underline">
+              <a href="/privacy" className="text-primary hover:underline">
                 Privacy Policy
               </a>
               {' • '}
-              <a href="#" className="text-primary hover:underline">
+              <a href="/terms" className="text-primary hover:underline">
                 Terms of Service
               </a>
               {' • '}
-              <a href="#" className="text-primary hover:underline">
+              <a href="/notifications" className="text-primary hover:underline">
                 Contact Support
               </a>
             </p>

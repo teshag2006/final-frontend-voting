@@ -1,5 +1,3 @@
-'use server';
-
 /**
  * Announcement Service - Manage admin announcements and system banners
  */
