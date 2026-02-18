@@ -70,14 +70,24 @@ class AuthService {
       // Store tokens securely (synchronous)
       this.storeTokens(tokens);
 
-      // Store user role in localStorage
-      localStorage.setItem('auth_user_id', user.id);
-      localStorage.setItem('auth_user_role', user.role);
+      // Store user role in localStorage (only in browser)
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        try {
+          localStorage.setItem('auth_user_id', user.id);
+          localStorage.setItem('auth_user_role', user.role);
+        } catch (e) {
+          console.error('[v0] Failed to set localStorage:', e);
+        }
+      }
       
-      // Set cookies for middleware (async but non-blocking)
+      // Set cookies for middleware (async but non-blocking, only in browser)
       if (typeof document !== 'undefined') {
-        document.cookie = `user_role=${user.role}; path=/; max-age=3600; SameSite=Lax`;
-        document.cookie = `auth_token=${tokens.token}; path=/; max-age=3600; SameSite=Lax`;
+        try {
+          document.cookie = `user_role=${user.role}; path=/; max-age=3600; SameSite=Lax`;
+          document.cookie = `auth_token=${tokens.token}; path=/; max-age=3600; SameSite=Lax`;
+        } catch (e) {
+          console.error('[v0] Failed to set cookie:', e);
+        }
       }
 
       // Set up automatic token refresh in the background
@@ -102,50 +112,67 @@ class AuthService {
    * Logout - Clear tokens and cleanup
    */
   logout(): void {
-    // Clear tokens
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('token_expires_at');
+    // Clear tokens (only in browser)
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('token_expires_at');
+        localStorage.removeItem('auth_user_id');
+        localStorage.removeItem('auth_user_role');
+      } catch (e) {
+        console.error('[v0] Failed to clear localStorage:', e);
+      }
+    }
 
     // Clear cookies (in production)
     this.clearAuthCookies();
 
     // Stop token refresh
     this.stopTokenRefresh();
-
-    // Clear user session
-    localStorage.removeItem('auth_user_id');
-    localStorage.removeItem('auth_user_role');
   }
 
   /**
    * Validate token expiry and refresh if needed
    */
   async validateToken(): Promise<boolean> {
-    const expiresAt = localStorage.getItem('token_expires_at');
-    if (!expiresAt) return false;
-
-    const expirationTime = parseInt(expiresAt, 10);
-    const now = Date.now();
-
-    // Token expired
-    if (now > expirationTime) {
-      this.logout();
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
       return false;
     }
 
-    // Token expiring soon, refresh proactively
-    if (now > expirationTime - this.TOKEN_EXPIRY_BUFFER) {
-      await this.refreshToken();
-    }
+    try {
+      const expiresAt = localStorage.getItem('token_expires_at');
+      if (!expiresAt) return false;
 
-    return true;
+      const expirationTime = parseInt(expiresAt, 10);
+      const now = Date.now();
+
+      // Token expired
+      if (now > expirationTime) {
+        this.logout();
+        return false;
+      }
+
+      // Token expiring soon, refresh proactively
+      if (now > expirationTime - this.TOKEN_EXPIRY_BUFFER) {
+        await this.refreshToken();
+      }
+
+      return true;
+    } catch (e) {
+      console.error('[v0] Token validation error:', e);
+      return false;
+    }
   }
 
   /**
    * Refresh access token using refresh token
    */
   async refreshToken(): Promise<boolean> {
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return false;
+    }
+
     try {
       const refreshToken = localStorage.getItem('refresh_token');
       if (!refreshToken) return false;
@@ -177,6 +204,7 @@ class AuthService {
 
       return true;
     } catch (error) {
+      console.error('[v0] Token refresh error:', error);
       this.logout();
       return false;
     }
@@ -269,14 +297,24 @@ class AuthService {
    */
   private storeTokens(tokens: TokenData): void {
     // Use localStorage for now (in production, use HttpOnly cookies)
-    localStorage.setItem('auth_token', tokens.token);
-    localStorage.setItem('refresh_token', tokens.refreshToken);
-    localStorage.setItem('token_expires_at', tokens.expiresAt.toString());
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('auth_token', tokens.token);
+        localStorage.setItem('refresh_token', tokens.refreshToken);
+        localStorage.setItem('token_expires_at', tokens.expiresAt.toString());
+      } catch (e) {
+        console.error('[v0] Failed to store tokens:', e);
+      }
+    }
 
     // Also set cookies for middleware to read during SSR/route protection
     if (typeof document !== 'undefined') {
-      // Set auth_token cookie
-      document.cookie = `auth_token=${tokens.token}; path=/; max-age=3600; SameSite=Lax`;
+      try {
+        // Set auth_token cookie
+        document.cookie = `auth_token=${tokens.token}; path=/; max-age=3600; SameSite=Lax`;
+      } catch (e) {
+        console.error('[v0] Failed to set auth cookie:', e);
+      }
     }
   }
 

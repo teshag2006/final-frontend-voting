@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, DM_Sans } from 'next/font/google'
 import { AuthProvider } from '@/context/AuthContext'
-import { AutoSignInWrapper } from '@/components/auth/auto-signin-wrapper'
-import { ErrorBoundary } from '@/components/ui/error-boundary'
-import { OfflineIndicator } from '@/components/common/offline-indicator'
 import { Toaster } from '@/components/ui/toaster'
 
 import './globals.css'
@@ -34,19 +31,27 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return (
-    <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
-      <body className="font-sans antialiased">
-        <ErrorBoundary>
+  try {
+    return (
+      <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
+        <body className="font-sans antialiased">
           <AuthProvider>
-            <AutoSignInWrapper>
-              {children}
-              <OfflineIndicator />
-              <Toaster />
-            </AutoSignInWrapper>
+            {children}
+            <Toaster />
           </AuthProvider>
-        </ErrorBoundary>
-      </body>
-    </html>
-  )
+        </body>
+      </html>
+    )
+  } catch (error) {
+    console.error('[v0] Root layout error:', error)
+    return (
+      <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
+        <body className="font-sans antialiased">
+          <div className="flex items-center justify-center min-h-screen">
+            <p>An error occurred during initialization. Please refresh the page.</p>
+          </div>
+        </body>
+      </html>
+    )
+  }
 }

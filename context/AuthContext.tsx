@@ -45,35 +45,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkExistingAuth = () => {
       setIsLoading(true);
       try {
+        // Check if we're in browser environment
+        if (typeof window === 'undefined') {
+          setIsLoading(false);
+          return;
+        }
+
         // Use synchronous check with localStorage - faster than async
-        const storedUserId = localStorage.getItem('auth_user_id');
-        const storedRole = localStorage.getItem('auth_user_role');
+        const storedUserId = localStorage?.getItem?.('auth_user_id');
+        const storedRole = localStorage?.getItem?.('auth_user_role');
         
         if (storedUserId && storedRole) {
-          const retrievedUser = getUserById(storedUserId);
-          if (retrievedUser) {
-            const { password: _, ...userWithoutPassword } = retrievedUser as any;
-            setUser(userWithoutPassword as AuthUser);
-          } else {
-            // User not found, clear auth
-            localStorage.removeItem('auth_user_id');
-            localStorage.removeItem('auth_user_role');
-            localStorage.removeItem('auth_token');
+          try {
+            const retrievedUser = getUserById(storedUserId);
+            if (retrievedUser) {
+              const { password: _, ...userWithoutPassword } = retrievedUser as any;
+              setUser(userWithoutPassword as AuthUser);
+            } else {
+              // User not found, clear auth
+              localStorage?.removeItem?.('auth_user_id');
+              localStorage?.removeItem?.('auth_user_role');
+              localStorage?.removeItem?.('auth_token');
+            }
+          } catch (userError) {
+            console.error('[v0] Error retrieving user:', userError);
+            localStorage?.removeItem?.('auth_user_id');
+            localStorage?.removeItem?.('auth_user_role');
           }
         }
       } catch (error) {
-        console.error('Auth check error:', error);
+        console.error('[v0] Auth check error:', error);
+        setError('Failed to check authentication');
       } finally {
-        // Use requestIdleCallback for non-critical UI updates
-        if (typeof requestIdleCallback !== 'undefined') {
-          requestIdleCallback(() => setIsLoading(false));
-        } else {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     };
 
-    checkExistingAuth();
+    // Use setTimeout to defer auth check to next tick
+    const timeoutId = setTimeout(checkExistingAuth, 0);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const login = async (email: string, password: string) => {

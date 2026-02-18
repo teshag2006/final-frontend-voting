@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * Prevents unauthorized access before pages render (avoids redirect flicker)
  */
 
+// Routes accessible without authentication
 const publicRoutes = [
   '/login',
   '/signup',
@@ -27,11 +28,9 @@ const publicRoutes = [
   '/session-expired',
   '/maintenance',
   '/anti-fraud',
-  '/profile',
-  '/notifications',
-  '/vote/checkout',
 ];
-// Protected routes that require authentication but are accessible to all authenticated users
+
+// Routes that require authentication but are accessible to all authenticated users
 const protectedRoutes = [
   '/profile',
   '/notifications',
@@ -124,6 +123,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
+    '/((?!api|_next|favicon.ico|public).*)',
   ],
 };
