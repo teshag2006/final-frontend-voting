@@ -89,7 +89,7 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
                   {winner.contestant.categoryName} - Final Rankings
                 </h3>
                 <div className="space-y-3">
-                  {winner.leaderboard.slice(0, 4).map((contestant, rank) => (
+                  {winner.leaderboard.slice(0, 5).map((contestant, rank) => (
                     <div
                       key={contestant.contestantId}
                       className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors"

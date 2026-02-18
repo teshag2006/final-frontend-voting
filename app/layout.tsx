@@ -5,6 +5,7 @@ import { AutoSignInWrapper } from '@/components/auth/auto-signin-wrapper'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { OfflineIndicator } from '@/components/common/offline-indicator'
 import { Toaster } from '@/components/ui/toaster'
+import { PwaClient } from '@/components/pwa/pwa-client'
 
 import './globals.css'
 
@@ -21,6 +22,7 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: 'Miss & Mr Africa - Vote for Your Favorite Contestant',
   description: 'Secure blockchain-verified voting platform for Miss & Mr Africa. Vote for your favorite contestant with real-time leaderboard and fraud protection.',
+  manifest: '/manifest.webmanifest',
 }
 
 export const viewport: Viewport = {
@@ -42,6 +44,7 @@ export default function RootLayout({
             <AutoSignInWrapper>
               {children}
               <OfflineIndicator />
+              <PwaClient />
               <Toaster />
             </AutoSignInWrapper>
           </AuthProvider>

@@ -100,7 +100,7 @@ export function PaidVotesSummary({
       {/* Cost summary */}
       <div className="border-t border-border pt-4">
         <div className="flex items-baseline justify-between">
-          <span className="text-sm text-muted-foreground">Total Cost:</span>
+          <span className="text-sm text-muted-foreground">Estimated Total:</span>
           <span className="text-2xl font-bold text-foreground tabular-nums">
             ${totalCost}
           </span>

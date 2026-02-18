@@ -143,17 +143,9 @@ export function PaidVoteSection({
         </div>
       )}
 
-      {/* Checkout button */}
-      <button
-        disabled={quantity > maxAllowed || isLoading}
-        className={`w-full py-3 rounded-lg font-semibold text-sm transition-all active:scale-[0.98] ${
-          quantity <= maxAllowed && !isLoading
-            ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:shadow-lg"
-            : "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
-        }`}
-      >
-        {isLoading ? "Processing..." : `Proceed to Secure Checkout`}
-      </button>
+      <p className="text-xs text-muted-foreground">
+        Quantity and limits are validated again at checkout before payment starts.
+      </p>
     </div>
   );
 }

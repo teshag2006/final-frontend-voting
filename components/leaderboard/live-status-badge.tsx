@@ -7,12 +7,16 @@ interface LiveStatusBadgeProps {
   status: 'live' | 'pending' | 'closed';
   countdownSeconds?: number;
   lastUpdated?: string;
+  generatedAt?: string;
+  updateFrequencySeconds?: number;
 }
 
 export function LiveStatusBadge({
   status,
   countdownSeconds,
   lastUpdated,
+  generatedAt,
+  updateFrequencySeconds = 180,
 }: LiveStatusBadgeProps) {
   const [timeLeft, setTimeLeft] = useState(countdownSeconds || 0);
   const [pulse, setPulse] = useState(true);
@@ -67,7 +71,7 @@ export function LiveStatusBadge({
         return (
           <>
             <span className="inline-block w-2 h-2 rounded-full mr-2 bg-yellow-500"></span>
-            Updating Every 30s
+            Updating Every {Math.max(1, Math.round(updateFrequencySeconds / 60))}m
           </>
         );
       case 'closed':
@@ -95,6 +99,11 @@ export function LiveStatusBadge({
       {lastUpdated && (
         <div className="text-xs text-slate-500">
           Last updated: {new Date(lastUpdated).toLocaleTimeString()}
+        </div>
+      )}
+      {generatedAt && (
+        <div className="text-xs text-slate-500">
+          Leaderboard updates every 3 minutes. Snapshot: {new Date(generatedAt).toLocaleTimeString()}
         </div>
       )}
     </div>

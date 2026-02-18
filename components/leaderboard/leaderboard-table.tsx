@@ -8,6 +8,7 @@ interface LeaderboardTableProps {
   contestants: LeaderboardContestant[];
   showRevenue?: boolean;
   showTrend?: boolean;
+  highlightedContestantIds?: Set<string>;
 }
 
 function TrendIcon({ trend, change }: { trend?: 'up' | 'down' | 'neutral'; change?: number }) {
@@ -42,6 +43,7 @@ export function LeaderboardTable({
   contestants,
   showRevenue = false,
   showTrend = true,
+  highlightedContestantIds,
 }: LeaderboardTableProps) {
   return (
     <div className="w-full overflow-x-auto">
@@ -63,7 +65,11 @@ export function LeaderboardTable({
           {contestants.map((contestant) => (
             <tr
               key={contestant.contestantId}
-              className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+              className={`border-b border-slate-100 transition-colors ${
+                highlightedContestantIds?.has(contestant.contestantId)
+                  ? 'bg-emerald-50/70'
+                  : 'hover:bg-slate-50'
+              }`}
             >
               <td className="px-4 py-4 text-center">
                 {getRankBadge(contestant.rank)}

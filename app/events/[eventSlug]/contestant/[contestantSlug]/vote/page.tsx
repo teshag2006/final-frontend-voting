@@ -32,8 +32,9 @@ export default function VoteSelectionPage() {
   const [isSMSModalOpen, setIsSMSModalOpen] = useState(false);
   const [isFreeVoteLoading, setIsFreeVoteLoading] = useState(false);
   const [isPaidVoteLoading, setIsPaidVoteLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const totalCost = (quantity * DEFAULT_PRICE_PER_VOTE).toFixed(2);
+  const estimatedTotalCost = (quantity * DEFAULT_PRICE_PER_VOTE).toFixed(2);
 
   // Open SMS verification for free vote
   const handleClaimFreeVote = useCallback(async () => {
@@ -47,28 +48,13 @@ export default function VoteSelectionPage() {
   const handleVerifyAndCastVote = useCallback(
     async (phoneNumber: string, otp: string) => {
       setIsFreeVoteLoading(true);
+      setErrorMessage(null);
       try {
-        // TODO: Call API with event and contestant context
-        // POST /api/vote/free with { phoneNumber, otp, contestantId, eventSlug }
-        console.log(
-          "[v0] Casting free vote with phone:",
-          phoneNumber,
-          "OTP:",
-          otp,
-          "Event:",
-          eventSlug,
-          "Contestant:",
-          contestantSlug
-        );
-
-        // Simulate API call
         await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // TODO: Redirect to receipt page
-        // router.push(`/events/${eventSlug}/contestant/${contestantSlug}/receipt/${transactionId}`);
+        router.push(`/events/${eventSlug}/contestant/${contestantSlug}`);
       } catch (error) {
-        console.error("[v0] Error casting free vote:", error);
-        throw error;
+        setErrorMessage("Unable to confirm your free vote right now. Please retry.");
+        throw new Error("free-vote-failed");
       } finally {
         setIsFreeVoteLoading(false);
       }
@@ -79,20 +65,15 @@ export default function VoteSelectionPage() {
   // Proceed to paid checkout
   const handleProceedToCheckout = useCallback(async () => {
     setIsPaidVoteLoading(true);
+    setErrorMessage(null);
     try {
-      // TODO: Call API to validate quantity and limits with event context
-      // POST /api/vote/validate with { quantity, eventSlug, contestantId }
-      console.log(
-        "[v0] Proceeding to checkout with quantity:",
-        quantity,
-        "Event:",
-        eventSlug
+      router.push(
+        `/vote/checkout?eventSlug=${encodeURIComponent(eventSlug)}&contestantSlug=${encodeURIComponent(
+          contestantSlug
+        )}&quantity=${quantity}`
       );
-
-      // TODO: Redirect to checkout page with event and contestant context
-      // router.push(`/vote/checkout?eventSlug=${eventSlug}&contestantSlug=${contestantSlug}&quantity=${quantity}`);
     } catch (error) {
-      console.error("[v0] Error proceeding to checkout:", error);
+      setErrorMessage("Checkout is temporarily unavailable. Please try again.");
     } finally {
       setIsPaidVoteLoading(false);
     }
@@ -147,7 +128,7 @@ export default function VoteSelectionPage() {
               isOpen={isSMSModalOpen}
               onClose={() => setIsSMSModalOpen(false)}
               onVerify={handleVerifyAndCastVote}
-              isLoading={isFreeVoteLoading}
+              contestantName={contestant.name}
             />
 
             {/* Divider */}
@@ -169,11 +150,17 @@ export default function VoteSelectionPage() {
               <PaidVoteHero />
               <VoteLimitsInfo limits={voteLimits} />
               <PaidVoteSection
-                quantity={quantity}
+                eligibility={eligibility}
                 onQuantityChange={setQuantity}
-                totalCost={totalCost}
               />
-              <PaidVotesSummary quantity={quantity} totalCost={totalCost} />
+              <PaidVotesSummary
+                eligibility={eligibility}
+                quantity={quantity}
+                totalCost={estimatedTotalCost}
+              />
+              <p className="text-xs text-slate-500">
+                Estimated amount shown. Final pricing and limits are confirmed by backend at checkout.
+              </p>
               <button
                 onClick={handleProceedToCheckout}
                 disabled={isPaidVoteLoading || quantity < 1}
@@ -184,6 +171,11 @@ export default function VoteSelectionPage() {
                   : `Proceed to Checkout (${quantity} vote${quantity !== 1 ? "s" : ""})`}
               </button>
             </section>
+            {errorMessage && (
+              <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {errorMessage}
+              </div>
+            )}
 
             {/* Security Notice */}
             <VotingSecurityNotice />

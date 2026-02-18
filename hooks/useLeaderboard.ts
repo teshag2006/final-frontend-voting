@@ -28,7 +28,7 @@ interface UseLeaderboardOptions {
   onError?: (error: Error) => void;
 }
 
-const DEFAULT_POLLING_INTERVAL = 20000; // 20 seconds
+const DEFAULT_POLLING_INTERVAL = 60000; // 60 seconds
 
 export function useLeaderboard({
   eventId,

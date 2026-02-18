@@ -95,10 +95,11 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
         {/* Leaderboard Table */}
         <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-8">
           <div className="p-6 border-b border-slate-200">
-            <h2 className="text-xl font-bold text-slate-900">Full Leaderboard</h2>
+            <h2 className="text-xl font-bold text-slate-900">Top 5 Leaderboard</h2>
+            <p className="mt-1 text-sm text-slate-500">Leaderboard updates every 3 minutes.</p>
           </div>
           <LeaderboardTable
-            contestants={data.leaderboard}
+            contestants={data.leaderboard.slice(0, 5)}
             showRevenue={true}
             showTrend={true}
           />

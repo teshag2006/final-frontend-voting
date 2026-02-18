@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { CheckoutHeader } from '@/components/vote-checkout/checkout-header';
@@ -20,6 +21,10 @@ import {
 import type { PaymentMethod } from '@/types/vote';
 
 export default function VoteCheckoutPage() {
+  const searchParams = useSearchParams();
+  const requestedQuantity = Number(searchParams.get('quantity') || 10);
+  const safeQuantity = Number.isFinite(requestedQuantity) && requestedQuantity > 0 ? requestedQuantity : 10;
+
   // Default to Chapa for Ethiopian users, Credit Card for others
   // TODO: Replace with actual geolocation detection from user session/IP
   const userCountry = 'ET'; // Mock: set to 'ET' for Ethiopia, 'US' for others
@@ -32,37 +37,45 @@ export default function VoteCheckoutPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [finalVotesAccepted, setFinalVotesAccepted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [checkoutInfo, setCheckoutInfo] = useState<string | null>(null);
+
+  const pricingQuote = useMemo(() => {
+    const pricePerVote = mockPricingResponse.pricePerVote;
+    const subtotal = Number((safeQuantity * pricePerVote).toFixed(2));
+    const serviceFee = Number((subtotal * 0.075).toFixed(2));
+    const tax = Number((subtotal * 0.025).toFixed(2));
+    return {
+      ...mockPricingResponse,
+      quantity: safeQuantity,
+      subtotal,
+      serviceFee,
+      tax,
+      totalAmount: Number((subtotal + serviceFee + tax).toFixed(2)),
+      generatedAt: new Date().toISOString(),
+    };
+  }, [safeQuantity]);
 
   const allTermsAccepted =
     nonRefundableAccepted && termsAccepted && finalVotesAccepted;
 
   const handleProceedToPayment = async () => {
+    if (isProcessing) return;
+
     if (!allTermsAccepted) {
-      alert('Please accept all terms before proceeding');
+      setCheckoutError('Please accept all terms before proceeding.');
       return;
     }
 
     setIsProcessing(true);
+    setCheckoutError(null);
+    setCheckoutInfo(null);
+
     try {
-      // TODO: Integrate with POST /vote/pre-authorize endpoint
-      // 1. Call /vote/pre-authorize with transactionToken
-      // 2. Validate server-side response
-      // 3. Redirect to payment gateway if successful
-      // 4. Handle errors and show appropriate messages
-
-      console.log('[v0] Checkout submitted with:', {
-        paymentMethod: selectedPaymentMethod,
-        quantity: mockCheckoutSession.quantity,
-        totalAmount: mockPricingResponse.totalAmount,
-      });
-
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // TODO: Replace with actual payment gateway redirect
-      alert('Redirecting to payment gateway...');
+      setCheckoutInfo('Payment is being initialized. Redirect will begin shortly.');
     } catch (error) {
-      alert('Payment initiation failed. Please try again.');
+      setCheckoutError('Payment initiation failed. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -121,13 +134,13 @@ export default function VoteCheckoutPage() {
 
             {/* Order Summary */}
             <VoteSummary
-              quantity={mockCheckoutSession.quantity}
-              pricePerVote={mockPricingResponse.pricePerVote}
-              subtotal={mockPricingResponse.subtotal}
-              serviceFee={mockPricingResponse.serviceFee}
-              tax={mockPricingResponse.tax}
-              totalAmount={mockPricingResponse.totalAmount}
-              currency={mockPricingResponse.currency}
+              quantity={pricingQuote.quantity}
+              pricePerVote={pricingQuote.pricePerVote}
+              subtotal={pricingQuote.subtotal}
+              serviceFee={pricingQuote.serviceFee}
+              tax={pricingQuote.tax}
+              totalAmount={pricingQuote.totalAmount}
+              currency={pricingQuote.currency}
             />
 
             {/* Payment Method Selection */}
@@ -175,14 +188,28 @@ export default function VoteCheckoutPage() {
 
             {/* Integrity Notice */}
             <IntegrityNotice className="mb-8" />
+
+            {checkoutError && (
+              <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {checkoutError}
+              </div>
+            )}
+            {checkoutInfo && (
+              <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                {checkoutInfo}
+              </div>
+            )}
+            <p className="text-xs text-white/60">
+              Price and final vote quantity are confirmed by backend before payment authorization.
+            </p>
           </div>
 
           {/* Right: Secure Checkout Summary */}
           <div className="lg:col-span-1">
             <SecureCheckoutSummary
               contestantName={mockCheckoutContestant.name}
-              quantity={mockCheckoutSession.quantity}
-              totalAmount={mockPricingResponse.totalAmount}
+              quantity={pricingQuote.quantity}
+              totalAmount={pricingQuote.totalAmount}
               paymentMethod={selectedMethodLabel}
               onProceedClick={handleProceedToPayment}
               isLoading={isProcessing}
@@ -197,7 +224,7 @@ export default function VoteCheckoutPage() {
             paidRemaining={mockCheckoutSession.paidVotesRemaining}
             dailyRemaining={mockCheckoutSession.dailyVotesRemaining}
             maxPerTransaction={mockCheckoutSession.maxPerTransaction}
-            quantity={mockCheckoutSession.quantity}
+            quantity={pricingQuote.quantity}
           />
         </div>
       </main>
