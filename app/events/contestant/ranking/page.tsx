@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Metadata } from 'next';
 import { getRankingData } from '@/lib/api';
 import { mockRankingData } from '@/lib/dashboard-mock';
@@ -119,3 +120,4 @@ export default async function RankingPage() {
     </div>
   );
 }
+

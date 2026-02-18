@@ -154,14 +154,14 @@ export function EventFilters({ categories, onFiltersChange, className }: EventFi
           {/* Category Filter (if available) */}
           {categories && categories.length > 0 && (
             <Select
-              value={filters.category || ''}
-              onValueChange={(value) => handleFilterChange('category', value || '')}
+              value={filters.category || 'all'}
+              onValueChange={(value) => handleFilterChange('category', value === 'all' ? '' : value)}
             >
               <SelectTrigger className="w-[140px]" aria-label="Filter by category">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {cat.name}
@@ -244,14 +244,14 @@ export function EventFilters({ categories, onFiltersChange, className }: EventFi
             <div>
               <label className="text-sm font-medium mb-2 block">Category</label>
               <Select
-                value={filters.category || ''}
-                onValueChange={(value) => handleFilterChange('category', value || '')}
+                value={filters.category || 'all'}
+                onValueChange={(value) => handleFilterChange('category', value === 'all' ? '' : value)}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {categories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       {cat.name}

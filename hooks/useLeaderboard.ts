@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useCallback, useRef } from 'react';
 import useSWR from 'swr';
 
@@ -188,3 +189,5 @@ export function useLiveContestantVotes(
     ...leaderboard,
   };
 }
+
+

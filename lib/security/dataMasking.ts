@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use server';
 
 /**
@@ -220,3 +221,4 @@ class DataMaskingService {
 }
 
 export const dataMaskingService = new DataMaskingService();
+

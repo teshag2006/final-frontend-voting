@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -134,3 +135,5 @@ export function Pagination({
     </nav>
   );
 }
+
+

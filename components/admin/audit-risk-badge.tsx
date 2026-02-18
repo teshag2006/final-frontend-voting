@@ -29,15 +29,22 @@ export function AuditRiskBadge({ level, className }: AuditRiskBadgeProps) {
       color: 'text-red-600 dark:text-red-400',
       bgColor: 'bg-red-50 dark:bg-red-950',
     },
+    CRITICAL: {
+      variant: 'destructive' as const,
+      icon: AlertTriangle,
+      color: 'text-red-700 dark:text-red-300',
+      bgColor: 'bg-red-100 dark:bg-red-950',
+    },
   };
 
-  const style = styles[level];
+  const normalizedLevel = String(level || '').toUpperCase();
+  const style = styles[normalizedLevel as keyof typeof styles] || styles.MEDIUM;
   const Icon = style.icon;
 
   return (
     <Badge variant={style.variant} className={`${style.bgColor} gap-1.5 ${className}`}>
       <Icon className={`w-3.5 h-3.5 ${style.color}`} />
-      <span>{level}</span>
+      <span>{normalizedLevel || 'MEDIUM'}</span>
     </Badge>
   );
 }

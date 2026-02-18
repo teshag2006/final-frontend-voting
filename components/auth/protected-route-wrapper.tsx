@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 import { AuthProvider } from '@/context/AuthContext';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -13,6 +14,8 @@ interface ProtectedRouteWrapperProps {
   fallbackUrl?: string;
   autoSignInWith?: UserRole;
 }
+
+const ProtectedRouteNestingContext = createContext(false);
 
 function ProtectedRouteContent({
   children,
@@ -79,15 +82,23 @@ export function ProtectedRouteWrapper({
   requiredRole,
   fallbackUrl,
 }: ProtectedRouteWrapperProps) {
+  const isNested = useContext(ProtectedRouteNestingContext);
+
+  if (isNested) {
+    return <>{children}</>;
+  }
+
   return (
-    <AuthProvider>
-      <ProtectedRouteContent
-        requiredRole={requiredRole}
-        fallbackUrl={fallbackUrl}
-      >
-        {children}
-      </ProtectedRouteContent>
-    </AuthProvider>
+    <ProtectedRouteNestingContext.Provider value={true}>
+      <AuthProvider>
+        <ProtectedRouteContent
+          requiredRole={requiredRole}
+          fallbackUrl={fallbackUrl}
+        >
+          {children}
+        </ProtectedRouteContent>
+      </AuthProvider>
+    </ProtectedRouteNestingContext.Provider>
   );
 }
 

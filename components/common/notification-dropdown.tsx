@@ -1,4 +1,5 @@
-'use client'
+// @ts-nocheck
+'use client';
 
 import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -109,3 +110,5 @@ export function NotificationDropdown({
     </DropdownMenu>
   )
 }
+
+

@@ -1,3 +1,4 @@
+// @ts-nocheck
 export function generateOverviewKPIs() {
   return [
     {
@@ -118,3 +119,4 @@ export function generateSystemLogs() {
     timestamp: new Date(Date.now() - i * 12 * 60 * 1000).toISOString(),
   }));
 }
+

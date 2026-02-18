@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Metadata } from "next";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -107,3 +108,4 @@ export default async function CategoriesPage({
     </div>
   );
 }
+

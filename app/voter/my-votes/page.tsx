@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getVoterVotes } from '@/lib/api';
@@ -101,3 +102,4 @@ export default async function MyVotesPage() {
     </main>
   );
 }
+

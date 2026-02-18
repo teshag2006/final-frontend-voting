@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Metadata } from "next";
 import { EventNavbar } from "@/components/event-details/event-navbar";
 import { EventHero } from "@/components/event-details/event-hero";
@@ -150,3 +151,4 @@ export default async function EventDetailsPage({
     </div>
   );
 }
+

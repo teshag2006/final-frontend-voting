@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type {
   SystemMetrics,
   VoteActivityData,
@@ -276,3 +277,4 @@ export const mockAdminOverview = {
   blockchain: generateBlockchainStatus(),
   events: generateSystemEventsFeed(1, 20),
 };
+

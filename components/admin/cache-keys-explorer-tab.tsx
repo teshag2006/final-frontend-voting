@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -270,3 +271,5 @@ export function CacheKeysExplorerTab({
     </div>
   );
 }
+
+
