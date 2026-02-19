@@ -21,6 +21,12 @@ import type {
 } from "@/types/dashboard";
 import type { Sponsor } from "@/types/contestant";
 import type {
+  MarketplaceContestant,
+  SponsorCampaignTracking,
+  SponsorDashboardOverview,
+  SponsorProfileSettings,
+} from "@/lib/sponsorship-mock";
+import type {
   VoterPayment,
   VoterVote,
   VoterProfile,
@@ -390,6 +396,67 @@ export async function getAdminSponsorPlacements(contestantSlug?: string): Promis
   try {
     const query = contestantSlug ? `?contestantSlug=${encodeURIComponent(contestantSlug)}` : "";
     return await fetchFromAPI<any[]>(`/admin/sponsor-placements${query}`);
+  } catch {
+    return null;
+  }
+}
+
+export async function getSponsorDashboardOverview(): Promise<SponsorDashboardOverview | null> {
+  try {
+    return await fetchFromAPI<SponsorDashboardOverview>("/sponsor/overview");
+  } catch {
+    return null;
+  }
+}
+
+export async function getSponsorDiscoverContestants(options?: {
+  query?: string;
+  tier?: "ALL" | "A" | "B" | "C";
+  trendingOnly?: boolean;
+  highIntegrityOnly?: boolean;
+  votesMin?: number;
+  followersMin?: number;
+  engagementMin?: number;
+  industryCategory?: string;
+}): Promise<MarketplaceContestant[] | null> {
+  try {
+    const params = new URLSearchParams();
+    if (options?.query) params.set("query", options.query);
+    if (options?.tier) params.set("tier", options.tier);
+    if (typeof options?.trendingOnly === "boolean") params.set("trendingOnly", String(options.trendingOnly));
+    if (typeof options?.highIntegrityOnly === "boolean") params.set("highIntegrityOnly", String(options.highIntegrityOnly));
+    if (typeof options?.votesMin === "number" && options.votesMin > 0) params.set("votesMin", String(options.votesMin));
+    if (typeof options?.followersMin === "number" && options.followersMin > 0) params.set("followersMin", String(options.followersMin));
+    if (typeof options?.engagementMin === "number" && options.engagementMin > 0) params.set("engagementMin", String(options.engagementMin));
+    if (options?.industryCategory) params.set("industryCategory", options.industryCategory);
+
+    const query = params.toString();
+    return await fetchFromAPI<MarketplaceContestant[]>(`/sponsor/discover${query ? `?${query}` : ""}`);
+  } catch {
+    return null;
+  }
+}
+
+export async function getSponsorProfileSettings(): Promise<SponsorProfileSettings | null> {
+  try {
+    return await fetchFromAPI<SponsorProfileSettings>("/sponsor/settings");
+  } catch {
+    return null;
+  }
+}
+
+export async function getSponsorCampaignTracking(contestantSlug?: string): Promise<SponsorCampaignTracking[] | null> {
+  try {
+    const query = contestantSlug ? `?contestant=${encodeURIComponent(contestantSlug)}` : "";
+    return await fetchFromAPI<SponsorCampaignTracking[]>(`/sponsor/campaigns${query}`);
+  } catch {
+    return null;
+  }
+}
+
+export async function getSponsorContestantDetail(contestantSlug: string): Promise<MarketplaceContestant | null> {
+  try {
+    return await fetchFromAPI<MarketplaceContestant>(`/sponsor/contestants/${encodeURIComponent(contestantSlug)}`);
   } catch {
     return null;
   }

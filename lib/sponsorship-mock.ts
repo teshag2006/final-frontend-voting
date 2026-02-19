@@ -21,7 +21,7 @@ export interface InfluencePoint {
 }
 
 export interface SocialPlatformMetric {
-  platform: 'Instagram' | 'TikTok' | 'YouTube' | 'X';
+  platform: 'Instagram' | 'TikTok' | 'YouTube' | 'X' | 'Facebook' | 'Snapchat';
   username: string;
   followers: number;
   engagementRate: number;
@@ -92,6 +92,50 @@ export interface ContestantActiveCampaign {
   paymentState: 'manual_pending' | 'paid';
   integrityWarning: string | null;
   deliverables: ActiveCampaignDeliverable[];
+}
+
+export interface SponsorDashboardOverview {
+  sponsorName: string;
+  trustScore: number;
+  verificationStatus: 'verified' | 'pending';
+  activeCampaigns: number;
+  pendingPayments: number;
+  campaignPerformanceSummary: {
+    impressions: number;
+    clicks: number;
+    ctr: number;
+    conversions: number;
+  };
+}
+
+export interface SponsorProfileSettings {
+  general: {
+    companyName: string;
+    logoUrl: string;
+    description: string;
+    industry: string;
+    website: string;
+  };
+  contact: {
+    contactPerson: string;
+    email: string;
+    emailVerified: boolean;
+    phone: string;
+    phoneVerified: boolean;
+    address: string;
+    country: string;
+    city: string;
+  };
+  legal: {
+    taxId: string;
+    registrationNumber: string;
+    documents: string[];
+    termsAccepted: boolean;
+  };
+  security: {
+    accountActivity: Array<{ at: string; device: string; ip: string }>;
+  };
+  profileCompletion: number;
 }
 
 export interface SponsorPlacement {
@@ -254,6 +298,22 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         lastUpdated: '2026-02-18T10:25:00Z',
         externalUrl: 'https://tiktok.com/@sarahm.official',
       },
+      {
+        platform: 'Facebook',
+        username: 'Sarah M Official',
+        followers: 98000,
+        engagementRate: 4.9,
+        lastUpdated: '2026-02-18T10:25:00Z',
+        externalUrl: 'https://facebook.com/sarahm.official',
+      },
+      {
+        platform: 'Snapchat',
+        username: '@sarahm.snap',
+        followers: 74000,
+        engagementRate: 6.3,
+        lastUpdated: '2026-02-18T10:25:00Z',
+        externalUrl: 'https://www.snapchat.com/add/sarahm.snap',
+      },
     ],
     voteTrend7d: [
       { label: 'D1', value: 68 },
@@ -301,12 +361,36 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         externalUrl: 'https://instagram.com/davidk.fit',
       },
       {
+        platform: 'TikTok',
+        username: '@davidk.sports',
+        followers: 150000,
+        engagementRate: 8.3,
+        lastUpdated: '2026-02-18T09:00:00Z',
+        externalUrl: 'https://tiktok.com/@davidk.sports',
+      },
+      {
         platform: 'YouTube',
         username: '@davidk',
         followers: 210000,
         engagementRate: 6.8,
         lastUpdated: '2026-02-18T09:00:00Z',
         externalUrl: 'https://youtube.com/@davidk',
+      },
+      {
+        platform: 'Facebook',
+        username: 'David K Fitness',
+        followers: 86000,
+        engagementRate: 3.9,
+        lastUpdated: '2026-02-18T09:00:00Z',
+        externalUrl: 'https://facebook.com/davidk.fit',
+      },
+      {
+        platform: 'Snapchat',
+        username: '@davidk.snap',
+        followers: 51000,
+        engagementRate: 5.2,
+        lastUpdated: '2026-02-18T09:00:00Z',
+        externalUrl: 'https://www.snapchat.com/add/davidk.snap',
       },
     ],
     voteTrend7d: [
@@ -355,12 +439,36 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         externalUrl: 'https://instagram.com/annat.actor',
       },
       {
+        platform: 'TikTok',
+        username: '@annat.reels',
+        followers: 93000,
+        engagementRate: 5.7,
+        lastUpdated: '2026-02-18T12:00:00Z',
+        externalUrl: 'https://tiktok.com/@annat.reels',
+      },
+      {
         platform: 'X',
         username: '@annat',
         followers: 160000,
         engagementRate: 2.8,
         lastUpdated: '2026-02-18T12:00:00Z',
         externalUrl: 'https://x.com/annat',
+      },
+      {
+        platform: 'Facebook',
+        username: 'Anna T Actor',
+        followers: 42000,
+        engagementRate: 3.1,
+        lastUpdated: '2026-02-18T12:00:00Z',
+        externalUrl: 'https://facebook.com/annat.actor',
+      },
+      {
+        platform: 'Snapchat',
+        username: '@annat.snap',
+        followers: 37000,
+        engagementRate: 4.4,
+        lastUpdated: '2026-02-18T12:00:00Z',
+        externalUrl: 'https://www.snapchat.com/add/annat.snap',
       },
     ],
     voteTrend7d: [
@@ -415,6 +523,22 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         engagementRate: 4.2,
         lastUpdated: '2026-02-18T07:10:00Z',
         externalUrl: 'https://instagram.com/ahmedl',
+      },
+      {
+        platform: 'Facebook',
+        username: 'Ahmed L Moves',
+        followers: 29000,
+        engagementRate: 2.7,
+        lastUpdated: '2026-02-18T07:10:00Z',
+        externalUrl: 'https://facebook.com/ahmedl.moves',
+      },
+      {
+        platform: 'Snapchat',
+        username: '@ahmedl.snap',
+        followers: 26000,
+        engagementRate: 4.1,
+        lastUpdated: '2026-02-18T07:10:00Z',
+        externalUrl: 'https://www.snapchat.com/add/ahmedl.snap',
       },
     ],
     voteTrend7d: [
@@ -519,6 +643,54 @@ export const mockContestantActiveCampaign: ContestantActiveCampaign = {
     { id: 'd3', title: 'Feed post #2', submitted: false, approved: false },
     { id: 'd4', title: 'Video mention', submitted: false, approved: false },
   ],
+};
+
+export const mockSponsorDashboardOverview: SponsorDashboardOverview = {
+  sponsorName: 'Zenith Bank',
+  trustScore: 93,
+  verificationStatus: 'verified',
+  activeCampaigns: 2,
+  pendingPayments: 1,
+  campaignPerformanceSummary: {
+    impressions: 614200,
+    clicks: 18133,
+    ctr: 2.95,
+    conversions: 1283,
+  },
+};
+
+export const mockSponsorProfileSettings: SponsorProfileSettings = {
+  general: {
+    companyName: 'Zenith Bank',
+    logoUrl: '/images/sponsor-zenith.jpg',
+    description: 'Pan-African banking brand supporting youth and creator economy initiatives.',
+    industry: 'Finance',
+    website: 'https://example.com/zenith',
+  },
+  contact: {
+    contactPerson: 'Helen Worku',
+    email: 'partnerships@zenith.example',
+    emailVerified: true,
+    phone: '+251 911 000 321',
+    phoneVerified: true,
+    address: 'Bole Road, Addis Ababa',
+    country: 'Ethiopia',
+    city: 'Addis Ababa',
+  },
+  legal: {
+    taxId: 'TIN-8452-001',
+    registrationNumber: 'REG-ET-2020-114',
+    documents: ['Business Registration.pdf', 'Tax Clearance.pdf'],
+    termsAccepted: true,
+  },
+  security: {
+    accountActivity: [
+      { at: '2026-02-19 09:12', device: 'Chrome - Windows', ip: '196.188.12.45' },
+      { at: '2026-02-18 18:02', device: 'Safari - iOS', ip: '197.156.84.23' },
+      { at: '2026-02-18 10:47', device: 'Chrome - Mac', ip: '197.156.84.11' },
+    ],
+  },
+  profileCompletion: 86,
 };
 
 export const mockAdminRevenueSeries = [

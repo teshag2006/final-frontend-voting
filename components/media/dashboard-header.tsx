@@ -1,6 +1,7 @@
 'use client';
 
 import { Download, ChevronDown, LogOut, Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,8 +10,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/context/AuthContext';
 
 export function MediaDashboardHeader() {
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200 bg-white">
       <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-8">
@@ -67,11 +77,14 @@ export function MediaDashboardHeader() {
               <DropdownMenuItem disabled className="text-gray-500 text-xs cursor-default">
                 media@example.com
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-700 hover:bg-gray-50 cursor-pointer">
+              <DropdownMenuItem
+                className="text-gray-700 hover:bg-gray-50 cursor-pointer"
+                onClick={() => router.push('/profile/settings')}
+              >
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-700 hover:bg-gray-50 cursor-pointer">
+              <DropdownMenuItem className="text-gray-700 hover:bg-gray-50 cursor-pointer" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </DropdownMenuItem>

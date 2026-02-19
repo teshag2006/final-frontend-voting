@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { DashboardHeader } from '@/components/voter-dashboard/dashboard-header';
 import { VoterSummaryCard } from '@/components/voter-dashboard/voter-summary-card';
 import { CategoryWalletCard } from '@/components/voter-dashboard/category-wallet-card';
@@ -17,11 +18,12 @@ import { Button } from '@/components/ui/button';
 
 export default function VoterDashboard() {
   const router = useRouter();
+  const { logout } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const data = mockVoterDashboard;
 
   const handleLogout = () => {
-    // In production, clear session and redirect to login
+    logout();
     router.push('/login');
   };
 

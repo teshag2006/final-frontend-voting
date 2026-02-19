@@ -2,9 +2,18 @@
 
 import { Bell, LogOut, ChevronDown, CheckCircle2, Crown } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 export function DashboardHeader() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   return (
     <header className="bg-gradient-to-r from-slate-900 to-blue-900 border-b border-blue-900 px-6 py-4">
@@ -50,11 +59,17 @@ export function DashboardHeader() {
                 className="absolute right-0 mt-2 w-48 bg-white rounded-lg border border-slate-200 shadow-lg z-50"
                 role="menu"
               >
-                <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors">
+                <button
+                  className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+                  onClick={() => router.push('/profile/settings')}
+                >
                   Profile Settings
                 </button>
                 <hr className="my-2 border-slate-200" />
-                <button className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-2">
+                <button
+                  className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-2"
+                  onClick={handleLogout}
+                >
                   <LogOut className="w-4 h-4" />
                   Sign Out
                 </button>

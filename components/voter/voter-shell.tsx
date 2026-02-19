@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { CheckCircle2, LogOut, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VoterSidebarNav } from '@/components/voter/voter-sidebar-nav';
+import { useAuth } from '@/context/AuthContext';
 
 interface VoterShellProps {
   children: ReactNode;
@@ -12,6 +13,12 @@ interface VoterShellProps {
 
 export function VoterShell({ children }: VoterShellProps) {
   const router = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -42,7 +49,7 @@ export function VoterShell({ children }: VoterShellProps) {
               variant="secondary"
               size="sm"
               className="gap-1.5 bg-white/15 text-white hover:bg-white/25"
-              onClick={() => router.push('/login')}
+              onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Logout</span>

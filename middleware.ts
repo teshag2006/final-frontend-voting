@@ -10,6 +10,7 @@ const adminRoutes = ['/admin'];
 const contestantRoutes = ['/events/contestant'];
 const mediaRoutes = ['/media'];
 const voterRoutes = ['/voter'];
+const sponsorRoutes = ['/sponsors'];
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -49,6 +50,10 @@ export function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith('/voter') && userRole !== 'voter') {
+    return NextResponse.redirect(new URL('/access-denied', request.url));
+  }
+
+  if (pathname.startsWith('/sponsors') && userRole !== 'sponsor') {
     return NextResponse.redirect(new URL('/access-denied', request.url));
   }
 
