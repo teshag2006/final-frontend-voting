@@ -37,8 +37,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
-      <body className="font-sans antialiased">
+    <html lang="en" className={`${inter.variable} ${dmSans.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <ErrorBoundary>
           <AuthProvider>
             <AutoSignInWrapper>
