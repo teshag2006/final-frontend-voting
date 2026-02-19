@@ -13,6 +13,10 @@ export function ProfileHero({ contestant }: ProfileHeroProps) {
   const isActive = contestant.status === "active";
   const isWinner = contestant.status === "winner";
   const isEliminated = contestant.status === "eliminated";
+  const totalVotes = Number(contestant.total_votes ?? 0);
+  const safeTotalVotes = Number.isFinite(totalVotes) ? totalVotes : 0;
+  const safeRank = contestant.rank ?? "-";
+  const safeRankOverall = contestant.rank_overall ?? contestant.rank ?? "-";
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -20,7 +24,7 @@ export function ProfileHero({ contestant }: ProfileHeroProps) {
         {/* Photo */}
         <div className="relative aspect-[3/4] w-full md:w-80 lg:w-96 shrink-0">
           <Image
-            src={contestant.photo_url}
+            src={contestant.photo_url || "/images/contestant-1.jpg"}
             alt={`${contestant.name} profile photo`}
             fill
             className="object-cover"
@@ -31,7 +35,7 @@ export function ProfileHero({ contestant }: ProfileHeroProps) {
           <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 to-transparent" />
           {/* Rank badge */}
           <div className="absolute bottom-4 left-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-xl shadow-lg">
-            #{contestant.rank}
+            #{safeRank}
           </div>
           {/* Winner / Eliminated overlay */}
           {isWinner && (
@@ -73,11 +77,11 @@ export function ProfileHero({ contestant }: ProfileHeroProps) {
           {/* Vote count */}
           <div className="mt-4 flex flex-wrap items-baseline gap-3">
             <span className="text-3xl font-bold text-foreground tabular-nums md:text-4xl">
-              {contestant.total_votes.toLocaleString()}
+              {safeTotalVotes.toLocaleString()}
             </span>
             <span className="text-base text-muted-foreground">Votes</span>
             <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
-              #{contestant.rank_overall} RANKED
+              #{safeRankOverall} RANKED
             </span>
           </div>
 

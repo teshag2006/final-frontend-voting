@@ -176,7 +176,6 @@ export default function AdminFraudMonitoringPage() {
   return (
     <ProtectedRouteWrapper
       requiredRole="admin"
-      autoSignInWith="admin"
       fallbackUrl="/events"
     >
       <div className="min-h-screen bg-background">
@@ -414,3 +413,4 @@ export default function AdminFraudMonitoringPage() {
     </ProtectedRouteWrapper>
   );
 }
+

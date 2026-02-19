@@ -34,6 +34,8 @@ export function UserNav() {
         return 'bg-purple-100 text-purple-900';
       case 'voter':
         return 'bg-cyan-100 text-cyan-900';
+      case 'sponsor':
+        return 'bg-indigo-100 text-indigo-900';
       default:
         return 'bg-slate-100 text-slate-900';
     }

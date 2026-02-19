@@ -48,6 +48,14 @@ const SERVER_USERS: ServerUserRecord[] = [
     role: 'voter',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=emma',
   },
+  {
+    id: 'sponsor-001',
+    email: 'sponsor@example.com',
+    password: 'Sponsor@123456',
+    name: 'Zenith Sponsor',
+    role: 'sponsor',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sponsor',
+  },
 ];
 
 export function verifyServerUser(email: string, password: string): ServerAuthUser | null {
@@ -59,4 +67,3 @@ export function verifyServerUser(email: string, password: string): ServerAuthUse
   const { password: _password, ...safeUser } = user;
   return safeUser;
 }
-

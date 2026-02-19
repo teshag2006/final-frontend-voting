@@ -29,6 +29,36 @@ import { mockEvents } from "@/lib/events-mock";
 import { getEventBySlug, getContestantsForEvent } from "@/lib/mock-data-generator";
 import { getContestantSponsors } from "@/lib/sponsorship-mock";
 
+function normalizeContestant(source: any, eventSlug: string, eventName: string) {
+  if (!source) return { ...mockContestantProfile, event_slug: eventSlug, event_name: eventName };
+
+  const totalVotes = Number(source.total_votes ?? source.votes ?? 0);
+  const rank = Number(source.rank ?? source.ranking ?? 0);
+
+  return {
+    ...mockContestantProfile,
+    ...source,
+    event_slug: source.event_slug ?? eventSlug,
+    event_name: source.event_name ?? eventName,
+    category_name: source.category_name ?? source.category ?? mockContestantProfile.category_name,
+    photo_url: source.photo_url ?? source.image_url ?? mockContestantProfile.photo_url,
+    total_votes: Number.isFinite(totalVotes) ? totalVotes : 0,
+    rank: Number.isFinite(rank) ? rank : mockContestantProfile.rank,
+    rank_overall: Number.isFinite(rank) ? rank : mockContestantProfile.rank_overall,
+    status: source.status ?? mockContestantProfile.status,
+    is_verified: source.is_verified ?? true,
+    country: source.country ?? mockContestantProfile.country,
+    age: source.age ?? mockContestantProfile.age,
+    tagline: source.tagline ?? mockContestantProfile.tagline,
+    bio: source.bio ?? mockContestantProfile.bio,
+    gallery_photos:
+      Array.isArray(source.gallery_photos) && source.gallery_photos.length > 0
+        ? source.gallery_photos
+        : mockContestantProfile.gallery_photos,
+    sponsors: Array.isArray(source.sponsors) ? source.sponsors : mockContestantProfile.sponsors,
+  };
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -61,14 +91,17 @@ export default async function ContestantProfilePage({
 
   const event = getEventBySlug(eventSlug);
   const contestants = getContestantsForEvent(eventSlug);
-  const contestant = contestants.find((c) => c.slug === contestantSlug) || mockContestantProfile;
+  const selectedContestant = contestants.find((c) => c.slug === contestantSlug);
+  const contestant = normalizeContestant(selectedContestant, eventSlug, event?.name ?? "Event");
   
   // Use fallback data for other sections
   const stats = mockContestantStats;
   const packages = mockVotePackages;
   const geoSupport = mockGeographicSupport;
   const faq = mockProfileFAQ;
-  const related = contestants.filter((c) => c.slug !== contestantSlug);
+  const related = contestants
+    .filter((c) => c.slug !== contestantSlug)
+    .map((c) => normalizeContestant(c, eventSlug, event?.name ?? "Event"));
   const sponsors = getContestantSponsors(eventSlug, contestantSlug);
 
   if (!event) {
@@ -90,17 +123,20 @@ export default async function ContestantProfilePage({
 
       <main className="flex-1">
         {/* Hero Section */}
-        <ProfileHero contestant={contestant} isActive={isActive} />
+        <ProfileHero contestant={contestant} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Photo Gallery */}
-          <PhotoGallery contestant={contestant} />
+          <PhotoGallery
+            photos={contestant.gallery_photos || []}
+            contestantName={contestant.name}
+          />
 
           {/* About Section */}
           <AboutSection contestant={contestant} stats={stats} />
 
           {/* Hybrid Voting Banner */}
-          <HybridVotingBanner contestant={contestant} eventSlug={eventSlug} />
+          <HybridVotingBanner />
 
           {/* Voting Panel with Status Guard */}
           <div className="mt-12">
@@ -110,10 +146,10 @@ export default async function ContestantProfilePage({
               allowedStatuses={["LIVE", "active"]}
             >
               <VotePanel
-                contestant={contestant}
+                contestantName={contestant.name}
+                eventName={event.name}
                 packages={packages}
-                eventSlug={eventSlug}
-                contestantSlug={contestantSlug}
+                isActive={isActive}
               />
             </EventStatusGuard>
           </div>
@@ -129,13 +165,13 @@ export default async function ContestantProfilePage({
           />
 
           {/* Voting History */}
-          <VotingHistory data={stats} />
+          <VotingHistory stats={stats} />
 
           {/* Transparency & Security */}
           <TransparencySecurity />
 
           {/* FAQ */}
-          <ProfileFAQ faq={faq} />
+          <ProfileFAQ items={faq} />
 
           {/* Related Contestants */}
           <RelatedContestants

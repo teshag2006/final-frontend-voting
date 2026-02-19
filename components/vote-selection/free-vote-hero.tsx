@@ -6,7 +6,7 @@ import type { VoteEligibility } from '@/types/vote';
 import Image from 'next/image';
 
 interface FreeVoteHeroProps {
-  eligibility: VoteEligibility;
+  eligibility?: VoteEligibility;
   onClaim: () => void;
   isLoading?: boolean;
   contestantImage?: string;
@@ -18,6 +18,10 @@ export function FreeVoteHero({
   isLoading = false,
   contestantImage,
 }: FreeVoteHeroProps) {
+  if (!eligibility) {
+    return null;
+  }
+
   const canClaim = eligibility.freeEligible && !eligibility.freeUsed;
 
   if (!eligibility.freeEligible) {

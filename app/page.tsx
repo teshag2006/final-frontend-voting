@@ -31,6 +31,9 @@ export default function HomePage() {
       case 'voter':
         router.push('/voter/dashboard');
         break;
+      case 'sponsor':
+        router.push('/sponsors');
+        break;
       default:
         router.push('/events');
     }

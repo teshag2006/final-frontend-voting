@@ -1,27 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { verifyServerUser } from '@/lib/server/auth-users';
-import { createSessionToken, getSessionCookieConfig } from '@/lib/server/session';
+import { buildSigninResponse, jsonError, parseSigninPayload } from '@/lib/server/auth-route-utils';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const email = String(body?.email || '').trim().toLowerCase();
-    const password = String(body?.password || '').trim();
+    const { email, password } = parseSigninPayload(await request.json());
     if (!email || !password) {
-      return NextResponse.json({ message: 'Email and password are required' }, { status: 400 });
+      return jsonError('Email and password are required', 400);
     }
 
     const user = verifyServerUser(email, password);
     if (!user) {
-      return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
+      return jsonError('Invalid credentials', 401);
     }
 
-    const token = createSessionToken(user);
-    const response = NextResponse.json({ user });
-    const cookie = getSessionCookieConfig();
-    response.cookies.set(cookie.name, token, cookie.options);
-    return response;
+    return buildSigninResponse(user);
   } catch {
-    return NextResponse.json({ message: 'Malformed request' }, { status: 400 });
+    return jsonError('Malformed request', 400);
   }
 }

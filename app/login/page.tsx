@@ -205,6 +205,23 @@ export default function LoginPage() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Sponsor */}
+            <Card className="border-indigo-700 bg-indigo-950 cursor-pointer hover:bg-indigo-900 transition"
+              onClick={() => handleQuickLogin('sponsor@example.com', 'Sponsor@123456')}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-indigo-300 text-sm">Sponsor</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div>
+                  <p className="text-indigo-200 font-mono">sponsor@example.com</p>
+                  <p className="text-indigo-300 font-mono">Sponsor@123456</p>
+                </div>
+                <Button size="sm" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
+                  Use Sponsor Account
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

@@ -147,7 +147,6 @@ export default function AdminPaymentsPage() {
   return (
     <ProtectedRouteWrapper
       requiredRole="admin"
-      autoSignInWith="admin"
       fallbackUrl="/events"
     >
       <div className="min-h-screen bg-background">
@@ -356,3 +355,4 @@ export default function AdminPaymentsPage() {
     </ProtectedRouteWrapper>
   );
 }
+

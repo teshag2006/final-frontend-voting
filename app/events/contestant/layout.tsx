@@ -41,10 +41,10 @@ export default function ContestantLayout({
   return (
     <ProtectedRouteWrapper
       requiredRole="contestant"
-      autoSignInWith="contestant"
       fallbackUrl="/events"
     >
       <ContestantLayoutContent>{children}</ContestantLayoutContent>
     </ProtectedRouteWrapper>
   );
 }
+

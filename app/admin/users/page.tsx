@@ -147,7 +147,7 @@ export default function AdminUsersAndRolesPage() {
   };
 
   return (
-    <ProtectedRouteWrapper requiredRole="admin" autoSignInWith="admin" fallbackUrl="/admin/dashboard">
+    <ProtectedRouteWrapper requiredRole="admin" fallbackUrl="/admin/dashboard">
       <div className="min-h-screen bg-background">
         {/* Page Header */}
         <header className="border-b border-border bg-card sticky top-0 z-40">

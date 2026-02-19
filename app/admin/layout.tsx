@@ -16,10 +16,10 @@ export default function AdminLayout({
   return (
     <ProtectedRouteWrapper
       requiredRole="admin"
-      autoSignInWith="admin"
       fallbackUrl="/events"
     >
       <AdminShell>{children}</AdminShell>
     </ProtectedRouteWrapper>
   );
 }
+

@@ -123,7 +123,6 @@ export default function AdminEventsPage() {
   return (
     <ProtectedRouteWrapper
       requiredRole="admin"
-      autoSignInWith="admin"
       fallbackUrl="/events"
     >
       <div className="min-h-screen bg-background">

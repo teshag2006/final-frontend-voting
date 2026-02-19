@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getSessionCookieConfig } from '@/lib/server/session';
+import { clearSessionCookie } from '@/lib/server/auth-route-utils';
 
 export async function POST() {
-  const response = NextResponse.json({ success: true });
-  const cookie = getSessionCookieConfig();
-  response.cookies.set(cookie.name, '', { ...cookie.options, maxAge: 0 });
-  return response;
+  return clearSessionCookie(NextResponse.json({ success: true }));
 }
-

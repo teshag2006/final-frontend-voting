@@ -12,7 +12,6 @@ interface ProtectedRouteWrapperProps {
   children: ReactNode;
   requiredRole?: UserRole | UserRole[];
   fallbackUrl?: string;
-  autoSignInWith?: UserRole;
 }
 
 const ProtectedRouteNestingContext = createContext(false);

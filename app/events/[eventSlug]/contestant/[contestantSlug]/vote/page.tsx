@@ -16,6 +16,15 @@ import { mockVoteEligibility, voteLimits } from "@/lib/vote-eligibility-mock";
 import { mockEvents } from "@/lib/events-mock";
 
 const DEFAULT_PRICE_PER_VOTE = 1.0;
+const DEFAULT_ELIGIBILITY = {
+  country: "US",
+  freeEligible: false,
+  freeUsed: false,
+  paidVotesUsed: 0,
+  paidVotesRemaining: 0,
+  dailyVotesRemaining: 0,
+  maxPerTransaction: 0,
+};
 
 export default function VoteSelectionPage() {
   const params = useParams();
@@ -26,7 +35,7 @@ export default function VoteSelectionPage() {
   // Find event
   const event = mockEvents.find((e) => e.slug === eventSlug);
   const contestant = mockContestantProfile;
-  const eligibility = mockVoteEligibility;
+  const eligibility = mockVoteEligibility ?? DEFAULT_ELIGIBILITY;
 
   const [quantity, setQuantity] = useState(1);
   const [isSMSModalOpen, setIsSMSModalOpen] = useState(false);
@@ -110,7 +119,12 @@ export default function VoteSelectionPage() {
             {/* Free Vote Section */}
             {eligibility.freeEligible && (
               <section className="mb-12 space-y-6">
-                <FreeVoteHero />
+                <FreeVoteHero
+                  eligibility={eligibility}
+                  onClaim={handleClaimFreeVote}
+                  isLoading={isFreeVoteLoading}
+                  contestantImage={contestant?.photo_url}
+                />
                 <div className="rounded-lg border border-slate-200 bg-white p-6">
                   <button
                     onClick={handleClaimFreeVote}
@@ -147,7 +161,12 @@ export default function VoteSelectionPage() {
 
             {/* Paid Vote Section */}
             <section className="space-y-6">
-              <PaidVoteHero />
+              <PaidVoteHero
+                eligibility={eligibility}
+                onProceed={handleProceedToCheckout}
+                isLoading={isPaidVoteLoading}
+                pricePerVote={DEFAULT_PRICE_PER_VOTE}
+              />
               <VoteLimitsInfo limits={voteLimits} />
               <PaidVoteSection
                 eligibility={eligibility}

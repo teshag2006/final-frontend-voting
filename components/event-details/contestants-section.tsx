@@ -16,9 +16,12 @@ export function ContestantsSection({
 }: ContestantsSectionProps) {
   const [filterCategory, setFilterCategory] = useState<string>("all");
 
-  const categories = Array.from(
-    new Set(contestants.map((c) => c.category_name))
-  );
+  const categories = contestants.reduce<string[]>((acc, contestant) => {
+    const label = String(contestant.category_name ?? "").trim();
+    if (!label) return acc;
+    if (!acc.includes(label)) acc.push(label);
+    return acc;
+  }, []);
 
   const filtered =
     filterCategory === "all"
@@ -43,8 +46,8 @@ export function ContestantsSection({
             aria-label="Filter by category"
           >
             <option value="all">All</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
+            {categories.map((cat, index) => (
+              <option key={`${cat}-${index}`} value={cat}>
                 {cat}
               </option>
             ))}

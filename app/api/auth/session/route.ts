@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySessionToken } from '@/lib/server/session';
 import { SESSION_COOKIE } from '@/lib/server/session-constants';
+import { readSessionTokenFromRequest } from '@/lib/server/auth-route-utils';
 
 export async function GET(request: NextRequest) {
-  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  const token = readSessionTokenFromRequest(request, SESSION_COOKIE);
   const user = verifySessionToken(token);
 
   if (!user) {

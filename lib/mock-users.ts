@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'contestant' | 'media' | 'voter' | 'public';
+export type UserRole = 'admin' | 'contestant' | 'media' | 'voter' | 'sponsor' | 'public';
 
 export interface UserPreferences {
   emailNotifications: boolean;
@@ -277,6 +277,28 @@ export const mockUsers: User[] = [
       twoFactorEnabled: true,
     },
     createdAt: '2024-03-03T08:30:00Z',
+  },
+  {
+    id: 'sponsor-001',
+    email: 'sponsor@example.com',
+    password: 'Sponsor@123456',
+    name: 'Zenith Sponsor',
+    role: 'sponsor',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sponsor',
+    profile: {
+      bio: 'Brand Partnerships Manager',
+      location: 'Addis Ababa, Ethiopia',
+      verified: true,
+      verificationDate: '2024-03-10',
+    },
+    preferences: {
+      emailNotifications: true,
+      pushNotifications: true,
+      theme: 'dark',
+      language: 'en',
+      twoFactorEnabled: false,
+    },
+    createdAt: '2024-03-10T09:00:00Z',
   },
 ];
 

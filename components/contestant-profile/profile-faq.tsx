@@ -13,7 +13,8 @@ interface ProfileFAQProps {
 }
 
 export function ProfileFAQ({ items }: ProfileFAQProps) {
-  if (items.length === 0) return null;
+  const safeItems = Array.isArray(items) ? items : [];
+  if (safeItems.length === 0) return null;
 
   return (
     <section id="faq" className="scroll-mt-20">
@@ -22,7 +23,7 @@ export function ProfileFAQ({ items }: ProfileFAQProps) {
       </h2>
       <div className="mt-4 rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
         <Accordion type="single" collapsible className="w-full">
-          {items.map((item) => (
+          {safeItems.map((item) => (
             <AccordionItem
               key={item.id}
               value={item.id}

@@ -15,10 +15,10 @@ export default function MediaLayout({
   return (
     <ProtectedRouteWrapper
       requiredRole="media"
-      autoSignInWith="media"
       fallbackUrl="/events"
     >
       {children}
     </ProtectedRouteWrapper>
   );
 }
+
