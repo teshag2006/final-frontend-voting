@@ -1,5 +1,3 @@
-import { MediaDashboardHeader } from '@/components/media/dashboard-header';
-import { MediaDashboardNav } from '@/components/media/dashboard-nav';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,45 +20,38 @@ export const metadata = {
 
 export default function MediaLeaderboardPage() {
   return (
-    <div className="min-h-screen bg-slate-950">
-      <MediaDashboardHeader />
-      <MediaDashboardNav />
-
-      <main className="space-y-6 px-4 py-8 md:px-8">
-        {/* Header with Filters */}
-        <div className="space-y-4">
-          <div>
+      <main className="space-y-6 px-4 py-6 md:px-6">
+        {/* Header with Controls (single row on desktop) */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+          <div className="min-w-0 shrink-0">
             <h1 className="text-2xl font-bold text-white">Live Leaderboard</h1>
             <p className="text-sm text-slate-400">Real-time contestant rankings</p>
           </div>
 
-          {/* Controls */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative flex-1 max-w-md">
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:justify-end">
+            <div className="relative w-full sm:w-[240px] lg:w-[220px]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <Input
                 placeholder="Search contestants..."
-                className="border-slate-700 bg-slate-900 pl-10 text-white placeholder:text-slate-500"
+                className="h-9 border-slate-700 bg-slate-900 pl-10 text-white placeholder:text-slate-500"
               />
             </div>
 
-            <div className="flex gap-2">
-              <Select defaultValue="all">
-                <SelectTrigger className="w-36 border-slate-700 bg-slate-900 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="border-slate-700 bg-slate-900">
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="miss">Miss Africa</SelectItem>
-                  <SelectItem value="mr">Mr Africa</SelectItem>
-                </SelectContent>
-              </Select>
+            <Select defaultValue="all">
+              <SelectTrigger className="h-9 w-full border-slate-700 bg-slate-900 text-white sm:w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="border-slate-700 bg-slate-900">
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="miss">Miss Africa</SelectItem>
+                <SelectItem value="mr">Mr Africa</SelectItem>
+              </SelectContent>
+            </Select>
 
-              <Button variant="outline" size="sm" className="border-slate-700">
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
-              </Button>
-            </div>
+            <Button variant="outline" size="sm" className="h-9 border-slate-700 px-3">
+              <Filter className="mr-2 h-4 w-4" />
+              Filter
+            </Button>
           </div>
         </div>
 
@@ -155,6 +146,5 @@ export default function MediaLeaderboardPage() {
           </div>
         </div>
       </main>
-    </div>
   );
 }

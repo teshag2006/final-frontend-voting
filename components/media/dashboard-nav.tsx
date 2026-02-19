@@ -64,7 +64,7 @@ export function MediaDashboardNav() {
   const [open, setOpen] = useState(false);
 
   const NavContent = () => (
-    <nav className="space-y-1">
+    <nav className="space-y-1 p-2">
       {navigationItems.map((item) => {
         const Icon = item.icon;
         const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
@@ -74,15 +74,15 @@ export function MediaDashboardNav() {
             <Button
               variant={isActive ? 'default' : 'ghost'}
               className={cn(
-                'w-full justify-start gap-3',
+                'w-full justify-start gap-2 rounded-lg px-2 py-2',
                 isActive
                   ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               )}
               onClick={() => setOpen(false)}
             >
               <Icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{item.label}</span>
+              <span className="text-sm">{item.label}</span>
             </Button>
           </Link>
         );
@@ -92,45 +92,30 @@ export function MediaDashboardNav() {
 
   return (
     <>
-      {/* Desktop Navigation */}
-      <div className="hidden border-b border-gray-200 bg-white md:block">
-        <div className="flex items-center overflow-x-auto px-4 md:px-8">
-          {navigationItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-
-            return (
-              <Link key={item.href} href={item.href} className="relative">
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    'gap-2 rounded-none border-b-2 px-3 py-4 text-sm font-medium',
-                    isActive
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-600 hover:text-gray-900'
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden lg:inline">{item.label}</span>
-                </Button>
-              </Link>
-            );
-          })}
+      <aside className="hidden w-52 shrink-0 border-r border-slate-800 bg-slate-900/70 md:block">
+        <div className="sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
+          <div className="px-3 pt-3">
+            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Media Navigation</p>
+          </div>
+          <NavContent />
         </div>
-      </div>
+      </aside>
 
       {/* Mobile Navigation */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild className="md:hidden">
+        <SheetTrigger asChild className="fixed bottom-4 left-4 z-30 md:hidden">
           <Button 
-            variant="ghost" 
+            variant="default" 
             size="icon" 
-            className="border-b border-gray-200 text-gray-700 hover:bg-gray-100"
+            className="h-11 w-11 rounded-full bg-blue-600 text-white hover:bg-blue-700"
           >
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="border-gray-200 bg-white">
+        <SheetContent side="left" className="border-slate-800 bg-slate-900 p-0">
+          <div className="border-b border-slate-800 px-4 py-3">
+            <p className="text-sm font-semibold text-white">Media Navigation</p>
+          </div>
           <NavContent />
         </SheetContent>
       </Sheet>

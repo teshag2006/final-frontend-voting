@@ -1,7 +1,5 @@
 'use client';
 
-import { MediaDashboardHeader } from '@/components/media/dashboard-header';
-import { MediaDashboardNav } from '@/components/media/dashboard-nav';
 import { Card } from '@/components/ui/card';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -34,10 +32,6 @@ const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b'];
 
 export default function MediaAnalyticsPage() {
   return (
-    <div className="min-h-screen bg-slate-950">
-      <MediaDashboardHeader />
-      <MediaDashboardNav />
-
       <main className="space-y-6 px-4 py-8 md:px-8">
         {/* Header */}
         <div className="space-y-2">
@@ -177,7 +171,6 @@ export default function MediaAnalyticsPage() {
           </div>
         </Card>
       </main>
-    </div>
   );
 }
 

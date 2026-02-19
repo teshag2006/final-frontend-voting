@@ -1,5 +1,3 @@
-import { MediaDashboardHeader } from '@/components/media/dashboard-header';
-import { MediaDashboardNav } from '@/components/media/dashboard-nav';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -70,10 +68,6 @@ export default function MediaNotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <MediaDashboardHeader />
-      <MediaDashboardNav />
-
       <main className="space-y-6 px-4 py-8 md:px-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -149,6 +143,5 @@ export default function MediaNotificationsPage() {
           </p>
         </Card>
       </main>
-    </div>
   );
 }

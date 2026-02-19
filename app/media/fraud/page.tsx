@@ -1,7 +1,5 @@
 'use client';
 
-import { MediaDashboardHeader } from '@/components/media/dashboard-header';
-import { MediaDashboardNav } from '@/components/media/dashboard-nav';
 import { FraudSummary } from '@/components/media/fraud-summary';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,10 +27,6 @@ const fraudTypeData = [
 
 export default function MediaFraudPage() {
   return (
-    <div className="min-h-screen bg-slate-950">
-      <MediaDashboardHeader />
-      <MediaDashboardNav />
-
       <main className="space-y-6 px-4 py-8 md:px-8">
         {/* Header */}
         <div className="space-y-2">
@@ -130,7 +124,6 @@ export default function MediaFraudPage() {
           </div>
         </div>
       </main>
-    </div>
   );
 }
 
