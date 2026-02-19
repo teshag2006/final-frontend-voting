@@ -9,8 +9,10 @@ import { LiveEventStats } from "@/components/event-details/live-event-stats";
 import { LeaderboardPreview } from "@/components/event-details/leaderboard-preview";
 import { EventTimelineCard } from "@/components/event-details/event-timeline-card";
 import { FAQSection } from "@/components/event-details/faq-section";
+import { EventSponsorsSection } from "@/components/event-details/event-sponsors-section";
 import { Footer } from "@/components/footer";
 import { EventCountdown } from "@/components/events/event-countdown";
+import { getEventSponsors } from "@/lib/sponsorship-mock";
 
 // Mock data
 import {
@@ -64,6 +66,7 @@ export default async function EventDetailsPage({
   const stats = mockEventStats;
   const leaderboard = mockLeaderboard;
   const faq = mockFAQ;
+  const eventSponsors = getEventSponsors(eventSlug);
 
   const isActive = event.status === "LIVE" || event.status === "active";
 
@@ -118,6 +121,9 @@ export default async function EventDetailsPage({
 
         {/* Event Overview */}
         <EventOverview event={event} />
+
+        {/* Event Sponsors */}
+        <EventSponsorsSection sponsors={eventSponsors} eventSlug={eventSlug} />
 
         {/* Categories Section */}
         <CategoriesSection

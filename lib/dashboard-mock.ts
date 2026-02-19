@@ -15,6 +15,7 @@ import type {
   EventDetails,
   Notification,
 } from '@/types/dashboard';
+import { mockSponsorVisibility } from '@/lib/sponsorship-mock';
 
 export const mockDashboardOverview: DashboardOverviewData = {
   metrics: {
@@ -167,29 +168,7 @@ export const mockGeographicData = {
   } as VPNProxyActivity,
 };
 
-export const mockSponsorsData: SponsorVisibility[] = [
-  {
-    sponsor_name: 'Tech Corp',
-    impressions: 45230,
-    engagement_metrics: 3420,
-    click_through_rate: 7.5,
-    campaign_period: 'Jan 1 - Jan 31',
-  },
-  {
-    sponsor_name: 'Beauty Brand',
-    impressions: 38920,
-    engagement_metrics: 2890,
-    click_through_rate: 7.4,
-    campaign_period: 'Jan 5 - Feb 5',
-  },
-  {
-    sponsor_name: 'Fashion Inc',
-    impressions: 32450,
-    engagement_metrics: 2210,
-    click_through_rate: 6.8,
-    campaign_period: 'Jan 10 - Feb 10',
-  },
-];
+export const mockSponsorsData: SponsorVisibility[] = mockSponsorVisibility;
 
 export const mockEventDetails: EventDetails = {
   event_name: 'Miss & Mister Continental 2026',

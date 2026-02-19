@@ -27,6 +27,7 @@ import {
 } from "@/lib/contestant-profile-mock";
 import { mockEvents } from "@/lib/events-mock";
 import { getEventBySlug, getContestantsForEvent } from "@/lib/mock-data-generator";
+import { getContestantSponsors } from "@/lib/sponsorship-mock";
 
 export async function generateMetadata({
   params,
@@ -68,6 +69,7 @@ export default async function ContestantProfilePage({
   const geoSupport = mockGeographicSupport;
   const faq = mockProfileFAQ;
   const related = contestants.filter((c) => c.slug !== contestantSlug);
+  const sponsors = getContestantSponsors(eventSlug, contestantSlug);
 
   if (!event) {
     return (
@@ -120,7 +122,11 @@ export default async function ContestantProfilePage({
           <GeographicSupport data={geoSupport} />
 
           {/* Sponsors Section */}
-          <SponsorsSection />
+          <SponsorsSection
+            sponsors={sponsors.length > 0 ? sponsors : mockContestantProfile.sponsors}
+            eventSlug={eventSlug}
+            contestantSlug={contestantSlug}
+          />
 
           {/* Voting History */}
           <VotingHistory data={stats} />

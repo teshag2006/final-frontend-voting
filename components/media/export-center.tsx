@@ -33,6 +33,12 @@ export function ExportCenter() {
       description: 'Vote distribution by country',
       icon: FileText,
     },
+    {
+      id: 'sponsors',
+      title: 'Sponsor Performance',
+      description: 'Sponsor placements, impressions, CTR',
+      icon: FileText,
+    },
   ];
 
   const handleExport = async (id: string) => {

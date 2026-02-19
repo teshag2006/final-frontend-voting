@@ -19,6 +19,7 @@ import type {
   EventDetails,
   Notification,
 } from "@/types/dashboard";
+import type { Sponsor } from "@/types/contestant";
 import type {
   VoterPayment,
   VoterVote,
@@ -365,6 +366,92 @@ export async function getSponsorsData(): Promise<SponsorVisibility[] | null> {
     return await fetchFromAPI<SponsorVisibility[]>("/contestant/sponsors");
   } catch {
     return null;
+  }
+}
+
+export async function getAdminSponsors(): Promise<Sponsor[] | null> {
+  try {
+    return await fetchFromAPI<Sponsor[]>("/admin/sponsors");
+  } catch {
+    return null;
+  }
+}
+
+export async function getAdminSponsorCampaigns(eventSlug?: string): Promise<any[] | null> {
+  try {
+    const query = eventSlug ? `?eventSlug=${encodeURIComponent(eventSlug)}` : "";
+    return await fetchFromAPI<any[]>(`/admin/sponsor-campaigns${query}`);
+  } catch {
+    return null;
+  }
+}
+
+export async function getAdminSponsorPlacements(contestantSlug?: string): Promise<any[] | null> {
+  try {
+    const query = contestantSlug ? `?contestantSlug=${encodeURIComponent(contestantSlug)}` : "";
+    return await fetchFromAPI<any[]>(`/admin/sponsor-placements${query}`);
+  } catch {
+    return null;
+  }
+}
+
+export async function getEventSponsorsPublic(eventSlug: string): Promise<Sponsor[] | null> {
+  try {
+    return await fetchFromAPI<Sponsor[]>(`/public/event/${eventSlug}/sponsors`);
+  } catch {
+    return null;
+  }
+}
+
+export async function getContestantSponsorsPublic(
+  eventSlug: string,
+  contestantSlug: string
+): Promise<Sponsor[] | null> {
+  try {
+    return await fetchFromAPI<Sponsor[]>(
+      `/public/event/${eventSlug}/contestant/${contestantSlug}/sponsors`
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function trackSponsorImpression(payload: {
+  sponsorId: string;
+  placementId?: string;
+  sourcePage: string;
+  eventSlug?: string;
+  contestantSlug?: string;
+}): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/public/sponsor-impression`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function trackSponsorClick(payload: {
+  sponsorId: string;
+  placementId?: string;
+  sourcePage: string;
+  eventSlug?: string;
+  contestantSlug?: string;
+  targetUrl?: string;
+}): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/public/sponsor-click`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return response.ok;
+  } catch {
+    return false;
   }
 }
 

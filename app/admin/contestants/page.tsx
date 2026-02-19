@@ -202,6 +202,9 @@ export default function AdminContestantsPage() {
               </div>
 
               <div className="flex gap-2">
+                <Button asChild variant="outline" size="lg">
+                  <Link href="/admin/sponsors">Sponsor Assignments</Link>
+                </Button>
                 <ExportContestantsButton
                   contestants={filteredContestants}
                   fileName={`contestants-${new Date().toISOString().split('T')[0]}.csv`}

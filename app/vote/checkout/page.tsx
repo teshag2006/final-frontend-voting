@@ -1,7 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { CheckoutHeader } from '@/components/vote-checkout/checkout-header';
@@ -21,9 +20,15 @@ import {
 import type { PaymentMethod } from '@/types/vote';
 
 export default function VoteCheckoutPage() {
-  const searchParams = useSearchParams();
-  const requestedQuantity = Number(searchParams.get('quantity') || 10);
-  const safeQuantity = Number.isFinite(requestedQuantity) && requestedQuantity > 0 ? requestedQuantity : 10;
+  const [safeQuantity, setSafeQuantity] = useState(10);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedQuantity = Number(params.get('quantity') || 10);
+    if (Number.isFinite(requestedQuantity) && requestedQuantity > 0) {
+      setSafeQuantity(requestedQuantity);
+    }
+  }, []);
 
   // Default to Chapa for Ethiopian users, Credit Card for others
   // TODO: Replace with actual geolocation detection from user session/IP

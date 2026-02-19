@@ -107,7 +107,13 @@ export const LEADERBOARD_CONTESTANTS: ContestantProfile[] = [
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=600&fit=crop',
     ],
     sponsors: [
-      { name: 'Beauty Brand X', logo_url: 'https://via.placeholder.com/200x100?text=BrandX' },
+      {
+        id: 'sp-brandx',
+        name: 'Beauty Brand X',
+        logo_url: 'https://via.placeholder.com/200x100?text=BrandX',
+        approved: true,
+        status: 'active',
+      },
     ],
   },
   {

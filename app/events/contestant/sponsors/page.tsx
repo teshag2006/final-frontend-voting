@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getSponsorsData } from '@/lib/api';
 import { mockSponsorsData } from '@/lib/dashboard-mock';
-import { Eye, MousePointer } from 'lucide-react';
+import { Eye, MousePointer, CheckCircle2 } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Sponsors | Contestant Portal',
@@ -10,14 +10,16 @@ export const metadata: Metadata = {
 
 export default async function SponsorsPage() {
   const apiSponsors = await getSponsorsData();
-  const sponsors = apiSponsors || mockSponsorsData;
+  const sponsors = (apiSponsors || mockSponsorsData).filter(
+    (sponsor) => sponsor.approved !== false && sponsor.placement_status !== 'ended'
+  );
 
   return (
     <div className="p-8 space-y-8">
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground mb-2">Sponsor Visibility</h1>
-        <p className="text-muted-foreground">Track sponsor placements and engagement metrics.</p>
+        <p className="text-muted-foreground">Read-only view of sponsor placements and engagement metrics.</p>
       </div>
 
       {/* Sponsors List */}
@@ -44,9 +46,13 @@ export default async function SponsorsPage() {
                   <p className="text-sm text-muted-foreground">
                     Campaign: {sponsor.campaign_period}
                   </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Placement: {sponsor.placement_slot || 'profile'} • Status: {sponsor.placement_status || 'active'}
+                  </p>
                 </div>
-                <span className="px-3 py-1 bg-accent/10 text-accent rounded-full text-xs font-semibold">
-                  Active
+                <span className="px-3 py-1 bg-accent/10 text-accent rounded-full text-xs font-semibold inline-flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {sponsor.approved === false ? 'Pending' : 'Approved'}
                 </span>
               </div>
 

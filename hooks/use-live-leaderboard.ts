@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
-import useSWR from 'swr'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getMockLeaderboardData } from '@/lib/leaderboard-mock'
 
 const NORMAL_REFRESH_MS = 60000
@@ -62,35 +61,58 @@ function getRefreshInterval(countdownSeconds?: number): number {
 
 export function useLiveLeaderboard(eventId: string, initialData: LeaderboardPayload) {
   const previousRowsRef = useRef<Contestant[]>(initialData?.leaderboard || [])
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [data, setData] = useState<LeaderboardPayload>(normalizeLeaderboard(initialData))
+  const [error, setError] = useState<Error | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isValidating, setIsValidating] = useState(false)
 
-  const { data, error, isLoading, isValidating } = useSWR(
-    ['leaderboard', eventId],
-    async () => {
-      try {
-        const response = await fetch(`/api/leaderboard?eventId=${eventId}&limit=5`, {
-          headers: { Accept: 'application/json' },
-          cache: 'no-store',
-        })
-
-        if (!response.ok) {
-          throw new Error('leaderboard-unavailable')
-        }
-
-        const apiData = await response.json()
-        return normalizeLeaderboard(apiData as LeaderboardPayload)
-      } catch {
-        return normalizeLeaderboard(getMockLeaderboardData(eventId) as LeaderboardPayload)
+  const loadLeaderboard = useCallback(async () => {
+    setIsValidating(true)
+    try {
+      const response = await fetch(`/api/leaderboard?eventId=${eventId}&limit=5`, {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      })
+      if (!response.ok) {
+        throw new Error('leaderboard-unavailable')
       }
-    },
-    {
-      fallbackData: normalizeLeaderboard(initialData),
-      revalidateOnFocus: false,
-      refreshInterval: (currentData) => getRefreshInterval(currentData?.event?.countdownSeconds),
-      dedupingInterval: 10000,
-      focusThrottleInterval: 60000,
-      keepPreviousData: true,
+      const apiData = await response.json()
+      const normalized = normalizeLeaderboard(apiData as LeaderboardPayload)
+      setData(normalized)
+      setError(null)
+      return normalized
+    } catch {
+      const fallback = normalizeLeaderboard(getMockLeaderboardData(eventId) as LeaderboardPayload)
+      setData(fallback)
+      setError(new Error('leaderboard-unavailable'))
+      return fallback
+    } finally {
+      setIsLoading(false)
+      setIsValidating(false)
     }
-  )
+  }, [eventId])
+
+  useEffect(() => {
+    let isMounted = true
+    const scheduleNext = (currentData?: LeaderboardPayload) => {
+      if (!isMounted) return
+      const interval = getRefreshInterval(currentData?.event?.countdownSeconds)
+      timerRef.current = setTimeout(async () => {
+        const latest = await loadLeaderboard()
+        scheduleNext(latest)
+      }, interval)
+    }
+
+    loadLeaderboard().then((latest) => {
+      if (isMounted) scheduleNext(latest)
+    })
+
+    return () => {
+      isMounted = false
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [loadLeaderboard])
 
   const changedContestantIds = useMemo(() => {
     const changed = new Set<string>()

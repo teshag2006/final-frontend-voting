@@ -51,17 +51,26 @@ export const mockContestantProfile: ContestantProfile = {
   video_thumbnail: "/images/video-thumb.jpg",
   sponsors: [
     {
+      id: "sp-zenith",
       name: "Zenith Bank",
       logo_url: "/images/sponsor-zenith.jpg",
       website_url: "#",
+      approved: true,
+      status: "active",
     },
     {
+      id: "sp-mtn",
       name: "MTN",
       logo_url: "/images/sponsor-mtn.jpg",
+      approved: true,
+      status: "active",
     },
     {
+      id: "sp-coke",
       name: "Coca-Cola",
       logo_url: "/images/sponsor-cocacola.jpg",
+      approved: true,
+      status: "active",
     },
   ],
 };

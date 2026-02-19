@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { useState, useEffect, useCallback, useRef } from 'react';
-import useSWR from 'swr';
 
 export interface LeaderboardEntry {
   rank: number;
@@ -39,6 +38,10 @@ export function useLeaderboard({
   onError,
 }: UseLeaderboardOptions) {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardData | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(enabled);
+  const [error, setError] = useState<Error | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previousEntriesRef = useRef<LeaderboardEntry[]>([]);
   const errorCountRef = useRef(0);
   const maxErrorsRef = useRef(3);
@@ -57,66 +60,82 @@ export function useLeaderboard({
     return `/api/leaderboard?${params.toString()}`;
   }, [enabled, eventId, categoryId, limit]);
 
-  // Fetch with exponential backoff on error
-  const { data, error, isLoading, mutate } = useSWR<LeaderboardData>(
-    getUrl(),
-    async (url: string) => {
-      try {
-        const response = await fetch(url);
+  const fetchLeaderboard = useCallback(async () => {
+    const url = getUrl();
+    if (!url) return null;
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch leaderboard: ${response.statusText}`);
-        }
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch leaderboard: ${response.statusText}`);
+      }
 
-        const jsonData = await response.json();
-        errorCountRef.current = 0;
+      const jsonData = await response.json();
+      errorCountRef.current = 0;
 
-        // Calculate rank changes
-        const entriesWithChanges = jsonData.entries.map((entry: LeaderboardEntry) => {
-          const previousEntry = previousEntriesRef.current.find(
-            (e) => e.contestantId === entry.contestantId
-          );
-
-          return {
-            ...entry,
-            previousRank: previousEntry?.rank,
-            percentageToLeader:
-              jsonData.entries.length > 0
-                ? ((entry.voteCount / jsonData.entries[0].voteCount) * 100).toFixed(1)
-                : 100,
-          };
-        });
-
-        previousEntriesRef.current = entriesWithChanges;
-        setLastUpdated(new Date());
+      const entriesWithChanges = jsonData.entries.map((entry: LeaderboardEntry) => {
+        const previousEntry = previousEntriesRef.current.find(
+          (e) => e.contestantId === entry.contestantId
+        );
 
         return {
-          ...jsonData,
-          entries: entriesWithChanges,
-          lastUpdated: new Date(),
-          updateIntervalMs: pollingIntervalMs,
+          ...entry,
+          previousRank: previousEntry?.rank,
+          percentageToLeader:
+            jsonData.entries.length > 0
+              ? ((entry.voteCount / jsonData.entries[0].voteCount) * 100).toFixed(1)
+              : 100,
         };
-      } catch (err) {
-        errorCountRef.current += 1;
+      });
 
-        if (errorCountRef.current >= maxErrorsRef.current) {
-          const error = err instanceof Error ? err : new Error(String(err));
-          onError?.(error);
-        }
+      previousEntriesRef.current = entriesWithChanges;
+      const nextData = {
+        ...jsonData,
+        entries: entriesWithChanges,
+        lastUpdated: new Date(),
+        updateIntervalMs: pollingIntervalMs,
+      };
 
-        throw err;
+      setLeaderboardData(nextData);
+      setLastUpdated(new Date());
+      setError(null);
+      return nextData;
+    } catch (err) {
+      errorCountRef.current += 1;
+      const nextError = err instanceof Error ? err : new Error(String(err));
+      setError(nextError);
+
+      if (errorCountRef.current >= maxErrorsRef.current) {
+        onError?.(nextError);
       }
-    },
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      // Adjust refresh interval based on error count
-      refreshInterval: errorCountRef.current > 0 ? pollingIntervalMs * Math.pow(2, errorCountRef.current) : pollingIntervalMs,
-      // Keep previous data on error (stale-while-revalidate)
-      dedupingInterval: 5000,
-      focusThrottleInterval: 30000,
+
+      return null;
+    } finally {
+      setIsLoading(false);
     }
-  );
+  }, [getUrl, onError, pollingIntervalMs]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const schedule = async () => {
+      if (!isMounted) return;
+      await fetchLeaderboard();
+      const interval =
+        errorCountRef.current > 0
+          ? pollingIntervalMs * Math.pow(2, errorCountRef.current)
+          : pollingIntervalMs;
+      timerRef.current = setTimeout(schedule, interval);
+    };
+
+    setIsLoading(true);
+    schedule();
+
+    return () => {
+      isMounted = false;
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [fetchLeaderboard, pollingIntervalMs]);
 
   // Detect rank changes and trigger animations
   const getRankChange = useCallback(
@@ -138,8 +157,8 @@ export function useLeaderboard({
   // Manual refresh with exponential backoff reset
   const refresh = useCallback(async () => {
     errorCountRef.current = 0;
-    await mutate();
-  }, [mutate]);
+    await fetchLeaderboard();
+  }, [fetchLeaderboard]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -150,10 +169,10 @@ export function useLeaderboard({
 
   return {
     // Data
-    leaderboard: data?.entries || [],
-    totalVotes: data?.totalVotes || 0,
+    leaderboard: leaderboardData?.entries || [],
+    totalVotes: leaderboardData?.totalVotes || 0,
     lastUpdated,
-    updateIntervalMs: data?.updateIntervalMs || pollingIntervalMs,
+    updateIntervalMs: leaderboardData?.updateIntervalMs || pollingIntervalMs,
 
     // State
     isLoading,
@@ -163,7 +182,7 @@ export function useLeaderboard({
     // Methods
     refresh,
     getRankChange,
-    mutate,
+    mutate: refresh,
 
     // Utils
     isStale: Date.now() - lastUpdated.getTime() > pollingIntervalMs,

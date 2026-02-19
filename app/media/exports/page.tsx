@@ -35,6 +35,14 @@ const recentExports = [
     date: '1 day ago',
     status: 'completed',
   },
+  {
+    id: 4,
+    name: 'Sponsor Performance',
+    type: 'CSV',
+    size: '1.1 MB',
+    date: '1 day ago',
+    status: 'completed',
+  },
 ];
 
 export default function MediaExportsPage() {

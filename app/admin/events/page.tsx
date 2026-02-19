@@ -148,6 +148,15 @@ export default function AdminEventsPage() {
               </div>
 
               <Button
+                asChild
+                variant="outline"
+                className="w-full sm:w-auto"
+                size="lg"
+              >
+                <Link href="/admin/sponsors">Manage Sponsors</Link>
+              </Button>
+
+              <Button
                 onClick={handleCreateEvent}
                 className="gap-2 w-full sm:w-auto"
                 size="lg"
