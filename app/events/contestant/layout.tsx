@@ -3,7 +3,6 @@ import { ReactNode } from 'react';
 import { ProtectedRouteWrapper } from '@/components/auth/protected-route-wrapper';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
 import { DashboardHeader } from '@/components/dashboard/header';
-import { DashboardNavTabs } from '@/components/dashboard/dashboard-nav-tabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,22 +17,17 @@ function ContestantLayoutContent({
   children: ReactNode;
 }) {
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
-      <DashboardSidebar />
+    <div className="h-screen bg-slate-200 flex flex-col overflow-hidden">
+      {/* Full-width top banner */}
+      <DashboardHeader />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <DashboardHeader />
+      {/* Content area below top banner */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar starts below top banner */}
+        <DashboardSidebar />
 
-        {/* Navigation Tabs */}
-        <DashboardNavTabs />
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto bg-secondary/30">
-          {children}
-        </main>
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto bg-slate-100">{children}</main>
       </div>
     </div>
   );

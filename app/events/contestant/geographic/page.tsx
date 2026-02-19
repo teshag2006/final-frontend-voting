@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getGeographicData } from '@/lib/api';
 import { mockGeographicData } from '@/lib/dashboard-mock';
-import { Globe, Shield, AlertCircle } from 'lucide-react';
+import { Shield, AlertTriangle, Globe } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Geographic Insights | Contestant Portal',
@@ -10,133 +10,133 @@ export const metadata: Metadata = {
 
 function getCountryFlag(countryCode: string): string {
   const flags: Record<string, string> = {
-    ET: '🇪🇹',
-    KE: '🇰🇪',
-    US: '🇺🇸',
-    NG: '🇳🇬',
-    ZA: '🇿🇦',
-    GH: '🇬🇭',
-    EG: '🇪🇬',
+    ET: 'ET',
+    KE: 'KE',
+    US: 'US',
+    NG: 'NG',
+    ZA: 'ZA',
+    GH: 'GH',
+    EG: 'EG',
   };
-  return flags[countryCode] || '🌍';
+  return flags[countryCode] || '--';
 }
 
-export default async function GeographicPage() {
-  const apiData = await getGeographicData();
-  const data = apiData || mockGeographicData;
+const COUNTRY_HEATMAP_POINTS: Record<string, { x: number; y: number }> = {
+  US: { x: 23, y: 38 },
+  NG: { x: 52, y: 54 },
+  KE: { x: 58, y: 57 },
+  ET: { x: 59, y: 53 },
+  ZA: { x: 56, y: 79 },
+  GH: { x: 49, y: 55 },
+  EG: { x: 56, y: 43 },
+};
 
+export default async function GeographicPage() {
+  const data = (await getGeographicData()) || mockGeographicData;
   const { countries, vpn_activity } = data;
   const sortedCountries = [...countries].sort((a, b) => b.votes - a.votes);
-  const totalVotes = countries.reduce((sum, c) => sum + c.votes, 0);
-  const totalRevenue = countries.reduce((sum, c) => sum + c.revenue, 0);
+  const maxVotes = Math.max(...sortedCountries.map((c) => c.votes), 1);
 
   return (
-    <div className="p-8 space-y-8">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Geographic Insights</h1>
-        <p className="text-muted-foreground">Analyze voting patterns across countries and regions.</p>
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-semibold text-slate-800">Geographic Insights</h1>
       </div>
 
-      {/* VPN & Proxy Activity */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg border border-border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">VPN Votes</h3>
-            <Shield className="w-5 h-5 text-muted-foreground" />
-          </div>
-          <p className="text-3xl font-bold text-foreground">{vpn_activity.vpn_votes}</p>
-          <p className="text-xs text-muted-foreground mt-2">Filtered votes</p>
-        </div>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[2fr_1fr]">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="relative h-[320px] overflow-hidden rounded-lg border border-slate-200 bg-gradient-to-b from-blue-100 to-blue-300">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg"
+              alt="World map"
+              className="h-full w-full object-cover opacity-80"
+            />
 
-        <div className="bg-white rounded-lg border border-border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Proxy Attempts</h3>
-            <AlertCircle className="w-5 h-5 text-yellow-600" />
-          </div>
-          <p className="text-3xl font-bold text-foreground">{vpn_activity.proxy_attempts}</p>
-          <p className="text-xs text-muted-foreground mt-2">Blocked</p>
-        </div>
+            {sortedCountries.map((country) => {
+              const point = COUNTRY_HEATMAP_POINTS[country.country_code];
+              if (!point) return null;
+              const intensity = country.votes / maxVotes;
+              const size = 24 + intensity * 46;
+              const alpha = 0.28 + intensity * 0.47;
 
-        <div className="bg-white rounded-lg border border-border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">TOR Access</h3>
-            <AlertCircle className="w-5 h-5 text-red-600" />
-          </div>
-          <p className="text-3xl font-bold text-foreground">{vpn_activity.tor_access}</p>
-          <p className="text-xs text-muted-foreground mt-2">Flagged</p>
-        </div>
-      </div>
-
-      {/* Top Countries Table */}
-      <div className="bg-white rounded-lg border border-border overflow-hidden">
-        <div className="p-6 border-b border-border">
-          <h2 className="text-lg font-semibold text-foreground">Top Voting Countries</h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-secondary/30">
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Country</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Votes</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">% of Total</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Revenue</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedCountries.map((country, index) => (
-                <tr
+              return (
+                <div
                   key={country.country_code}
-                  className="border-b border-border hover:bg-secondary/50 transition-colors"
-                >
-                  <td className="px-6 py-4 text-sm font-medium text-foreground">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{getCountryFlag(country.country_code)}</span>
-                      {country.country}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-foreground">
-                    {country.votes.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-foreground">
-                    {((country.votes / totalVotes) * 100).toFixed(1)}%
-                  </td>
-                  <td className="px-6 py-4 text-sm text-foreground">
-                    ${(country.revenue / 100).toFixed(2)}
-                  </td>
+                  className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+                  style={{
+                    left: `${point.x}%`,
+                    top: `${point.y}%`,
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    background: `radial-gradient(circle, rgba(245, 158, 11, ${alpha}) 0%, rgba(245, 158, 11, 0.18) 55%, rgba(245, 158, 11, 0) 100%)`,
+                    boxShadow: `0 0 ${Math.round(size * 0.9)}px rgba(245, 158, 11, ${alpha})`,
+                  }}
+                  title={`${country.country}: ${country.votes.toLocaleString()} votes`}
+                />
+              );
+            })}
+
+            <div className="absolute bottom-3 right-3 rounded-md bg-white/90 px-3 py-2 text-xs text-slate-700 shadow">
+              <p className="mb-1 font-semibold text-slate-800">Heat Intensity</p>
+              <div className="h-2 w-28 rounded-full bg-gradient-to-r from-yellow-200 via-amber-400 to-orange-600" />
+              <div className="mt-1 flex justify-between">
+                <span>Low</span>
+                <span>High</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">Country</th>
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">Votes</th>
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">Revenue</th>
                 </tr>
+              </thead>
+              <tbody>
+                {sortedCountries.slice(0, 3).map((country) => (
+                  <tr key={country.country_code} className="border-t border-slate-200">
+                    <td className="px-4 py-2 text-slate-800">{getCountryFlag(country.country_code)} {country.country}</td>
+                    <td className="px-4 py-2 text-slate-700">{country.votes.toLocaleString()}</td>
+                    <td className="px-4 py-2 text-slate-700">${(country.revenue / 100).toFixed(0)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="mb-3 text-lg font-semibold text-slate-800">Top Voting Countries</h2>
+            <div className="space-y-3">
+              {sortedCountries.slice(0, 3).map((country) => (
+                <div key={country.country_code} className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-slate-700">{country.country}</span>
+                  <span className="font-semibold text-slate-900">{country.votes.toLocaleString()}</span>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </div>
+          </div>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg border border-border p-6">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Countries</h3>
-          <p className="text-3xl font-bold text-foreground">{countries.length}</p>
-        </div>
-        <div className="bg-white rounded-lg border border-border p-6">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Votes</h3>
-          <p className="text-3xl font-bold text-foreground">{totalVotes.toLocaleString()}</p>
-        </div>
-        <div className="bg-white rounded-lg border border-border p-6">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Revenue</h3>
-          <p className="text-3xl font-bold text-foreground">${(totalRevenue / 100).toFixed(2)}</p>
-        </div>
-      </div>
-
-      {/* Info Box */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <div className="flex items-start gap-3">
-          <Globe className="w-5 h-5 text-blue-600 flex-shrink-0 mt-1" />
-          <div>
-            <h3 className="font-semibold text-blue-900 mb-2">Geographic Distribution</h3>
-            <p className="text-sm text-blue-800">
-              This data shows your voting distribution across countries. VPN, Proxy, and TOR votes are
-              filtered based on our fraud detection system to ensure voting integrity.
-            </p>
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="mb-3 text-lg font-semibold text-slate-800">VPN & Proxy Activity</h2>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2 text-slate-700"><Shield className="h-4 w-4 text-emerald-600" /> VPN Votes</span>
+                <span className="font-semibold">{vpn_activity.vpn_votes}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2 text-slate-700"><AlertTriangle className="h-4 w-4 text-amber-600" /> Proxy Attempts</span>
+                <span className="font-semibold">{vpn_activity.proxy_attempts}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2 text-slate-700"><Globe className="h-4 w-4 text-blue-600" /> TOR Access</span>
+                <span className="font-semibold">{vpn_activity.tor_access}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

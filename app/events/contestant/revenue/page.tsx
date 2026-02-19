@@ -1,7 +1,6 @@
 'use client';
 
 import { mockRevenueData } from '@/lib/dashboard-mock';
-import { StatsCard } from '@/components/dashboard/stats-card';
 import {
   LineChart,
   Line,
@@ -12,104 +11,52 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { DollarSign, TrendingUp } from 'lucide-react';
 
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))'];
+const COLORS = ['#2563eb', '#f59e0b', '#64748b'];
 
 export default function RevenuePage() {
-  const data = mockRevenueData;
-
-  const { metrics, snapshots, payment_methods } = data;
-
-  const paymentData = [
+  const { metrics, snapshots, payment_methods } = mockRevenueData;
+  const pieData = [
     { name: 'Stripe', value: payment_methods.stripe_percentage },
     { name: 'PayPal', value: payment_methods.paypal_percentage },
     { name: 'Other', value: payment_methods.other_percentage },
   ];
 
   return (
-    <div className="p-8 space-y-8">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Revenue Analytics</h1>
-        <p className="text-muted-foreground">Track your earnings from paid votes.</p>
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-semibold text-slate-800">Revenue</h1>
       </div>
 
-      {/* Revenue Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard
-          title="Total Revenue"
-          value={`$${(metrics.total_revenue / 100).toFixed(2)}`}
-          icon={<DollarSign className="w-6 h-6 text-green-600" />}
-        />
-        <StatsCard
-          title="This Week"
-          value={`$${(metrics.revenue_this_week / 100).toFixed(2)}`}
-          icon={<TrendingUp className="w-6 h-6" />}
-          subtext="7 days"
-        />
-        <StatsCard
-          title="This Month"
-          value={`$${(metrics.revenue_this_month / 100).toFixed(2)}`}
-          icon={<DollarSign className="w-6 h-6" />}
-          subtext="30 days"
-        />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Metric title="Total Revenue" value={`$${(metrics.total_revenue / 100).toLocaleString()}`} />
+        <Metric title="This Week" value={`$${(metrics.revenue_this_week / 100).toLocaleString()}`} />
+        <Metric title="This Month" value={`$${(metrics.revenue_this_month / 100).toLocaleString()}`} />
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Over Time */}
-        <div className="lg:col-span-2 bg-white rounded-lg border border-border p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Revenue Over Time</h2>
+      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <div className="xl:col-span-2 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-3 text-lg font-semibold text-slate-800">Revenue Over Time</h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={snapshots}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis
-                dataKey="date"
-                stroke="hsl(var(--muted-foreground))"
-                style={{ fontSize: '12px' }}
-              />
-              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: '12px' }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-                labelStyle={{ color: 'hsl(var(--foreground))' }}
-                formatter={(value) => `$${(value as number / 100).toFixed(2)}`}
-              />
-              <Line
-                type="monotone"
-                dataKey="revenue"
-                stroke="hsl(var(--chart-2))"
-                strokeWidth={2}
-                dot={false}
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="date" stroke="#64748b" style={{ fontSize: 12 }} />
+              <YAxis stroke="#64748b" style={{ fontSize: 12 }} />
+              <Tooltip formatter={(value) => `$${(Number(value) / 100).toFixed(2)}`} />
+              <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Payment Methods */}
-        <div className="bg-white rounded-lg border border-border p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Payment Methods</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-3 text-lg font-semibold text-slate-800">Payment Methods</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
-              <Pie
-                data={paymentData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {paymentData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Pie data={pieData} dataKey="value" cx="50%" cy="50%" outerRadius={90} label>
+                {pieData.map((entry, index) => (
+                  <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip formatter={(value) => `${value}%`} />
@@ -117,21 +64,15 @@ export default function RevenuePage() {
           </ResponsiveContainer>
         </div>
       </div>
-
-      {/* Info Box */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="font-semibold text-blue-900 mb-2">Revenue Information</h3>
-        <p className="text-sm text-blue-800 mb-3">
-          Revenue is calculated from verified paid votes. We support multiple payment methods for maximum
-          convenience.
-        </p>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Payments are processed within 24-48 hours</li>
-          <li>• Disputed or fraudulent payments are reversed</li>
-          <li>• Full transparency reports available upon request</li>
-        </ul>
-      </div>
     </div>
   );
 }
 
+function Metric({ title, value }: { title: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-sm text-slate-500">{title}</p>
+      <p className="mt-2 text-4xl font-semibold text-slate-900">{value}</p>
+    </div>
+  );
+}

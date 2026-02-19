@@ -1,7 +1,6 @@
 'use client';
 
 import { mockAnalyticsData } from '@/lib/dashboard-mock';
-import { StatsCard } from '@/components/dashboard/stats-card';
 import {
   LineChart,
   Line,
@@ -11,156 +10,65 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { AlertCircle, CheckCircle, Trash2 } from 'lucide-react';
 
 export default function AnalyticsPage() {
-  const data = mockAnalyticsData;
-
-  const { daily_votes, hourly_distribution, fraud_metrics } = data;
+  const { daily_votes, hourly_distribution, fraud_metrics } = mockAnalyticsData;
 
   return (
-    <div className="p-8 space-y-8">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Vote Analytics</h1>
-        <p className="text-muted-foreground">Detailed analysis of your voting patterns.</p>
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-semibold text-slate-800">Vote Analytics</h1>
       </div>
 
-      {/* Daily Votes Chart */}
-      <div className="bg-white rounded-lg border border-border p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Daily Votes</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={daily_votes}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="date"
-              stroke="hsl(var(--muted-foreground))"
-              style={{ fontSize: '12px' }}
-            />
-            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: '12px' }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-              labelStyle={{ color: 'hsl(var(--foreground))' }}
-            />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="free_votes"
-              stroke="hsl(var(--chart-1))"
-              strokeWidth={2}
-              dot={false}
-              name="Free Votes"
-            />
-            <Line
-              type="monotone"
-              dataKey="paid_votes"
-              stroke="hsl(var(--chart-2))"
-              strokeWidth={2}
-              dot={false}
-              name="Paid Votes"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Vote Distribution by Hour */}
-      <div className="bg-white rounded-lg border border-border p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Vote Distribution by Hour</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={hourly_distribution}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="hour"
-              stroke="hsl(var(--muted-foreground))"
-              style={{ fontSize: '12px' }}
-              label={{ value: 'Hour (24h format)', position: 'insideBottomRight', offset: -5 }}
-            />
-            <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: '12px' }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-              labelStyle={{ color: 'hsl(var(--foreground))' }}
-              formatter={(value) => [`${value} votes`, 'Count']}
-            />
-            <Bar
-              dataKey="votes"
-              fill="hsl(var(--chart-1))"
-              radius={[8, 8, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Fraud Detection Summary */}
-      <div className="bg-white rounded-lg border border-border p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-6">Fraud Detection</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatsCard
-            title="Total Votes"
-            value={fraud_metrics.total_votes}
-            subtext="Analyzed votes"
-          />
-          <StatsCard
-            title="Suspicious Votes"
-            value={fraud_metrics.suspicious_votes}
-            icon={<AlertCircle className="w-6 h-6 text-yellow-600" />}
-            subtext={`${((fraud_metrics.suspicious_votes / fraud_metrics.total_votes) * 100).toFixed(2)}% of total`}
-          />
-          <StatsCard
-            title="Confirmed Fraud"
-            value={fraud_metrics.confirmed_fraud}
-            icon={<AlertCircle className="w-6 h-6 text-red-600" />}
-            subtext="Removed votes"
-          />
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-3 text-lg font-semibold text-slate-800">Daily Votes</h2>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={daily_votes}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="date" stroke="#64748b" style={{ fontSize: 12 }} />
+              <YAxis stroke="#64748b" style={{ fontSize: 12 }} />
+              <Tooltip />
+              <Line type="monotone" dataKey="free_votes" stroke="#2563eb" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="paid_votes" stroke="#ef4444" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* Fraud Action Items */}
-        <div className="mt-6 space-y-3">
-          <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600" />
-              <span className="text-sm font-medium text-yellow-900">
-                {fraud_metrics.flagged_votes} votes flagged for review
-              </span>
-            </div>
-            <span className="text-xs font-medium text-yellow-600">Pending</span>
-          </div>
-          <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Trash2 className="w-5 h-5 text-red-600" />
-              <span className="text-sm font-medium text-red-900">
-                {fraud_metrics.removed_votes} votes removed
-              </span>
-            </div>
-            <span className="text-xs font-medium text-red-600">Removed</span>
-          </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-3 text-lg font-semibold text-slate-800">Vote Distribution by Hour</h2>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={hourly_distribution}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="hour" stroke="#64748b" style={{ fontSize: 12 }} />
+              <YAxis stroke="#64748b" style={{ fontSize: 12 }} />
+              <Tooltip />
+              <Bar dataKey="votes" fill="#f59e0b" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Security Notes */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-        <div className="flex items-start gap-3">
-          <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
-          <div>
-            <h3 className="font-semibold text-green-900 mb-1">Security & Verification</h3>
-            <p className="text-sm text-green-800">
-              All votes shown have passed our blockchain verification and fraud detection systems. We use
-              advanced ML models and manual review to ensure contest integrity.
-            </p>
-          </div>
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="mb-4 text-lg font-semibold text-slate-800">Fraud Detection</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <InfoTile label="Total Votes" value={fraud_metrics.total_votes.toLocaleString()} />
+          <InfoTile label="Suspicious Votes" value={fraud_metrics.suspicious_votes.toLocaleString()} accent="text-red-600" />
+          <InfoTile label="Confirmed Fraud" value={fraud_metrics.confirmed_fraud.toLocaleString()} />
+          <InfoTile label="Flagged" value={fraud_metrics.flagged_votes.toLocaleString()} />
         </div>
       </div>
     </div>
   );
 }
 
+function InfoTile({ label, value, accent = 'text-slate-900' }: { label: string; value: string; accent?: string }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <p className="text-sm text-slate-500">{label}</p>
+      <p className={`mt-2 text-2xl font-semibold ${accent}`}>{value}</p>
+    </div>
+  );
+}
