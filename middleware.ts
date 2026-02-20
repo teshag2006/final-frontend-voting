@@ -16,9 +16,10 @@ export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const authToken = request.cookies.get('auth_token')?.value;
   const userRole = request.cookies.get('user_role')?.value;
+  const isPublicEventsRoute = pathname.startsWith('/events') && !pathname.startsWith('/events/contestant');
 
   // Allow public routes without auth
-  if (publicRoutes.some(route => pathname.startsWith(route))) {
+  if (publicRoutes.some(route => pathname.startsWith(route)) || isPublicEventsRoute) {
     // If already authenticated, redirect from login to dashboard
     if (authToken && pathname === '/login') {
       return NextResponse.redirect(new URL('/', request.url));
