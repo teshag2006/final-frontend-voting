@@ -25,7 +25,6 @@ import {
 } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { SponsorLogoutButton } from '@/components/sponsors/sponsor-logout-button';
 import { getSponsorCampaignTracking, getSponsorDashboardOverview } from '@/lib/api';
 import {
   mockSponsorCampaignTracking,
@@ -60,25 +59,14 @@ export default function SponsorsOverviewPage() {
 
   return (
     <div className="min-h-screen bg-slate-100/80">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Sponsorship workspace</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">Sponsor Dashboard</h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Manage and track all your sponsorship campaigns from one dashboard.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button asChild className="bg-amber-500 text-slate-900 hover:bg-amber-400">
-              <Link href="/sponsors/discover">Discover Contestants</Link>
-            </Button>
-            <SponsorLogoutButton />
-          </div>
-        </div>
-      </header>
-
       <main className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+        <section>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Sponsor Dashboard</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Manage and track all your sponsorship campaigns from one dashboard.
+          </p>
+        </section>
+
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <KpiCard
             label="Trust Score"

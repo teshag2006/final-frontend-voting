@@ -7,7 +7,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { SponsorLogoutButton } from '@/components/sponsors/sponsor-logout-button';
 import { getSponsorContestantDetail } from '@/lib/api';
 import {
   mockMarketplaceContestants,
@@ -78,7 +77,6 @@ export default function SponsorContestantDetailPage() {
             <Button asChild>
               <Link href={`/sponsors/campaigns?contestant=${contestant.slug}`}>Request Sponsorship</Link>
             </Button>
-            <SponsorLogoutButton />
           </div>
         </div>
       </header>

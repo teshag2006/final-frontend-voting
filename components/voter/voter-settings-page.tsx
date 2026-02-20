@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { VoterNavTabs } from '@/components/voter/voter-nav-tabs';
+import { VoterSidebarNav } from '@/components/voter/voter-sidebar-nav';
 import { DeleteAccount } from '@/components/voter/delete-account';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -182,8 +182,6 @@ export function VoterSettingsPage({ profile }: VoterSettingsPageProps) {
 
   return (
     <main className="min-h-screen bg-background pb-24 md:pb-8">
-      <VoterNavTabs />
-
       <div className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div>
@@ -201,7 +199,10 @@ export function VoterSettingsPage({ profile }: VoterSettingsPageProps) {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[240px_1fr] lg:px-8">
+      <div className="mx-auto grid w-full max-w-[1440px] gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:px-8">
+        <VoterSidebarNav />
+
+        <div className="grid min-w-0 gap-8 lg:grid-cols-[240px_1fr]">
         <aside className="sticky top-24 hidden h-fit rounded-xl border border-border bg-card p-3 lg:block">
           {SECTION_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -526,6 +527,7 @@ export function VoterSettingsPage({ profile }: VoterSettingsPageProps) {
             </>
           )}
         </section>
+        </div>
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur md:hidden">

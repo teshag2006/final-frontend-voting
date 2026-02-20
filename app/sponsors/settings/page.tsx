@@ -5,7 +5,6 @@ import { Building2, CheckCircle2, Circle, FileText, Shield, UserRound } from 'lu
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { SponsorLogoutButton } from '@/components/sponsors/sponsor-logout-button';
 import { useEffect } from 'react';
 import { getSponsorAuditTrail, getSponsorProfileSettings, saveSponsorProfileSettings } from '@/lib/api';
 import type { SponsorAuditEntry } from '@/lib/sponsor-runtime-store';
@@ -73,11 +72,8 @@ export default function SponsorProfileSettingsPage() {
               Manage your sponsor profile, contact information, legal data, and security settings.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="hidden rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 sm:block">
-              Profile Completion <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-900">{draftSettings.profileCompletion}%</span>
-            </div>
-            <SponsorLogoutButton />
+          <div className="hidden rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 sm:block">
+            Profile Completion <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-900">{draftSettings.profileCompletion}%</span>
           </div>
         </div>
       </header>

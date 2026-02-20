@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { getVoterVotes } from '@/lib/api';
 import { mockVoterVotes } from '@/lib/voter-mock';
 import { VoteCard } from '@/components/voter/vote-card';
-import { VoterNavTabs } from '@/components/voter/voter-nav-tabs';
+import { VoterSidebarNav } from '@/components/voter/voter-sidebar-nav';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Vote } from 'lucide-react';
+import { Vote } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'My Votes | Miss & Mr Africa',
@@ -36,10 +36,9 @@ export default async function MyVotesPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Navigation Tabs */}
-      <VoterNavTabs />
-
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto grid w-full max-w-[1440px] gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:px-8">
+        <VoterSidebarNav />
+        <div className="min-w-0">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">My Votes</h1>
@@ -98,6 +97,7 @@ export default async function MyVotesPage() {
             </Link>
           </div>
         )}
+        </div>
       </div>
     </main>
   );

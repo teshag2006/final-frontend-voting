@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { getVoterPayments } from '@/lib/api';
 import { mockVoterPayments } from '@/lib/voter-mock';
 import { PaymentTable } from '@/components/voter/payment-table';
-import { VoterNavTabs } from '@/components/voter/voter-nav-tabs';
+import { VoterSidebarNav } from '@/components/voter/voter-sidebar-nav';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Payment History | Miss & Mr Africa',
@@ -19,10 +19,9 @@ export default async function PaymentHistoryPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Navigation Tabs */}
-      <VoterNavTabs />
-
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto grid w-full max-w-[1440px] gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:px-8">
+        <VoterSidebarNav />
+        <div className="min-w-0">
         {/* Header */}
         <div className="mb-8">
 
@@ -78,6 +77,7 @@ export default async function PaymentHistoryPage() {
             </Link>
           </div>
         )}
+        </div>
       </div>
     </main>
   );

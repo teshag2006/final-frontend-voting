@@ -6,7 +6,6 @@ import { AlertTriangle, Clock3, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { SponsorLogoutButton } from '@/components/sponsors/sponsor-logout-button';
 import { createSponsorCampaignRequest, getSponsorCampaignTracking } from '@/lib/api';
 import {
   mockMarketplaceContestants,
@@ -201,7 +200,6 @@ export default function SponsorCampaignTrackingPage() {
             <p className="text-xs text-slate-500">Sponsor Workspace</p>
             <h1 className="text-2xl font-bold text-slate-900">Campaign Request & Tracking</h1>
           </div>
-          <SponsorLogoutButton />
         </div>
       </header>
 

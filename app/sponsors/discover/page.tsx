@@ -6,7 +6,6 @@ import { Flame, Search, ShieldCheck, SlidersHorizontal, TrendingUp } from 'lucid
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { SponsorLogoutButton } from '@/components/sponsors/sponsor-logout-button';
 import { getSponsorDiscoverContestants } from '@/lib/api';
 import { mockMarketplaceContestants, type MarketplaceContestant } from '@/lib/sponsorship-mock';
 
@@ -84,10 +83,6 @@ export default function SponsorsDiscoverPage() {
             <p className="mt-1 text-sm text-slate-600">
               Find potential contestants to sponsor using filters and integrity scores.
             </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button className="bg-amber-500 text-slate-900 hover:bg-amber-400">Discover Contestants</Button>
-            <SponsorLogoutButton />
           </div>
         </div>
       </header>
