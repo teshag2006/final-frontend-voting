@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { mockSponsorDashboardOverview } from '@/lib/sponsorship-mock';
+import { getSponsorOverview } from '@/lib/sponsor-runtime-store';
 
 export async function GET() {
-  return NextResponse.json(mockSponsorDashboardOverview);
+  return NextResponse.json(getSponsorOverview());
 }

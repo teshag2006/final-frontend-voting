@@ -9,7 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SponsorLogoutButton } from '@/components/sponsors/sponsor-logout-button';
 import { getSponsorContestantDetail } from '@/lib/api';
-import { mockMarketplaceContestants, type MarketplaceContestant } from '@/lib/sponsorship-mock';
+import {
+  mockMarketplaceContestants,
+  type MarketplaceContestant,
+  type SocialPlatformMetric,
+} from '@/lib/sponsorship-mock';
 
 const LazyTrendChart = dynamic(
   () => import('@/components/sponsorship/lazy-trend-chart').then((m) => m.LazyTrendChart),
@@ -52,9 +56,11 @@ export default function SponsorContestantDetailPage() {
     );
   }
 
+  const socialPlatforms = withPopularPlatforms(contestant.socialPlatforms);
+
   return (
     <div className="min-h-screen bg-slate-100">
-      <header className="border-b border-slate-200 bg-white lg:-ml-[216px] lg:w-[calc(100%+216px)]">
+      <header className="border-b border-slate-200 bg-white">
         <div className="flex items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <Link
@@ -97,7 +103,7 @@ export default function SponsorContestantDetailPage() {
           <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Social Platforms</h2>
             <div className="grid gap-3 md:grid-cols-2">
-              {contestant.socialPlatforms.map((platform) => (
+              {socialPlatforms.map((platform) => (
                 <div key={platform.platform} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <div className="mb-2 flex items-center justify-between">
                     <p className="font-semibold text-slate-900">{platform.platform}</p>
@@ -166,4 +172,69 @@ function OverviewStat({ label, value, helper }: { label: string; value: string; 
       {helper ? <p className="text-xs text-slate-500">{helper}</p> : null}
     </div>
   );
+}
+
+function withPopularPlatforms(platforms: SocialPlatformMetric[]): SocialPlatformMetric[] {
+  const today = new Date().toISOString();
+  const popularDefaults: SocialPlatformMetric[] = [
+    {
+      platform: 'Instagram',
+      username: '@instagram',
+      followers: 0,
+      engagementRate: 0,
+      lastUpdated: today,
+      externalUrl: 'https://instagram.com',
+    },
+    {
+      platform: 'TikTok',
+      username: '@tiktok',
+      followers: 0,
+      engagementRate: 0,
+      lastUpdated: today,
+      externalUrl: 'https://www.tiktok.com',
+    },
+    {
+      platform: 'YouTube',
+      username: '@youtube',
+      followers: 0,
+      engagementRate: 0,
+      lastUpdated: today,
+      externalUrl: 'https://youtube.com',
+    },
+    {
+      platform: 'X',
+      username: '@x',
+      followers: 0,
+      engagementRate: 0,
+      lastUpdated: today,
+      externalUrl: 'https://x.com',
+    },
+    {
+      platform: 'Facebook',
+      username: 'Facebook',
+      followers: 0,
+      engagementRate: 0,
+      lastUpdated: today,
+      externalUrl: 'https://facebook.com',
+    },
+    {
+      platform: 'Snapchat',
+      username: '@snapchat',
+      followers: 0,
+      engagementRate: 0,
+      lastUpdated: today,
+      externalUrl: 'https://www.snapchat.com',
+    },
+  ];
+
+  const map = new Map(platforms.map((platform) => [platform.platform, platform]));
+  for (const platform of popularDefaults) {
+    if (!map.has(platform.platform)) {
+      map.set(platform.platform, platform);
+    }
+  }
+
+  return popularDefaults
+    .map((platform) => map.get(platform.platform))
+    .filter((platform): platform is SocialPlatformMetric => Boolean(platform));
 }

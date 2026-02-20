@@ -7,18 +7,21 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SponsorLogoutButton } from '@/components/sponsors/sponsor-logout-button';
-import { getSponsorCampaignTracking } from '@/lib/api';
+import { createSponsorCampaignRequest, getSponsorCampaignTracking } from '@/lib/api';
 import {
   mockMarketplaceContestants,
   mockSponsorCampaignTracking,
+  mockSponsorDashboardOverview,
   type SponsorCampaignTracking,
 } from '@/lib/sponsorship-mock';
 
 const statusTone: Record<string, string> = {
+  draft: 'bg-slate-100 text-slate-700',
   pending_payment: 'bg-amber-100 text-amber-800',
   active: 'bg-blue-100 text-blue-800',
   completed: 'bg-emerald-100 text-emerald-800',
   under_review: 'bg-red-100 text-red-800',
+  rejected: 'bg-rose-100 text-rose-800',
 };
 
 type DeliverableType = 'feed_post' | 'story' | 'reel_video' | 'live_mention';
@@ -63,6 +66,7 @@ export default function SponsorCampaignTrackingPage() {
   const [lockAcknowledged, setLockAcknowledged] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [formStatus, setFormStatus] = useState('Draft');
+  const [isSaving, setIsSaving] = useState(false);
 
   const [deliverables, setDeliverables] = useState<DeliverableRow[]>([
     { id: 'd-1', type: 'feed_post', quantity: 1, platform: 'Instagram', dueDate: '' },
@@ -141,23 +145,57 @@ export default function SponsorCampaignTrackingPage() {
     );
   };
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
+    setIsSaving(true);
+    const created = await createSponsorCampaignRequest({
+      action: 'save_draft',
+      sponsorName: mockSponsorDashboardOverview.sponsorName,
+      contestantSlug: selectedContestantSlug,
+      campaignTitle: campaignTitle.trim() || 'Untitled Draft',
+      paymentReference: paymentReference.trim(),
+      deliverablesTotal: totalDeliverables,
+    });
+    setIsSaving(false);
+
+    if (!created) {
+      setFormStatus('Failed to save draft');
+      return;
+    }
+
+    setRows((prev) => [created, ...prev]);
     setFormStatus('Draft saved');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!canSubmit) {
       setFormStatus('Please complete required fields');
       return;
     }
     const confirmed = window.confirm('Submit this sponsorship request for admin review?');
     if (!confirmed) return;
+    setIsSaving(true);
+    const created = await createSponsorCampaignRequest({
+      action: 'submit_review',
+      sponsorName: mockSponsorDashboardOverview.sponsorName,
+      contestantSlug: selectedContestantSlug,
+      campaignTitle: campaignTitle.trim(),
+      paymentReference: paymentReference.trim(),
+      deliverablesTotal: totalDeliverables,
+    });
+    setIsSaving(false);
+
+    if (!created) {
+      setFormStatus('Submit failed');
+      return;
+    }
+
+    setRows((prev) => [created, ...prev]);
     setFormStatus('Pending Admin Review');
   };
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <header className="border-b border-slate-200 bg-white lg:-ml-[216px] lg:w-[calc(100%+216px)]">
+      <header className="border-b border-slate-200 bg-white">
         <div className="flex items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
           <div>
             <p className="text-xs text-slate-500">Sponsor Workspace</p>
@@ -348,7 +386,7 @@ export default function SponsorCampaignTrackingPage() {
                 <Button type="button" variant="outline" onClick={handleSaveDraft}>
                   Save Draft
                 </Button>
-                <Button type="button" onClick={handleSubmit} disabled={!canSubmit}>
+                <Button type="button" onClick={handleSubmit} disabled={!canSubmit || isSaving}>
                   Submit for Admin Review
                 </Button>
               </div>

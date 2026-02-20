@@ -55,7 +55,7 @@ export interface SponsorCampaignTracking {
   id: string;
   contestantSlug: string;
   sponsorName: string;
-  campaignStatus: 'pending_payment' | 'active' | 'completed' | 'under_review';
+  campaignStatus: 'draft' | 'pending_payment' | 'active' | 'completed' | 'under_review' | 'rejected';
   paymentStatus: 'pending_manual' | 'paid' | 'failed';
   deliverablesSubmitted: number;
   deliverablesTotal: number;

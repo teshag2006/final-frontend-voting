@@ -26,6 +26,7 @@ import type {
   SponsorDashboardOverview,
   SponsorProfileSettings,
 } from "@/lib/sponsorship-mock";
+import type { SponsorAuditEntry } from "@/lib/sponsor-runtime-store";
 import type {
   VoterPayment,
   VoterVote,
@@ -449,6 +450,51 @@ export async function getSponsorCampaignTracking(contestantSlug?: string): Promi
   try {
     const query = contestantSlug ? `?contestant=${encodeURIComponent(contestantSlug)}` : "";
     return await fetchFromAPI<SponsorCampaignTracking[]>(`/sponsor/campaigns${query}`);
+  } catch {
+    return null;
+  }
+}
+
+export async function createSponsorCampaignRequest(payload: {
+  action: "save_draft" | "submit_review";
+  sponsorName: string;
+  contestantSlug: string;
+  campaignTitle: string;
+  paymentReference?: string;
+  deliverablesTotal: number;
+}): Promise<SponsorCampaignTracking | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/sponsor/campaigns`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function saveSponsorProfileSettings(
+  payload: SponsorProfileSettings
+): Promise<SponsorProfileSettings | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/sponsor/settings`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function getSponsorAuditTrail(): Promise<SponsorAuditEntry[] | null> {
+  try {
+    return await fetchFromAPI<SponsorAuditEntry[]>("/sponsor/audit");
   } catch {
     return null;
   }
