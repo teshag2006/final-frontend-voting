@@ -1,0 +1,10 @@
+
+> voting-platform@1.1.0 start
+> next start -p 4014
+
+   ▲ Next.js 15.5.12
+   - Local:        http://localhost:4014
+   - Network:      http://192.168.1.4:4014
+
+ ✓ Starting...
+ ✓ Ready in 1572ms

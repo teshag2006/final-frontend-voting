@@ -18,6 +18,22 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const getRoleDashboardPath = (role: string | null) => {
+    switch (role) {
+      case 'admin':
+        return '/admin/dashboard';
+      case 'contestant':
+        return '/events/contestant/dashboard';
+      case 'media':
+        return '/media/dashboard';
+      case 'voter':
+        return '/voter/dashboard';
+      case 'sponsor':
+        return '/sponsors';
+      default:
+        return '/events';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +61,8 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      router.push('/');
+      const role = localStorage.getItem('auth_user_role');
+      router.push(getRoleDashboardPath(role));
     } catch (err) {
       setLocalError('Invalid email or password. Please try again.');
     }

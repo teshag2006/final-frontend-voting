@@ -1,7 +1,6 @@
 'use client';
 
 import { ReactNode, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AlertTriangle, Clock3, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -38,10 +37,14 @@ export default function SponsorCampaignTrackingPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const contestantParam = searchParams.get('contestant') || '';
+  const lockedContestant =
+    mockMarketplaceContestants.find((item) => item.slug === contestantParam) || null;
   const initialContestant =
-    mockMarketplaceContestants.find((item) => item.slug === contestantParam)?.slug ||
+    lockedContestant?.slug ||
     mockMarketplaceContestants[0]?.slug ||
     '';
+  const contestantOptions = lockedContestant ? [lockedContestant] : mockMarketplaceContestants;
+  const isContestantLocked = Boolean(lockedContestant);
   const [selectedContestantSlug, setSelectedContestantSlug] = useState(initialContestant);
 
   const [rows, setRows] = useState<SponsorCampaignTracking[]>(
@@ -154,18 +157,13 @@ export default function SponsorCampaignTrackingPage() {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
+      <header className="border-b border-slate-200 bg-white lg:-ml-[216px] lg:w-[calc(100%+216px)]">
+        <div className="flex items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
           <div>
             <p className="text-xs text-slate-500">Sponsor Workspace</p>
             <h1 className="text-2xl font-bold text-slate-900">Campaign Request & Tracking</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline">
-              <Link href="/sponsors/discover">Back to Discover</Link>
-            </Button>
-            <SponsorLogoutButton />
-          </div>
+          <SponsorLogoutButton />
         </div>
       </header>
 
@@ -185,14 +183,20 @@ export default function SponsorCampaignTrackingPage() {
                     <select
                       value={selectedContestantSlug}
                       onChange={(e) => setSelectedContestantSlug(e.target.value)}
-                      className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm"
+                      disabled={isContestantLocked}
+                      className="h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 text-sm"
                     >
-                      {mockMarketplaceContestants.map((item) => (
+                      {contestantOptions.map((item) => (
                         <option key={item.slug} value={item.slug}>
                           {item.name} ({item.slug})
                         </option>
                       ))}
                     </select>
+                    {isContestantLocked && (
+                      <p className="mt-1 text-xs text-slate-500">
+                        Contestant is locked to the sponsorship target from the request.
+                      </p>
+                    )}
                   </Field>
                   <Field label="Campaign Title">
                     <Input value={campaignTitle} onChange={(e) => setCampaignTitle(e.target.value)} placeholder="e.g. Spring Launch Push" />

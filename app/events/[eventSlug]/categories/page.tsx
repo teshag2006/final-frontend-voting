@@ -54,6 +54,12 @@ export default async function CategoriesPage({
   }
 
   const isVotingActive = event.status === "LIVE";
+  const headerCategory = {
+    name: `${event.name} Categories`,
+    event_name: event.name,
+    description: "Browse categories and contestants for this event.",
+    contestant_count: contestants.length,
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -61,7 +67,7 @@ export default async function CategoriesPage({
 
       <main className="flex-1">
         {/* Header */}
-        <CategoryHeader event={event} />
+        <CategoryHeader category={headerCategory} eventSlug={eventSlug} />
 
         {/* Countdown for upcoming events */}
         {event.status === "UPCOMING" && (
@@ -79,7 +85,7 @@ export default async function CategoriesPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Filters */}
           <Suspense fallback={<div className="h-10" />}>
-            <CategoryFilters />
+            <CategoryFilters categoryId={categories[0]?.id ?? `${eventSlug}-cat-1`} />
           </Suspense>
 
           {/* Category Summary */}
@@ -88,18 +94,33 @@ export default async function CategoriesPage({
           {/* Categories Grid */}
           <div className="mt-8 space-y-6">
             {categories.map((category) => (
-              <ContestantListCard
-                key={category.id}
-                category={category}
-                eventSlug={eventSlug}
-                isVotingActive={isVotingActive}
-              />
+              <section key={category.id} className="space-y-3">
+                <h2 className="text-xl font-semibold text-foreground">{category.name}</h2>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                  {contestants
+                    .filter((contestant) => contestant.category === category.name)
+                    .map((contestant) => (
+                      <ContestantListCard
+                        key={contestant.id}
+                        contestant={{
+                          id: contestant.slug || contestant.id,
+                          full_name: contestant.name,
+                          profile_image_url: contestant.image_url,
+                          total_votes: Number(contestant.votes ?? 0),
+                          rank: contestant.ranking,
+                          country: contestant.country ?? "N/A",
+                          is_verified: true,
+                        }}
+                      />
+                    ))}
+                </div>
+              </section>
             ))}
           </div>
 
           {/* Pagination */}
           <div className="mt-12">
-            <Pagination />
+            <Pagination currentPage={1} totalPages={1} baseUrl={`/events/${eventSlug}/categories`} />
           </div>
         </div>
       </main>

@@ -1,0 +1,73 @@
+ ⨯ TypeError: a[d] is not a function
+    at Object.c [as require] (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-runtime-webpack.js:1:127)
+    at Object.require (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:47267)
+    at globalThis.__next_require__ (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:23:13691)
+    at k (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:10255)
+    at P (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:21092)
+    at X (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:24675)
+    at Array._fromJSON (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:27379)
+    at JSON.parse (<anonymous>)
+    at O (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:20797)
+    at L (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:19989) {
+  digest: '111416601'
+}
+TypeError: a[d] is not a function
+    at Object.c [as require] (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-runtime-webpack.js:1:127)
+    at Object.require (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:47267)
+    at globalThis.__next_require__ (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:23:13691)
+    at k (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:10255)
+    at P (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:21092)
+    at X (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:24675)
+    at Array._fromJSON (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:27379)
+    at JSON.parse (<anonymous>)
+    at O (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:20797)
+    at L (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:19989) {
+  
+}
+TypeError: a[d] is not a function
+    at Object.c [as require] (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-runtime-webpack.js:1:127)
+    at Object.require (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:47267)
+    at globalThis.__next_require__ (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:23:13691)
+    at k (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:10255)
+    at P (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:21092)
+    at X (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:24675)
+    at Array._fromJSON (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:27379)
+    at JSON.parse (<anonymous>)
+    at O (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:20797)
+    at L (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:19989) {
+  
+}
+ ⨯ TypeError: a[d] is not a function
+    at Object.c [as require] (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-runtime-webpack.js:1:127)
+    at Object.require (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:47267)
+    at globalThis.__next_require__ (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:23:13691)
+    at k (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:10255)
+    at P (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:21092)
+    at X (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:24675)
+    at Array._fromJSON (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:27379)
+    at JSON.parse (<anonymous>)
+    at O (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:20797)
+    at L (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:19989)
+ ⨯ TypeError: a[d] is not a function
+    at Object.c [as require] (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-runtime-webpack.js:1:127)
+    at Object.require (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:47267)
+    at globalThis.__next_require__ (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:23:13691)
+    at k (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:10255)
+    at P (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:21092)
+    at X (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:24675)
+    at Array._fromJSON (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:27379)
+    at JSON.parse (<anonymous>)
+    at O (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:20797)
+    at L (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-chunks\833.js:15:19989)
+ ⨯ [Error: Cannot find module './vendor-chunks/@radix-ui.js'
+Require stack:
+- C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\webpack-runtime.js
+- C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\pages\_document.js
+- C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\node_modules\next\dist\server\require.js
+- C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\node_modules\next\dist\server\next-server.js
+- C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\node_modules\next\dist\server\next.js
+- C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\node_modules\next\dist\server\lib\start-server.js
+- C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\node_modules\next\dist\cli\next-start.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}

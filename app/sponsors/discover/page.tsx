@@ -73,18 +73,13 @@ export default function SponsorsDiscoverPage() {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur lg:-ml-[216px] lg:w-[calc(100%+216px)]">
+        <div className="flex items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Sponsorship Marketplace</p>
             <h1 className="mt-1 text-2xl font-bold text-slate-900">Discover Contestants</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline">
-              <Link href="/sponsors">Back to Overview</Link>
-            </Button>
-            <SponsorLogoutButton />
-          </div>
+          <SponsorLogoutButton />
         </div>
       </header>
 

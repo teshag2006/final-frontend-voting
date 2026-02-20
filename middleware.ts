@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifySessionTokenEdge } from '@/lib/server/session-edge';
+import { SESSION_COOKIE } from '@/lib/server/session-constants';
 
 /**
  * Middleware for route protection and auth validation
@@ -6,24 +8,16 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 
 const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'];
-const adminRoutes = ['/admin'];
-const contestantRoutes = ['/events/contestant'];
-const mediaRoutes = ['/media'];
-const voterRoutes = ['/voter'];
-const sponsorRoutes = ['/sponsors'];
-
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const authToken = request.cookies.get('auth_token')?.value;
-  const userRole = request.cookies.get('user_role')?.value;
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  const sessionUser = await verifySessionTokenEdge(token);
+  const isAuthenticated = Boolean(sessionUser);
+  const userRole = sessionUser?.role;
   const isPublicEventsRoute = pathname.startsWith('/events') && !pathname.startsWith('/events/contestant');
 
   // Allow public routes without auth
   if (publicRoutes.some(route => pathname.startsWith(route)) || isPublicEventsRoute) {
-    // If already authenticated, redirect from login to dashboard
-    if (authToken && pathname === '/login') {
-      return NextResponse.redirect(new URL('/', request.url));
-    }
     return NextResponse.next();
   }
 
@@ -33,7 +27,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Require authentication for protected routes
-  if (!authToken) {
+  if (!isAuthenticated) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

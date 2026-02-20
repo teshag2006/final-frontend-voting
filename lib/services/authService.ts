@@ -1,4 +1,4 @@
-import { authenticateUser, getUserById, type User } from '@/lib/mock-users';
+import { getUserById } from '@/lib/mock-users';
 
 /**
  * Auth Service Layer
@@ -48,19 +48,31 @@ class AuthService {
         return { success: false, error: 'Password must be at least 8 characters' };
       }
 
-      // Authenticate user
-      const user = authenticateUser(email, password);
-      if (!user) {
-        return { success: false, error: 'Invalid email or password' };
+      // Authenticate via backend route so server session cookie is set.
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        return { success: false, error: payload?.message || 'Invalid email or password' };
       }
 
-      // Create token payload
+      const payload = await response.json();
+      const apiUser = payload?.user as AuthTokenPayload | undefined;
+      if (!apiUser) {
+        return { success: false, error: 'No user data returned' };
+      }
+
       const tokenPayload: AuthTokenPayload = {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        avatar: user.avatar,
+        id: apiUser.id,
+        email: apiUser.email,
+        name: apiUser.name,
+        role: apiUser.role,
+        avatar: apiUser.avatar,
       };
 
       // Generate tokens (in production, call backend)
@@ -109,6 +121,9 @@ class AuthService {
     // Clear user session
     localStorage.removeItem('auth_user_id');
     localStorage.removeItem('auth_user_role');
+
+    // Invalidate server session cookie.
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => undefined);
   }
 
   /**
