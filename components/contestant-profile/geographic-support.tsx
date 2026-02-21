@@ -62,7 +62,7 @@ export function GeographicSupport({ data }: GeographicSupportProps) {
           </div>
         )}
 
-        <button className="mt-2 inline-flex items-center gap-1 self-start rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+        <button className="mt-2 inline-flex items-center gap-1 self-start rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
           Verify Vote Hash
           <ChevronRight className="h-3.5 w-3.5" />
         </button>

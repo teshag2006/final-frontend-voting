@@ -20,11 +20,11 @@ export function HybridVotingBanner() {
             </span>
           </div>
           <ul className="flex flex-col gap-1.5 pl-6">
-            <li className="flex items-center gap-2 text-xs text-muted-foreground">
+            <li className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
               1 FREE vote per event (SMS verified)
             </li>
-            <li className="flex items-center gap-2 text-xs text-muted-foreground">
+            <li className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
               Paid votes allowed with limits
             </li>
@@ -40,11 +40,11 @@ export function HybridVotingBanner() {
             </span>
           </div>
           <ul className="flex flex-col gap-1.5 pl-6">
-            <li className="flex items-center gap-2 text-xs text-muted-foreground">
+            <li className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
               Paid votes only
             </li>
-            <li className="flex items-center gap-2 text-xs text-muted-foreground">
+            <li className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
               Vote limits apply
             </li>
@@ -52,7 +52,7 @@ export function HybridVotingBanner() {
         </div>
       </div>
 
-      <p className="mt-4 text-xs text-muted-foreground italic border-t border-border pt-3">
+      <p className="mt-4 text-sm text-muted-foreground italic border-t border-border pt-3">
         Vote limits are enforced to prevent manipulation and ensure fair competition.
       </p>
     </section>

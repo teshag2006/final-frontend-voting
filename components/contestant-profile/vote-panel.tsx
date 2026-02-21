@@ -35,7 +35,7 @@ export function VotePanel({
             Vote for {contestantName}
           </h3>
         </div>
-        <p className="mt-0.5 text-xs text-muted-foreground">
+        <p className="mt-0.5 text-sm text-muted-foreground">
           Support {eventName} Contestant
         </p>
       </div>
@@ -44,7 +44,7 @@ export function VotePanel({
       <div className="flex border-b border-border">
         <button
           onClick={() => setActiveTab("free")}
-          className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+          className={`flex-1 py-2.5 text-base font-medium transition-colors ${
             activeTab === "free"
               ? "border-b-2 border-foreground text-foreground"
               : "text-muted-foreground hover:text-foreground"
@@ -54,7 +54,7 @@ export function VotePanel({
         </button>
         <button
           onClick={() => setActiveTab("paid")}
-          className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+          className={`flex-1 py-2.5 text-base font-medium transition-colors ${
             activeTab === "paid"
               ? "border-b-2 border-foreground text-foreground"
               : "text-muted-foreground hover:text-foreground"
@@ -68,12 +68,12 @@ export function VotePanel({
       <div className="p-5">
         {activeTab === "free" ? (
           <div className="text-center py-6">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               1 free SMS-verified vote per event for Ethiopian voters.
             </p>
             <button
               disabled={!isActive}
-              className="mt-4 w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground transition-all hover:bg-accent/90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-4 w-full rounded-lg bg-accent px-4 py-2.5 text-base font-semibold text-accent-foreground transition-all hover:bg-accent/90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isActive ? "Cast Free Vote" : "Voting Closed"}
             </button>
@@ -103,7 +103,7 @@ export function VotePanel({
                         <div className="h-2 w-2 rounded-full bg-primary" />
                       )}
                     </div>
-                    <span className="text-sm font-medium text-foreground">
+                    <span className="text-base font-medium text-foreground">
                       {pkg.votes} Votes
                     </span>
                     {pkg.popular && (
@@ -112,9 +112,9 @@ export function VotePanel({
                       </span>
                     )}
                   </div>
-                  <span className="text-sm font-bold text-foreground tabular-nums">
+                  <span className="text-base font-bold text-foreground tabular-nums">
                     ${pkg.price}
-                    <span className="ml-1 text-accent text-xs">
+                    <span className="ml-1 text-accent text-sm">
                       <CheckCircle2 className="inline h-3.5 w-3.5" />
                     </span>
                   </span>
@@ -134,13 +134,13 @@ export function VotePanel({
             <div className="mt-4">
               <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2.5 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40">
                 <Hash className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span className="text-xs text-muted-foreground shrink-0">1</span>
+                <span className="text-sm text-muted-foreground shrink-0">1</span>
                 <input
                   type="text"
                   placeholder="Enter your phone or email"
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
-                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+                  className="flex-1 bg-transparent text-base text-foreground placeholder:text-muted-foreground outline-none"
                 />
               </div>
             </div>
@@ -148,7 +148,7 @@ export function VotePanel({
             {/* CTA Button */}
             <button
               disabled={!isActive || !selected}
-              className="mt-4 w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold text-accent-foreground shadow-md transition-all hover:bg-accent/90 hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+              className="mt-4 w-full rounded-lg bg-accent px-4 py-3 text-base font-bold text-accent-foreground shadow-md transition-all hover:bg-accent/90 hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             >
               {isActive
                 ? `Secure Vote - $${selected?.price ?? 0}`
@@ -157,21 +157,21 @@ export function VotePanel({
 
             {/* Security badges */}
             <div className="mt-4 flex flex-col gap-1.5">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Lock className="h-3.5 w-3.5 shrink-0" />
                 <span>
                   <span className="font-semibold text-foreground">SSL Secure.</span>{" "}
                   956 Bit Encryption
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Shield className="h-3.5 w-3.5 shrink-0" />
                 <span>
                   <span className="font-semibold text-foreground">Fraud Protected.</span>{" "}
                   Fraud Monitoring
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
                 <span>
                   <span className="font-semibold text-foreground">Blockchain Anchored.</span>{" "}

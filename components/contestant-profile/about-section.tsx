@@ -20,26 +20,26 @@ export function AboutSection({ contestant }: AboutSectionProps) {
           <div className="rounded-xl border border-border bg-card p-5">
             <dl className="flex flex-col gap-3">
               <div className="flex items-center gap-4">
-                <dt className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
+                <dt className="w-28 shrink-0 text-base font-medium text-muted-foreground">
                   Full Name:
                 </dt>
-                <dd className="text-sm font-semibold text-foreground">
+                <dd className="text-base font-semibold text-foreground">
                   {contestant.name}
                 </dd>
               </div>
               <div className="flex items-center gap-4">
-                <dt className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
+                <dt className="w-28 shrink-0 text-base font-medium text-muted-foreground">
                   Age:
                 </dt>
-                <dd className="text-sm font-semibold text-foreground">
+                <dd className="text-base font-semibold text-foreground">
                   {contestant.age}
                 </dd>
               </div>
               <div className="flex items-center gap-4">
-                <dt className="w-28 shrink-0 text-sm font-medium text-muted-foreground">
+                <dt className="w-28 shrink-0 text-base font-medium text-muted-foreground">
                   Country:
                 </dt>
-                <dd className="text-sm font-semibold text-foreground">
+                <dd className="text-base font-semibold text-foreground">
                   {contestant.country}
                 </dd>
               </div>
@@ -49,7 +49,7 @@ export function AboutSection({ contestant }: AboutSectionProps) {
           {/* Biography */}
           <div className="mt-5">
             <h3 className="text-base font-bold text-foreground">About</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-2 text-base leading-relaxed text-muted-foreground">
               {contestant.bio}
             </p>
           </div>
@@ -78,7 +78,7 @@ export function AboutSection({ contestant }: AboutSectionProps) {
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-card/90">
                   <Play className="h-3 w-3 text-foreground ml-0.5" />
                 </div>
-                <span className="text-xs font-medium text-card">
+                <span className="text-sm font-medium text-card">
                   Watch Introduction Video
                 </span>
               </div>

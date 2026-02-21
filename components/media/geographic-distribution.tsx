@@ -21,8 +21,8 @@ export function GeographicDistribution({ data }: GeographicDistributionProps) {
     <Card className="border-0 bg-slate-900 p-6">
       <h2 className="mb-4 text-lg font-semibold text-white">Votes By Country</h2>
       <div className="space-y-3">
-        {data.map((item) => (
-          <div key={item.country}>
+        {data.map((item, index) => (
+          <div key={`${item.country}-${item.voteCount}-${index}`}>
             <div className="mb-1 flex items-center justify-between text-sm">
               <span className="text-slate-200">{item.country}</span>
               <span className="text-slate-400">{item.voteCount.toLocaleString()} votes</span>

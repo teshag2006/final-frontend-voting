@@ -37,15 +37,15 @@ export function ProfileBreadcrumb({ contestant, eventSlug }: ProfileBreadcrumbPr
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-4 py-3 lg:px-8">
       <div className="flex items-center gap-2">
-        <span className="flex h-5 w-4 items-center justify-center rounded-sm bg-accent text-[10px] font-bold text-accent-foreground">
+        <span className="flex h-5 w-5 items-center justify-center rounded-sm bg-accent text-xs font-bold text-accent-foreground">
           {"#" + contestant.rank}
         </span>
-        <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+        <span className="text-sm font-bold tracking-wider text-muted-foreground uppercase">
           #{contestant.rank} {contestant.event_name} Contestant
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground font-medium">Share</span>
+        <span className="text-sm text-muted-foreground font-medium">Share</span>
         {socialIcons.map((social) => (
           <button
             key={social.label}

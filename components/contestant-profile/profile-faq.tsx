@@ -29,13 +29,13 @@ export function ProfileFAQ({ items }: ProfileFAQProps) {
               value={item.id}
               className="border-b border-border last:border-b-0"
             >
-              <AccordionTrigger className="px-5 py-4 text-sm font-medium text-foreground hover:bg-secondary/50 hover:no-underline">
+              <AccordionTrigger className="px-5 py-4 text-base font-medium text-foreground hover:bg-secondary/50 hover:no-underline">
                 <div className="flex items-center gap-3 text-left">
                   <span className="h-2 w-2 shrink-0 rounded-full bg-accent" />
                   {item.question}
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="px-5 pb-4 pt-0 text-sm leading-relaxed text-muted-foreground">
+              <AccordionContent className="px-5 pb-4 pt-0 text-base leading-relaxed text-muted-foreground">
                 {item.answer}
               </AccordionContent>
             </AccordionItem>

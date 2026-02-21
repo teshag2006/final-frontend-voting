@@ -70,7 +70,7 @@ export function VotingHistory({ stats }: VotingHistoryProps) {
             Voting History
           </h3>
         </div>
-        <p className="mt-0.5 text-xs text-muted-foreground">Last 7 days</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">Last 7 days</p>
       </div>
 
       <div className="p-4">
@@ -80,26 +80,26 @@ export function VotingHistory({ stats }: VotingHistoryProps) {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(225 20% 88%)" />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 10, fill: "hsl(222 10% 50%)" }}
+                tick={{ fontSize: 12, fill: "hsl(222 10% 50%)" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "hsl(222 10% 50%)" }}
+                tick={{ fontSize: 12, fill: "hsl(222 10% 50%)" }}
                 axisLine={false}
                 tickLine={false}
                 width={30}
               />
               <Tooltip
                 contentStyle={{
-                  fontSize: 12,
+                  fontSize: 13,
                   borderRadius: 8,
                   border: "1px solid hsl(225 20% 88%)",
                   backgroundColor: "hsl(0 0% 100%)",
                 }}
               />
               <Legend
-                wrapperStyle={{ fontSize: 10 }}
+                wrapperStyle={{ fontSize: 12 }}
                 iconType="circle"
                 iconSize={6}
               />
@@ -124,7 +124,7 @@ export function VotingHistory({ stats }: VotingHistoryProps) {
 
       {/* Social + Total Support */}
       <div className="px-5 pb-4 flex items-center justify-between">
-        <span className="rounded bg-destructive/10 px-2.5 py-1 text-xs font-bold text-destructive">
+        <span className="rounded bg-destructive/10 px-2.5 py-1 text-sm font-bold text-destructive">
           Total Support
         </span>
         <div className="flex items-center gap-1.5">

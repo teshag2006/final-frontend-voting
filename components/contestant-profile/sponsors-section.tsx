@@ -66,7 +66,7 @@ export function SponsorsSection({ sponsors, eventSlug, contestantSlug }: Sponsor
                   href={primaryWebsite}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
                   onClick={() => {
                     if (!primarySponsor.id) return;
                     sendSponsorClick({

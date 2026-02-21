@@ -52,20 +52,20 @@ export function RelatedContestants({ contestants, eventSlug, currentContestantSl
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                <span className="text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                   {c.name}
                 </span>
                 {c.is_verified && (
                   <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">{c.category_name}</p>
+              <p className="text-sm text-muted-foreground">{c.category_name}</p>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-sm font-bold text-foreground tabular-nums">
+              <p className="text-base font-bold text-foreground tabular-nums">
                 #{c.rank}
               </p>
-              <p className="text-xs text-muted-foreground tabular-nums">
+              <p className="text-sm text-muted-foreground tabular-nums">
                 {c.total_votes.toLocaleString()}
               </p>
             </div>

@@ -39,7 +39,7 @@ export default function MediaGeographicPage() {
               <tbody>
                 {mockGeoDistribution.map((geo, idx) => (
                   <tr
-                    key={geo.country}
+                    key={`${geo.country}-${geo.voteCount}-${idx}`}
                     className="border-b border-slate-700 transition-colors hover:bg-slate-900"
                   >
                     <td className="px-6 py-4 font-medium text-white">
@@ -117,7 +117,7 @@ export default function MediaGeographicPage() {
             {mockGeoDistribution.slice(0, 5).map((geo, idx) => {
               const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
               return (
-                <div key={geo.country} className="flex items-center justify-between rounded-lg bg-slate-900 p-3">
+                <div key={`${geo.country}-${geo.voteCount}-${idx}`} className="flex items-center justify-between rounded-lg bg-slate-900 p-3">
                   <div className="flex items-center gap-3 flex-1">
                     <span className="text-lg">{medals[idx]}</span>
                     <div>

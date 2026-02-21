@@ -39,12 +39,12 @@ export function ProfileHero({ contestant }: ProfileHeroProps) {
           </div>
           {/* Winner / Eliminated overlay */}
           {isWinner && (
-            <div className="absolute top-4 left-4 rounded-lg bg-amber-500 px-3 py-1 text-xs font-bold text-foreground shadow-md">
+            <div className="absolute top-4 left-4 rounded-lg bg-amber-500 px-3 py-1 text-sm font-bold text-foreground shadow-md">
               WINNER
             </div>
           )}
           {isEliminated && (
-            <div className="absolute top-4 left-4 rounded-lg bg-destructive px-3 py-1 text-xs font-bold text-destructive-foreground shadow-md">
+            <div className="absolute top-4 left-4 rounded-lg bg-destructive px-3 py-1 text-sm font-bold text-destructive-foreground shadow-md">
               ELIMINATED
             </div>
           )}
@@ -63,7 +63,7 @@ export function ProfileHero({ contestant }: ProfileHeroProps) {
           </div>
 
           {/* Category + Country */}
-          <p className="mt-1.5 text-sm text-muted-foreground md:text-base">
+          <p className="mt-1.5 text-base text-muted-foreground md:text-lg">
             <span className="font-semibold text-foreground">{contestant.category_name}</span>
             {" "}
             {contestant.tagline || "Contestant"}
@@ -80,7 +80,7 @@ export function ProfileHero({ contestant }: ProfileHeroProps) {
               {safeTotalVotes.toLocaleString()}
             </span>
             <span className="text-base text-muted-foreground">Votes</span>
-            <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
+            <span className="rounded-md bg-primary/10 px-2.5 py-1 text-sm font-bold text-primary">
               #{safeRankOverall} RANKED
             </span>
           </div>
@@ -90,7 +90,7 @@ export function ProfileHero({ contestant }: ProfileHeroProps) {
             <div className="mt-3 flex items-center gap-1.5 text-sm text-accent">
               <Shield className="h-4 w-4" />
               <span className="font-medium">Blockchain Verified</span>
-              <span className="text-xs text-muted-foreground ml-1">
+              <span className="text-sm text-muted-foreground ml-1">
                 {contestant.blockchain_hash}
               </span>
             </div>
@@ -101,7 +101,7 @@ export function ProfileHero({ contestant }: ProfileHeroProps) {
             {isActive ? (
               <Link
                 href={`/events/${contestant.event_slug}/contestant/${contestant.slug}/vote`}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg active:scale-[0.97]"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-6 py-2.5 text-base font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg active:scale-[0.97]"
               >
                 Vote Now
                 <ChevronRight className="h-4 w-4" />
@@ -109,13 +109,13 @@ export function ProfileHero({ contestant }: ProfileHeroProps) {
             ) : (
               <button
                 disabled
-                className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-6 py-2.5 text-sm font-semibold text-muted-foreground cursor-not-allowed opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-6 py-2.5 text-base font-semibold text-muted-foreground cursor-not-allowed opacity-60"
               >
                 {isWinner ? "Voting Complete" : isEliminated ? "Eliminated" : "Voting Closed"}
               </button>
             )}
             <button
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2.5 text-base font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               <Share2 className="h-4 w-4" />
               Share
