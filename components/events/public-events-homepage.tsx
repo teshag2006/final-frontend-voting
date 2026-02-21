@@ -49,7 +49,7 @@ const trendingContestants = [
   },
   {
     id: 'c-2',
-    name: 'David Kimani',
+    name: 'Dawit Kimani',
     rank: 2,
     votes: 884191,
     tier: 'A',
@@ -60,7 +60,7 @@ const trendingContestants = [
   },
   {
     id: 'c-3',
-    name: 'Zara Johnson',
+    name: 'Lulit\ Bekele',
     rank: 3,
     votes: 813335,
     tier: 'B',
@@ -685,3 +685,4 @@ export function PublicEventsHomepage() {
     </div>
   );
 }
+

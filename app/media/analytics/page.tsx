@@ -21,11 +21,11 @@ const categoryDistribution = [
 ];
 
 const topTrends = [
-  { contestant: 'Sarah M', day1: 45000, day2: 50000, day3: 57000 },
-  { contestant: 'David K', day1: 42000, day2: 46000, day3: 50700 },
-  { contestant: 'Anna T', day1: 38000, day2: 42000, day3: 46800 },
+  { contestant: 'Selam M', day1: 45000, day2: 50000, day3: 57000 },
+  { contestant: 'Dawit K', day1: 42000, day2: 46000, day3: 50700 },
+  { contestant: 'Abeba T', day1: 38000, day2: 42000, day3: 46800 },
   { contestant: 'Rachel P', day1: 35000, day2: 38000, day3: 41600 },
-  { contestant: 'Ahmed L', day1: 32000, day2: 35000, day3: 38930 },
+  { contestant: 'Yonas H', day1: 32000, day2: 35000, day3: 38930 },
 ];
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b'];
@@ -173,4 +173,7 @@ export default function MediaAnalyticsPage() {
       </main>
   );
 }
+
+
+
 

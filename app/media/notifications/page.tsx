@@ -31,7 +31,7 @@ const notifications = [
     id: 3,
     type: 'leaderboard',
     title: 'Leaderboard Updated',
-    description: 'Top 10 contestant rankings updated. Sarah M leads with 57,000 votes',
+    description: 'Top 10 contestant rankings updated. Selam M leads with 57,000 votes',
     time: '1 hour ago',
     icon: TrendingUp,
     color: 'blue',
@@ -145,3 +145,6 @@ export default function MediaNotificationsPage() {
       </main>
   );
 }
+
+
+

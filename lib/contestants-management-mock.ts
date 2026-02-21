@@ -91,7 +91,7 @@ export function generateMockContestants(count: number = 120): ContestantData[] {
       totalVotes,
       revenue,
       createdAt: createdAt.toISOString(),
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}${lastName}`,
+      avatar: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${firstName}%20${lastName}`,
       email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
     });
   }
@@ -208,3 +208,4 @@ export function getCategories(): CategoryOption[] {
 export function getCategoryName(categoryId: string): string {
   return mockCategories.find((c) => c.id === categoryId)?.name || 'Unknown';
 }
+

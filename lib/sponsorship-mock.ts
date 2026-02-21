@@ -241,7 +241,7 @@ export const mockSponsorPlacements: SponsorPlacement[] = [
     campaignId: 'camp-1',
     sponsorId: 'sp-zenith',
     eventSlug: 'miss-africa-2026',
-    contestantSlug: 'sarah-m',
+    contestantSlug: 'selam-m',
     slot: 'hero',
     approved: true,
     status: 'active',
@@ -251,7 +251,7 @@ export const mockSponsorPlacements: SponsorPlacement[] = [
     campaignId: 'camp-2',
     sponsorId: 'sp-mtn',
     eventSlug: 'miss-africa-2026',
-    contestantSlug: 'sarah-m',
+    contestantSlug: 'selam-m',
     slot: 'sidebar',
     approved: true,
     status: 'active',
@@ -261,7 +261,7 @@ export const mockSponsorPlacements: SponsorPlacement[] = [
     campaignId: 'camp-1',
     sponsorId: 'sp-zenith',
     eventSlug: 'miss-africa-2026',
-    contestantSlug: 'zara-johnson',
+    contestantSlug: 'lulit-bekele',
     slot: 'hero',
     approved: true,
     status: 'active',
@@ -273,7 +273,7 @@ export const mockSponsorVisibility: SponsorVisibility[] = [
     sponsor_id: 'sp-zenith',
     sponsor_name: 'Zenith Bank',
     event_slug: 'miss-africa-2026',
-    contestant_slug: 'sarah-m',
+    contestant_slug: 'selam-m',
     campaign_period: 'Apr 1 - Apr 30',
     placement_slot: 'hero',
     placement_status: 'active',
@@ -287,7 +287,7 @@ export const mockSponsorVisibility: SponsorVisibility[] = [
     sponsor_id: 'sp-mtn',
     sponsor_name: 'MTN',
     event_slug: 'miss-africa-2026',
-    contestant_slug: 'sarah-m',
+    contestant_slug: 'selam-m',
     campaign_period: 'Apr 1 - Apr 30',
     placement_slot: 'sidebar',
     placement_status: 'active',
@@ -301,10 +301,10 @@ export const mockSponsorVisibility: SponsorVisibility[] = [
 
 export const mockMarketplaceContestants: MarketplaceContestant[] = [
   {
-    slug: 'sarah-m',
-    name: 'Sarah M',
+    slug: 'selam-m',
+    name: 'Selam M',
     category: 'Singing',
-    profileImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop',
+    profileImage: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Selam%20M',
     rank: 1,
     votes: 560000,
     followers: 920000,
@@ -336,7 +336,7 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
       },
       {
         platform: 'Facebook',
-        username: 'Sarah M Official',
+        username: 'Selam M Official',
         followers: 98000,
         engagementRate: 4.9,
         lastUpdated: '2026-02-18T10:25:00Z',
@@ -371,10 +371,10 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     ],
   },
   {
-    slug: 'david-k',
-    name: 'David K',
+    slug: 'dawit-k',
+    name: 'Dawit K',
     category: 'Sports',
-    profileImage: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop',
+    profileImage: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Dawit%20K',
     rank: 2,
     votes: 435000,
     followers: 680000,
@@ -414,7 +414,7 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
       },
       {
         platform: 'Facebook',
-        username: 'David K Fitness',
+        username: 'Dawit K Fitness',
         followers: 86000,
         engagementRate: 3.9,
         lastUpdated: '2026-02-18T09:00:00Z',
@@ -449,10 +449,10 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     ],
   },
   {
-    slug: 'anna-t',
-    name: 'Anna T',
+    slug: 'abeba-t',
+    name: 'Abeba T',
     category: 'Acting',
-    profileImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop',
+    profileImage: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Abeba%20T',
     rank: 3,
     votes: 312000,
     followers: 410000,
@@ -492,7 +492,7 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
       },
       {
         platform: 'Facebook',
-        username: 'Anna T Actor',
+        username: 'Abeba T Actor',
         followers: 42000,
         engagementRate: 3.1,
         lastUpdated: '2026-02-18T12:00:00Z',
@@ -527,10 +527,10 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     ],
   },
   {
-    slug: 'ahmed-l',
-    name: 'Ahmed L',
+    slug: 'yonas-h',
+    name: 'Yonas H',
     category: 'Dancing',
-    profileImage: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=300&fit=crop',
+    profileImage: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Yonas%20H',
     rank: 4,
     votes: 268000,
     followers: 290000,
@@ -562,7 +562,7 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
       },
       {
         platform: 'Facebook',
-        username: 'Ahmed L Moves',
+        username: 'Yonas H Moves',
         followers: 29000,
         engagementRate: 2.7,
         lastUpdated: '2026-02-18T07:10:00Z',
@@ -601,7 +601,7 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
 export const mockSponsorCampaignTracking: SponsorCampaignTracking[] = [
   {
     id: 'track-001',
-    contestantSlug: 'sarah-m',
+    contestantSlug: 'selam-m',
     sponsorName: 'Zenith Bank',
     campaignStatus: 'active',
     paymentStatus: 'paid',
@@ -611,7 +611,7 @@ export const mockSponsorCampaignTracking: SponsorCampaignTracking[] = [
   },
   {
     id: 'track-002',
-    contestantSlug: 'anna-t',
+    contestantSlug: 'abeba-t',
     sponsorName: 'MTN',
     campaignStatus: 'pending_payment',
     paymentStatus: 'pending_manual',
@@ -621,7 +621,7 @@ export const mockSponsorCampaignTracking: SponsorCampaignTracking[] = [
   },
   {
     id: 'track-003',
-    contestantSlug: 'david-k',
+    contestantSlug: 'dawit-k',
     sponsorName: 'Coca-Cola',
     campaignStatus: 'completed',
     paymentStatus: 'paid',
@@ -698,7 +698,7 @@ export const mockSponsorDashboardOverview: SponsorDashboardOverview = {
 export const mockSponsorProfileSettings: SponsorProfileSettings = {
   general: {
     companyName: 'Zenith Bank',
-    logoUrl: '/images/sponsor-zenith.jpg',
+    logoUrl: 'https://picsum.photos/seed/sponsor-zenith/1200/800',
     description: 'Pan-African banking brand supporting youth and creator economy initiatives.',
     industry: 'Finance',
     website: 'https://example.com/zenith',
@@ -756,12 +756,12 @@ export const mockIntegritySignals = {
     { time: '20:00', value: 15 },
   ],
   flaggedContestants: [
-    { slug: 'anna-t', reason: 'Follower velocity anomaly', severity: 'medium' },
-    { slug: 'ahmed-l', reason: 'Suspicious vote burst', severity: 'high' },
+    { slug: 'abeba-t', reason: 'Follower velocity anomaly', severity: 'medium' },
+    { slug: 'yonas-h', reason: 'Suspicious vote burst', severity: 'high' },
   ],
   penaltyHistory: [
-    { date: '2026-02-10', contestant: 'Ahmed L', action: 'Tier downgraded B -> C' },
-    { date: '2026-02-06', contestant: 'Anna T', action: 'Integrity score reduced -10' },
+    { date: '2026-02-10', contestant: 'Yonas H', action: 'Tier downgraded B -> C' },
+    { date: '2026-02-06', contestant: 'Abeba T', action: 'Integrity score reduced -10' },
   ],
 };
 
@@ -804,3 +804,6 @@ export function getEventSponsors(eventSlug: string): Sponsor[] {
       sponsor.status === 'active'
   );
 }
+
+
+

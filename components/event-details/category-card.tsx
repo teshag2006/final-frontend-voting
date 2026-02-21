@@ -24,6 +24,8 @@ export function CategoryCard({
   index,
   className,
 }: CategoryCardProps) {
+  const categorySlug = (category as any).slug || category.id;
+
   return (
     <div
       className={cn(
@@ -63,7 +65,7 @@ export function CategoryCard({
             {category.name}
           </h3>
           <Link
-            href={`/events/${eventSlug}/categories`}
+            href={`/events/${eventSlug}/categories/${categorySlug}`}
             className="inline-flex items-center gap-0.5 text-xs font-medium text-primary-foreground/80 transition-colors hover:text-primary-foreground"
           >
             {category.contestant_count} contestants

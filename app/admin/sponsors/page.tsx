@@ -30,8 +30,8 @@ const actionLabels: Record<EnforcementAction, string> = {
 
 export default function AdminSponsorsPage() {
   const [logRows, setLogRows] = useState([
-    { at: '2026-02-18 11:22', action: 'Apply penalty', target: 'Ahmed L', note: 'Vote anomaly confirmation' },
-    { at: '2026-02-18 09:15', action: 'Reduce integrity score', target: 'Anna T', note: 'Follower burst threshold breach' },
+    { at: '2026-02-18 11:22', action: 'Apply penalty', target: 'Yonas H', note: 'Vote anomaly confirmation' },
+    { at: '2026-02-18 09:15', action: 'Reduce integrity score', target: 'Abeba T', note: 'Follower burst threshold breach' },
   ]);
 
   const topSds = useMemo(
@@ -375,3 +375,4 @@ function StateBadge({
 
   return <Badge className={className}>{text}</Badge>;
 }
+

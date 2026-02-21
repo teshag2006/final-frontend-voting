@@ -28,29 +28,32 @@ export const mockSummary: EventSummary = {
 export const mockContestants: Contestant[] = [
   {
     id: "c-001",
-    name: "Sarah M",
+    name: "Selam M",
     category_name: "Miss Africa",
-    photo_url: "/images/contestant-1.jpg",
+    photo_url: "https://picsum.photos/seed/contestant-1/1200/800",
     rank: 1,
     total_votes: 57000,
     is_verified: true,
   },
   {
     id: "c-002",
-    name: "David K",
+    name: "Dawit K",
     category_name: "Mr Africa",
-    photo_url: "/images/contestant-2.jpg",
+    photo_url: "https://picsum.photos/seed/contestant-2/1200/800",
     rank: 2,
     total_votes: 50700,
     is_verified: true,
   },
   {
     id: "c-003",
-    name: "Anna T",
+    name: "Abeba T",
     category_name: "Miss Africa",
-    photo_url: "/images/contestant-3.jpg",
+    photo_url: "https://picsum.photos/seed/contestant-3/1200/800",
     rank: 3,
     total_votes: 46800,
     is_verified: true,
   },
 ];
+
+
+

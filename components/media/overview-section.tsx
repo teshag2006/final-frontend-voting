@@ -57,7 +57,7 @@ export function OverviewSection({ stats }: OverviewSectionProps) {
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600" />
           <div>
-            <p className="font-medium text-gray-900">Anna Wilson</p>
+            <p className="font-medium text-gray-900">Abebe Kebede</p>
             <p className="text-sm text-gray-600">Music Category</p>
           </div>
         </div>
@@ -82,3 +82,6 @@ export function OverviewSection({ stats }: OverviewSectionProps) {
     </div>
   );
 }
+
+
+

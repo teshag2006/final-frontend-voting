@@ -1,4 +1,4 @@
-import { mockEvents } from './events-mock';
+﻿import { mockEvents } from './events-mock';
 
 // Get event by slug
 export function getEventBySlug(slug: string) {
@@ -11,12 +11,12 @@ export function getContestantsForEvent(eventSlug: string) {
   const baseContestants = [
     {
       id: `${eventSlug}-cont-1`,
-      slug: 'zara-johnson',
-      name: 'Zara Johnson',
+      slug: 'lulit-bekele',
+      name: 'Lulit Bekele',
       category: 'Beauty',
       event_name: event.name,
       event_slug: eventSlug,
-      image_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=500&fit=crop',
+      image_url: 'https://randomuser.me/api/portraits/women/45.jpg',
       bio: 'Passionate about philanthropy and women empowerment.',
       votes: 15234,
       ranking: 1,
@@ -27,12 +27,12 @@ export function getContestantsForEvent(eventSlug: string) {
     },
     {
       id: `${eventSlug}-cont-2`,
-      slug: 'amara-okafor',
-      name: 'Amara Okafor',
+      slug: 'mahi-deressa',
+      name: 'Mahi Deressa',
       category: 'Grace',
       event_name: event.name,
       event_slug: eventSlug,
-      image_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop',
+      image_url: 'https://randomuser.me/api/portraits/women/68.jpg',
       bio: 'Dedicated to environmental conservation across Africa.',
       votes: 12456,
       ranking: 2,
@@ -43,12 +43,12 @@ export function getContestantsForEvent(eventSlug: string) {
     },
     {
       id: `${eventSlug}-cont-3`,
-      slug: 'nala-kamau',
-      name: 'Nala Kamau',
+      slug: 'rahel-tadesse',
+      name: 'Rahel Tadesse',
       category: 'Excellence',
       event_name: event.name,
       event_slug: eventSlug,
-      image_url: 'https://images.unsplash.com/photo-1502685382441-f6d1a4a87d07?w=400&h=500&fit=crop',
+      image_url: 'https://randomuser.me/api/portraits/women/76.jpg',
       bio: 'Arts advocate and cultural ambassador.',
       votes: 10892,
       ranking: 3,
@@ -59,12 +59,12 @@ export function getContestantsForEvent(eventSlug: string) {
     },
     {
       id: `${eventSlug}-cont-4`,
-      slug: 'sienna-mbatha',
-      name: 'Sienna Mbatha',
+      slug: 'bethel-getahun',
+      name: 'Bethel Getahun',
       category: 'Talent',
       event_name: event.name,
       event_slug: eventSlug,
-      image_url: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=400&h=500&fit=crop',
+      image_url: 'https://randomuser.me/api/portraits/women/63.jpg',
       bio: 'Award-winning performer and entertainer.',
       votes: 9123,
       ranking: 4,
@@ -75,12 +75,12 @@ export function getContestantsForEvent(eventSlug: string) {
     },
     {
       id: `${eventSlug}-cont-5`,
-      slug: 'venus-adomako',
-      name: 'Venus Adomako',
+      slug: 'eden-alemayehu',
+      name: 'Eden Alemayehu',
       category: 'Talent',
       event_name: event.name,
       event_slug: eventSlug,
-      image_url: 'https://images.unsplash.com/photo-1517331156700-3c241d2b4d83?w=400&h=500&fit=crop',
+      image_url: 'https://randomuser.me/api/portraits/women/81.jpg',
       bio: 'Tech entrepreneur and innovation advocate.',
       votes: 8567,
       ranking: 5,
@@ -91,12 +91,12 @@ export function getContestantsForEvent(eventSlug: string) {
     },
     {
       id: `${eventSlug}-cont-6`,
-      slug: 'crystal-adeyemi',
-      name: 'Crystal Adeyemi',
+      slug: 'sara-teshome',
+      name: 'Sara Teshome',
       category: 'Beauty',
       event_name: event.name,
       event_slug: eventSlug,
-      image_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=500&fit=crop',
+      image_url: 'https://randomuser.me/api/portraits/women/52.jpg',
       bio: 'Fashion influencer and style icon.',
       votes: 7345,
       ranking: 6,
@@ -107,12 +107,12 @@ export function getContestantsForEvent(eventSlug: string) {
     },
     {
       id: `${eventSlug}-cont-7`,
-      slug: 'linda-opoku',
-      name: 'Linda Opoku',
+      slug: 'helen-hailemariam',
+      name: 'Helen Hailemariam',
       category: 'Grace',
       event_name: event.name,
       event_slug: eventSlug,
-      image_url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=500&fit=crop',
+      image_url: 'https://randomuser.me/api/portraits/women/72.jpg',
       bio: 'Youth mentor and community impact leader.',
       votes: 6981,
       ranking: 7,
@@ -123,12 +123,12 @@ export function getContestantsForEvent(eventSlug: string) {
     },
     {
       id: `${eventSlug}-cont-8`,
-      slug: 'kofi-nartey',
-      name: 'Kofi Nartey',
+      slug: 'nahom-tesfaye',
+      name: 'Nahom Tesfaye',
       category: 'Excellence',
       event_name: event.name,
       event_slug: eventSlug,
-      image_url: 'https://images.unsplash.com/photo-1504593811423-6dd665756598?w=400&h=500&fit=crop',
+      image_url: 'https://randomuser.me/api/portraits/men/54.jpg',
       bio: 'Entrepreneur and leadership advocate.',
       votes: 6452,
       ranking: 8,
@@ -151,6 +151,9 @@ export function getCategoriesForEvent(eventSlug: string) {
       name: 'Beauty',
       description: 'Celebrate natural beauty and elegance',
       contestant_count: 8,
+      image_url: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=1200&h=800&fit=crop',
+      top_contestant_name: 'Lulit Bekele',
+      top_contestant_votes: 15234,
     },
     {
       id: `${eventSlug}-cat-2`,
@@ -158,6 +161,9 @@ export function getCategoriesForEvent(eventSlug: string) {
       name: 'Grace',
       description: 'Poise and graceful presence',
       contestant_count: 8,
+      image_url: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=1200&h=800&fit=crop',
+      top_contestant_name: 'Mahi Deressa',
+      top_contestant_votes: 12456,
     },
     {
       id: `${eventSlug}-cat-3`,
@@ -165,6 +171,9 @@ export function getCategoriesForEvent(eventSlug: string) {
       name: 'Excellence',
       description: 'Outstanding achievements and excellence',
       contestant_count: 8,
+      image_url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&h=800&fit=crop',
+      top_contestant_name: 'Rahel Tadesse',
+      top_contestant_votes: 10892,
     },
     {
       id: `${eventSlug}-cat-4`,
@@ -172,6 +181,9 @@ export function getCategoriesForEvent(eventSlug: string) {
       name: 'Talent',
       description: 'Exceptional talents and skills',
       contestant_count: 8,
+      image_url: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1200&h=800&fit=crop',
+      top_contestant_name: 'Bethel Getahun',
+      top_contestant_votes: 9123,
     },
   ];
 }
@@ -203,7 +215,7 @@ export function getVoterData() {
       {
         event_slug: 'miss-africa-2026',
         event_name: 'Miss Africa 2026',
-        contestant_name: 'Zara Johnson',
+        contestant_name: 'Lulit Bekele',
         votes_cast: 15,
         amount_spent: 37.50,
         date: '2026-04-15',
@@ -211,7 +223,7 @@ export function getVoterData() {
       {
         event_slug: 'miss-africa-2026',
         event_name: 'Miss Africa 2026',
-        contestant_name: 'Amara Okafor',
+        contestant_name: 'Mahi Deressa',
         votes_cast: 8,
         amount_spent: 20.00,
         date: '2026-04-10',
@@ -231,7 +243,7 @@ export function getVoterData() {
 // Get mock contestant dashboard data
 export function getContestantDashboardData() {
   return {
-    name: 'Zara Johnson',
+    name: 'Lulit Bekele',
     total_votes: 15234,
     ranking: 1,
     events: [
@@ -275,3 +287,7 @@ export function getMediaDashboardData() {
     })),
   };
 }
+
+
+
+

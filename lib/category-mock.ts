@@ -28,7 +28,7 @@ export const mockCategorySummary: CategorySummary = {
 export const mockContestants: CategoryContestant[] = [
   {
     id: "contestant-001",
-    full_name: "Sarah M",
+    full_name: "Selam M",
     country: "Nigeria",
     profile_image_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=600&fit=crop",
     is_verified: true,
@@ -195,3 +195,4 @@ export function getMockCategoryById(categoryId: string): Category | null {
   }
   return null;
 }
+

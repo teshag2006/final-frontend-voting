@@ -24,7 +24,7 @@ export const mockReceipts: Record<string, ReceiptData> = {
       firstName: 'Sarah',
       lastName: 'Mensah',
       profileImageUrl:
-        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=500&fit=crop',
+        'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Ethiopian%20Portrait',
       verified: true,
     },
     paymentMethod: 'stripe',
@@ -58,7 +58,7 @@ export const mockReceipts: Record<string, ReceiptData> = {
       firstName: 'Alex',
       lastName: 'Johnson',
       profileImageUrl:
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop',
+        'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Ethiopian%20Portrait',
       verified: false,
     },
     paymentMethod: 'paypal',
@@ -87,7 +87,7 @@ export const mockReceipts: Record<string, ReceiptData> = {
       firstName: 'Abeba',
       lastName: 'Getnet',
       profileImageUrl:
-        'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=500&fit=crop',
+        'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Ethiopian%20Portrait',
       verified: true,
     },
     paymentMethod: 'chapa',
@@ -111,3 +111,5 @@ export async function getMockReceipt(receiptNumber: string): Promise<ReceiptData
 
   return mockReceipts[receiptNumber] || null
 }
+
+

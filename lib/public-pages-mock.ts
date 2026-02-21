@@ -17,7 +17,7 @@ export const FEATURED_EVENTS: Event[] = [
     start_date: new Date().toISOString(),
     end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'LIVE',
-    banner_url: 'https://images.unsplash.com/photo-1470229722913-7f419344ca51?w=1200&h=600&fit=crop',
+    banner_url: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Ethiopian%20Portrait',
     vote_price: 2.5,
     max_votes_per_transaction: 250,
     organizer_name: 'Miss Africa Organization',
@@ -34,7 +34,7 @@ export const FEATURED_EVENTS: Event[] = [
     start_date: new Date().toISOString(),
     end_date: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'LIVE',
-    banner_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=600&fit=crop',
+    banner_url: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Ethiopian%20Portrait',
     vote_price: 2.5,
     max_votes_per_transaction: 250,
     organizer_name: 'Mr Africa Organization',
@@ -82,12 +82,12 @@ export const UPCOMING_EVENTS: Event[] = [
 export const LEADERBOARD_CONTESTANTS: ContestantProfile[] = [
   {
     id: 'contestant-1',
-    slug: 'anna-wilson',
-    name: 'Anna Wilson',
+    slug: 'abebe-kebede',
+    name: 'Abebe Kebede',
     event_slug: 'miss-africa-2024',
     event_name: 'Miss Africa 2024',
     category_name: 'Beauty & Grace',
-    photo_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=500&fit=crop',
+    photo_url: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Selam%20M',
     rank: 1,
     total_votes: 325890,
     is_verified: true,
@@ -103,8 +103,8 @@ export const LEADERBOARD_CONTESTANTS: ContestantProfile[] = [
     rank_in_category: 1,
     vote_percentage: 26.2,
     gallery_photos: [
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=600&fit=crop',
+      'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Ethiopian%20Portrait',
+      'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Ethiopian%20Portrait',
     ],
     sponsors: [
       {
@@ -118,12 +118,12 @@ export const LEADERBOARD_CONTESTANTS: ContestantProfile[] = [
   },
   {
     id: 'contestant-2',
-    slug: 'zainab-hassan',
-    name: 'Zainab Hassan',
+    slug: 'ruth-assefa',
+    name: 'Ruth Assefa',
     event_slug: 'miss-africa-2024',
     event_name: 'Miss Africa 2024',
     category_name: 'Talent & Performance',
-    photo_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=500&fit=crop',
+    photo_url: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Abeba%20Getnet',
     rank: 2,
     total_votes: 298120,
     is_verified: true,
@@ -139,17 +139,17 @@ export const LEADERBOARD_CONTESTANTS: ContestantProfile[] = [
     rank_in_category: 2,
     vote_percentage: 23.9,
     gallery_photos: [
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=600&h=600&fit=crop',
+      'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Ethiopian%20Portrait',
     ],
   },
   {
     id: 'contestant-3',
-    slug: 'amara-williams',
-    name: 'Amara Williams',
+    slug: 'eden-zeru',
+    name: 'Eden Zeru',
     event_slug: 'miss-africa-2024',
     event_name: 'Miss Africa 2024',
     category_name: 'Social Impact',
-    photo_url: 'https://images.unsplash.com/photo-1507876466733-7371d4862f4e?w=400&h=500&fit=crop',
+    photo_url: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Eden%20Zeru',
     rank: 3,
     total_votes: 245678,
     is_verified: true,
@@ -209,3 +209,6 @@ export const CATEGORIES = [
     color: 'amber',
   },
 ];
+
+
+

@@ -147,7 +147,12 @@ export default async function EventDetailsPage({
         )}
 
         {/* Timeline */}
-        <EventTimelineCard stats={stats} eventSlug={eventSlug} />
+        <EventTimelineCard
+          stats={stats}
+          eventSlug={eventSlug}
+          bannerUrl={event.banner_url}
+          eventName={event.name}
+        />
 
         {/* FAQ Section */}
         <FAQSection items={faq} />

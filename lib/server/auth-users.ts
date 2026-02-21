@@ -22,15 +22,15 @@ const SERVER_USERS: ServerUserRecord[] = [
     password: 'Admin@123456',
     name: 'Admin User',
     role: 'admin',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
+    avatar: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Alemu%20Admin',
   },
   {
     id: 'contestant-001',
     email: 'contestant@example.com',
     password: 'Contestant@123456',
-    name: 'John Contestant',
+    name: 'Dawit Contestant',
     role: 'contestant',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=john',
+    avatar: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Dawit%20Contestant',
   },
   {
     id: 'media-001',
@@ -38,15 +38,15 @@ const SERVER_USERS: ServerUserRecord[] = [
     password: 'Media@123456',
     name: 'Media Manager',
     role: 'media',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=media',
+    avatar: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Hana%20Tesfaye',
   },
   {
     id: 'voter-001',
     email: 'voter@example.com',
     password: 'Voter@123456',
-    name: 'Emma Wilson',
+    name: 'Ruth Kebede',
     role: 'voter',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=emma',
+    avatar: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Ruth%20Kebede',
   },
   {
     id: 'sponsor-001',
@@ -54,7 +54,7 @@ const SERVER_USERS: ServerUserRecord[] = [
     password: 'Sponsor@123456',
     name: 'Zenith Sponsor',
     role: 'sponsor',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sponsor',
+    avatar: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Zenebe%20Sponsor',
   },
 ];
 
@@ -67,3 +67,5 @@ export function verifyServerUser(email: string, password: string): ServerAuthUse
   const { password: _password, ...safeUser } = user;
   return safeUser;
 }
+
+

@@ -61,7 +61,7 @@ function ProfileContent() {
             <div className="flex gap-6">
               <div className="flex-shrink-0">
                 <img
-                  src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
+                  src={user.avatar || 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Default%20Ethiopia'}
                   alt={user.name}
                   className="w-24 h-24 rounded-full border-2 border-slate-600"
                 />
@@ -194,3 +194,4 @@ export default function ProfilePage() {
     </ProtectedRouteWrapper>
   );
 }
+

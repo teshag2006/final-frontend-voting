@@ -11,7 +11,7 @@ import type {
 
 export const mockCheckoutSession: VoteCheckoutSession = {
   eventId: "miss-africa-2026",
-  contestantId: "anna-wilson",
+  contestantId: "abebe-kebede",
   quantity: 10,
   unitPrice: 2.0,
   totalAmount: 20.0,
@@ -92,15 +92,18 @@ export const mockPricingResponse: PricingResponse = {
 
 // Contestant data displayed on checkout
 export const mockCheckoutContestant = {
-  id: "anna-wilson",
-  name: "Anna Wilson",
+  id: "abebe-kebede",
+  name: "Abebe Kebede",
   category: "Music",
   event: {
     id: "talents-of-tomorrow",
     name: "Talents of Tomorrow",
   },
-  image: "/images/contestant-1.jpg",
+  image: "https://picsum.photos/seed/contestant-1/1200/800",
   totalVotes: 180456,
   rank: 1,
   pricePerVote: 2.0,
 };
+
+
+

@@ -7,12 +7,16 @@ import { cn } from "@/lib/utils";
 interface EventTimelineCardProps {
   stats: EventStats;
   eventSlug: string;
+  bannerUrl?: string;
+  eventName?: string;
   className?: string;
 }
 
 export function EventTimelineCard({
   stats,
   eventSlug,
+  bannerUrl,
+  eventName,
   className,
 }: EventTimelineCardProps) {
   return (
@@ -25,8 +29,8 @@ export function EventTimelineCard({
       {/* Image header */}
       <div className="relative aspect-[16/9] w-full overflow-hidden">
         <Image
-          src="/images/event-timeline-bg.jpg"
-          alt="Event timeline"
+          src={bannerUrl || "/images/event-timeline-bg.jpg"}
+          alt={eventName ? `${eventName} banner` : "Event timeline"}
           fill
           className="object-cover"
           sizes="320px"
