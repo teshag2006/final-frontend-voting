@@ -20,6 +20,7 @@ import type {
   Notification,
 } from "@/types/dashboard";
 import type { Sponsor } from "@/types/contestant";
+import type { PriorityNotification } from "@/components/dashboard/notification-priority-list";
 import type {
   MarketplaceContestant,
   SponsorCampaignTracking,
@@ -579,6 +580,14 @@ export async function getEventDetails(): Promise<EventDetails | null> {
 export async function getNotifications(): Promise<Notification[] | null> {
   try {
     return await fetchFromAPI<Notification[]>("/contestant/notifications");
+  } catch {
+    return null;
+  }
+}
+
+export async function getContestantPriorityNotifications(): Promise<PriorityNotification[] | null> {
+  try {
+    return await fetchFromAPI<PriorityNotification[]>("/contestant/notifications-priority");
   } catch {
     return null;
   }

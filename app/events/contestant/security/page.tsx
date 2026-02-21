@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { getSecurityData } from '@/lib/api';
 import { mockSecurityData } from '@/lib/dashboard-mock';
+import { SecurityRemediationBoard } from '@/components/dashboard/security-remediation-board';
+import { getContestantSecurityCases } from '@/lib/contestant-runtime-store';
 
 export const metadata: Metadata = {
   title: 'Trust & Security | Contestant Portal',
@@ -10,6 +12,7 @@ export const metadata: Metadata = {
 export default async function SecurityPage() {
   const data = (await getSecurityData()) || mockSecurityData;
   const { metrics, alerts } = data;
+  const securityCases = getContestantSecurityCases();
 
   return (
     <div className="p-6">
@@ -46,6 +49,10 @@ export default async function SecurityPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <SecurityRemediationBoard cases={securityCases} />
       </div>
     </div>
   );

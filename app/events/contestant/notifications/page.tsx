@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
-import { getNotifications } from '@/lib/api';
+import { getContestantPriorityNotifications, getNotifications } from '@/lib/api';
 import { mockNotifications } from '@/lib/dashboard-mock';
+import { NotificationPriorityList } from '@/components/dashboard/notification-priority-list';
 
 export const metadata: Metadata = {
   title: 'Notifications | Contestant Portal',
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 
 export default async function NotificationsPage() {
   const notifications = (await getNotifications()) || mockNotifications;
+  const priorityNotifications = (await getContestantPriorityNotifications()) || [];
   const unread = notifications.filter((n) => !n.read);
   const read = notifications.filter((n) => n.read);
 
@@ -23,6 +25,11 @@ export default async function NotificationsPage() {
 
       <Section title="New" items={unread} />
       <Section title="Earlier" items={read} className="mt-4" />
+
+      <div className="mt-6">
+        <h2 className="mb-3 text-lg font-semibold text-slate-800">Priority Inbox</h2>
+        <NotificationPriorityList items={priorityNotifications} />
+      </div>
     </div>
   );
 }

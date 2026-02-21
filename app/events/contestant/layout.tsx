@@ -17,7 +17,7 @@ function ContestantLayoutContent({
   children: ReactNode;
 }) {
   return (
-    <div className="h-screen bg-slate-200 flex flex-col overflow-hidden">
+    <div className="contestant-shell h-screen bg-slate-200 flex flex-col overflow-hidden">
       {/* Full-width top banner */}
       <DashboardHeader />
 

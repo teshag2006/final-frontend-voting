@@ -14,6 +14,7 @@ import { VotePanel } from "@/components/contestant-profile/vote-panel";
 import { GeographicSupport } from "@/components/contestant-profile/geographic-support";
 import { VotingHistory } from "@/components/contestant-profile/voting-history";
 import { TransparencySecurity } from "@/components/contestant-profile/transparency-security";
+import { PublicVerificationBadges } from "@/components/contestant-profile/public-verification-badges";
 import { EventStatusGuard } from "@/components/event-status-guard";
 
 // Mock data
@@ -28,6 +29,10 @@ import {
 import { mockEvents } from "@/lib/events-mock";
 import { getEventBySlug, getContestantsForEvent } from "@/lib/mock-data-generator";
 import { getContestantSponsors } from "@/lib/sponsorship-mock";
+import {
+  getContestantPublicVerification,
+  isContestantPublicProfileVisible,
+} from "@/lib/contestant-runtime-store";
 
 function normalizeContestant(source: any, eventSlug: string, eventName: string) {
   if (!source) return { ...mockContestantProfile, event_slug: eventSlug, event_name: eventName };
@@ -93,6 +98,7 @@ export default async function ContestantProfilePage({
   const contestants = getContestantsForEvent(eventSlug);
   const selectedContestant = contestants.find((c) => c.slug === contestantSlug);
   const contestant = normalizeContestant(selectedContestant, eventSlug, event?.name ?? "Event");
+  const isPubliclyVisible = isContestantPublicProfileVisible(contestantSlug);
   
   // Use fallback data for other sections
   const stats = mockContestantStats;
@@ -103,11 +109,25 @@ export default async function ContestantProfilePage({
     .filter((c) => c.slug !== contestantSlug)
     .map((c) => normalizeContestant(c, eventSlug, event?.name ?? "Event"));
   const sponsors = getContestantSponsors(eventSlug, contestantSlug);
+  const verification = getContestantPublicVerification();
 
   if (!event) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <h1 className="text-2xl font-bold">Event not found</h1>
+      </div>
+    );
+  }
+
+  if (!isPubliclyVisible) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
+          <h1 className="text-xl font-semibold text-slate-900">Profile Pending Admin Approval</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            This contestant profile is not publicly available until admin review is approved.
+          </p>
+        </div>
       </div>
     );
   }
@@ -122,10 +142,14 @@ export default async function ContestantProfilePage({
       <ProfileBreadcrumb contestant={contestant} eventSlug={eventSlug} />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <ProfileHero contestant={contestant} />
+          {/* Hero Section */}
+          <ProfileHero contestant={contestant} />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="mx-auto mt-4 max-w-7xl px-4 sm:px-6 lg:px-8">
+            <PublicVerificationBadges verification={verification} />
+          </div>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Photo Gallery */}
           <PhotoGallery
             photos={contestant.gallery_photos || []}

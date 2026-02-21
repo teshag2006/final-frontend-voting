@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { mockDashboardOverview } from '@/lib/dashboard-mock';
 import {
   LineChart,
@@ -12,9 +13,24 @@ import {
   Legend,
 } from 'recharts';
 import { CheckCircle2 } from 'lucide-react';
+import { VotingReadinessCard } from '@/components/dashboard/voting-readiness-card';
+import type { ContestantReadiness } from '@/lib/contestant-runtime-store';
 
 export default function DashboardPage() {
   const { metrics, vote_snapshots, top_countries, integrity_status } = mockDashboardOverview;
+  const [readiness, setReadiness] = useState<ContestantReadiness>({
+    score: 0,
+    checks: [],
+  });
+
+  useEffect(() => {
+    fetch('/api/contestant/readiness')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setReadiness(data as ContestantReadiness);
+      })
+      .catch(() => undefined);
+  }, []);
 
   return (
     <div className="p-6">
@@ -46,6 +62,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="space-y-4">
+          <VotingReadinessCard readiness={readiness} />
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="mb-3 text-base font-semibold text-slate-800">Top Voting Countries</h3>
             <div className="space-y-3">

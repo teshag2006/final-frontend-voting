@@ -1,22 +1,28 @@
 'use client';
 
-import { ComponentType, useMemo, useState } from 'react';
+import { ComponentType, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
   Clock3,
   Lock,
-  ShieldCheck,
   TrendingUp,
   UserCheck,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { OfferInbox } from '@/components/contestant-sponsors/offer-inbox';
+import { CampaignContractCard } from '@/components/contestant-sponsors/campaign-contract-card';
+import { DeliverablesBoard } from '@/components/contestant-sponsors/deliverables-board';
 import {
   mockContestantActiveCampaign,
-  mockContestantOffers,
   mockMarketplaceContestants,
 } from '@/lib/sponsorship-mock';
+import type {
+  ContestantDeliverableItem,
+  ContestantSponsorContract,
+  ContestantSponsorOfferItem,
+} from '@/lib/contestant-runtime-store';
 
 const tierTone: Record<string, string> = {
   A: 'bg-amber-100 text-amber-800',
@@ -26,23 +32,49 @@ const tierTone: Record<string, string> = {
 
 export default function ContestantSponsorsPage() {
   const contestant = mockMarketplaceContestants[0];
-  const [offers, setOffers] = useState(mockContestantOffers);
+  const [offers, setOffers] = useState<ContestantSponsorOfferItem[]>([]);
+  const [deliverables, setDeliverables] = useState<ContestantDeliverableItem[]>([]);
+  const [contract, setContract] = useState<ContestantSponsorContract | null>(null);
+
+  const loadData = async () => {
+    const [offersRes, deliverablesRes, contractRes] = await Promise.all([
+      fetch('/api/contestant/sponsors/offers'),
+      fetch('/api/contestant/sponsors/deliverables?campaignId=camp-active-101'),
+      fetch('/api/contestant/sponsors/contracts/camp-active-101'),
+    ]);
+
+    if (offersRes.ok) setOffers((await offersRes.json()) as ContestantSponsorOfferItem[]);
+    if (deliverablesRes.ok) setDeliverables((await deliverablesRes.json()) as ContestantDeliverableItem[]);
+    if (contractRes.ok) setContract((await contractRes.json()) as ContestantSponsorContract);
+  };
+
+  useEffect(() => {
+    void loadData();
+  }, []);
 
   const pendingOffers = useMemo(() => offers.filter((offer) => offer.status === 'pending'), [offers]);
 
   const acceptedOffers = useMemo(() => offers.filter((offer) => offer.status === 'accepted'), [offers]);
 
-  const handleAccept = (offerId: string) => {
-    setOffers((prev) => prev.map((offer) => (offer.id === offerId ? { ...offer, status: 'accepted' } : offer)));
+  const handleOfferUpdate = async (
+    offerId: string,
+    payload: { action?: 'accept' | 'reject' | 'negotiate'; message?: string }
+  ) => {
+    await fetch(`/api/contestant/sponsors/offers/${offerId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    await loadData();
   };
 
-  const handleReject = (offerId: string) => {
-    const confirmReject = window.confirm(
-      'Reject this sponsorship offer? This action may affect future sponsor opportunities.'
-    );
-    if (!confirmReject) return;
-
-    setOffers((prev) => prev.map((offer) => (offer.id === offerId ? { ...offer, status: 'rejected' } : offer)));
+  const handleSubmitProof = async (payload: { deliverableId: string; proofUrl: string }) => {
+    await fetch('/api/contestant/sponsors/deliverables', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    await loadData();
   };
 
   return (
@@ -78,50 +110,7 @@ export default function ContestantSponsorsPage() {
               <h2 className="text-lg font-semibold text-slate-900">Sponsorship Offers</h2>
               <Badge className="bg-slate-100 text-slate-700">{pendingOffers.length} pending</Badge>
             </div>
-
-            <div className="space-y-3">
-              {offers.map((offer) => (
-                <div key={offer.id} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-slate-900">{offer.sponsorName}</p>
-                      <div className="mt-1 flex items-center gap-2 text-sm text-slate-600">
-                        {offer.trustBadge ? <ShieldCheck className="h-4 w-4 text-emerald-600" /> : <AlertTriangle className="h-4 w-4 text-amber-600" />}
-                        <span>{offer.trustBadge ? 'Verified Sponsor' : 'Sponsor flagged'}</span>
-                      </div>
-                    </div>
-                    <Badge
-                      className={
-                        offer.status === 'accepted'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : offer.status === 'rejected'
-                            ? 'bg-red-100 text-red-700'
-                            : 'bg-blue-100 text-blue-800'
-                      }
-                    >
-                      {offer.status}
-                    </Badge>
-                  </div>
-
-                  <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
-                    <DetailItem label="Duration" value={`${offer.durationDays} days`} />
-                    <DetailItem label="Agreed Price" value={`$${offer.agreedPrice.toLocaleString()}`} />
-                    <DetailItem label="Deliverables" value={offer.deliverables.join(', ')} />
-                  </div>
-
-                  {offer.status === 'pending' && (
-                    <div className="mt-4 flex gap-2">
-                      <Button type="button" onClick={() => handleAccept(offer.id)} className="flex-1">
-                        Accept
-                      </Button>
-                      <Button type="button" variant="outline" onClick={() => handleReject(offer.id)} className="flex-1">
-                        Reject
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            <OfferInbox offers={offers} onUpdate={handleOfferUpdate} />
           </article>
 
           <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -153,33 +142,13 @@ export default function ContestantSponsorsPage() {
               <KpiCard label="Countdown" value={`${mockContestantActiveCampaign.countdownDays} days`} />
             </div>
 
-            <div className="mt-4 rounded-lg border border-slate-200">
-              <div className="border-b border-slate-200 px-4 py-3">
-                <p className="font-medium text-slate-900">Deliverables Checklist</p>
-              </div>
-              <div className="space-y-2 p-4">
-                {mockContestantActiveCampaign.deliverables.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
-                    <p className="text-slate-700">{item.title}</p>
-                    <div className="flex items-center gap-2">
-                      {item.submitted ? (
-                        <Badge className={item.approved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}>
-                          {item.approved ? 'Approved' : 'Deliverable rejected'}
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-slate-100 text-slate-700">Pending</Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="mt-4">
+              <DeliverablesBoard items={deliverables} onSubmitProof={handleSubmitProof} />
             </div>
-
-            <Button type="button" className="mt-4 w-full">
-              Submit Proof
-            </Button>
           </article>
         </section>
+
+        <CampaignContractCard contract={contract} />
 
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-900">Campaign Safeguards</h2>
@@ -206,15 +175,6 @@ function KpiCard({ label, value }: { label: string; value: string }) {
     <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
       <p className="text-xs text-slate-500">{label}</p>
       <p className="mt-1 text-sm font-semibold text-slate-900">{value}</p>
-    </div>
-  );
-}
-
-function DetailItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border border-slate-200 bg-white px-3 py-2">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="text-sm font-medium text-slate-800">{value}</p>
     </div>
   );
 }

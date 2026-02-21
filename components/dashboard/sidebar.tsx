@@ -12,6 +12,8 @@ import {
   Bell,
   BarChart2,
   ShieldCheck,
+  ClipboardCheck,
+  UserCog,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -22,6 +24,8 @@ const NAV_ITEMS = [
   { href: '/events/contestant/security', label: 'Trust & Security', icon: ShieldCheck },
   { href: '/events/contestant/geographic', label: 'Geographic Votes', icon: Globe },
   { href: '/events/contestant/sponsors', label: 'Sponsors', icon: Handshake },
+  { href: '/events/contestant/onboarding', label: 'Onboarding', icon: ClipboardCheck },
+  { href: '/events/contestant/profile-editor', label: 'Profile Editor', icon: UserCog },
   { href: '/events/contestant/event', label: 'Event Details', icon: Calendar },
   { href: '/events/contestant/notifications', label: 'Notifications', icon: Bell },
 ];

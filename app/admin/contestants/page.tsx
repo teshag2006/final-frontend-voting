@@ -20,6 +20,10 @@ import {
   getCategories,
   type CategoryOption,
 } from '@/lib/contestants-management-mock';
+import type {
+  ContestantChangeRequest,
+  ContestantPublishingState,
+} from '@/lib/contestant-runtime-store';
 
 export default function AdminContestantsPage() {
   const [allContestants, setAllContestants] = useState<ContestantData[]>([]);
@@ -43,6 +47,21 @@ export default function AdminContestantsPage() {
   const [selectedContestant, setSelectedContestant] = useState<ContestantData | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [publishingState, setPublishingState] = useState<ContestantPublishingState | null>(null);
+  const [changeRequests, setChangeRequests] = useState<ContestantChangeRequest[]>([]);
+
+  const loadModeration = async () => {
+    const [publishingRes, requestsRes] = await Promise.all([
+      fetch('/api/admin/contestant/publishing'),
+      fetch('/api/admin/contestant/change-requests'),
+    ]);
+    if (publishingRes.ok) {
+      setPublishingState((await publishingRes.json()) as ContestantPublishingState);
+    }
+    if (requestsRes.ok) {
+      setChangeRequests((await requestsRes.json()) as ContestantChangeRequest[]);
+    }
+  };
 
   // Initialize mock data
   useEffect(() => {
@@ -53,6 +72,7 @@ export default function AdminContestantsPage() {
       setCategories(mockCategories);
       setIsLoading(false);
     }, 600);
+    void loadModeration();
   }, []);
 
   // Apply filters and sorting
@@ -116,6 +136,32 @@ export default function AdminContestantsPage() {
     ) {
       setAllContestants((prev) => prev.filter((c) => c.id !== contestant.id));
     }
+  };
+
+  const handlePublishingDecision = async (action: 'approve' | 'reject' | 'reopen') => {
+    const reason =
+      action === 'reject'
+        ? window.prompt('Enter rejection reason for contestant profile:') || undefined
+        : undefined;
+    await fetch('/api/admin/contestant/publishing', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, reason }),
+    });
+    await loadModeration();
+  };
+
+  const handleChangeRequestDecision = async (
+    requestId: string,
+    action: 'approve' | 'reject'
+  ) => {
+    const note = window.prompt(`Optional note for ${action}:`) || undefined;
+    await fetch(`/api/admin/contestant/change-requests/${requestId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, note }),
+    });
+    await loadModeration();
   };
 
   const handleModalSubmit = async (data: ContestantFormData) => {
@@ -244,6 +290,62 @@ export default function AdminContestantsPage() {
               </p>
             </div>
           </div>
+
+          <section className="mb-6 rounded-lg border border-border bg-card p-4">
+            <h2 className="text-lg font-semibold text-foreground">Contestant Publishing Moderation</h2>
+            {publishingState ? (
+              <div className="mt-2 text-sm text-muted-foreground">
+                <p>
+                  Submission: <strong>{publishingState.submissionStatus}</strong> | Admin review:{' '}
+                  <strong>{publishingState.adminReviewStatus}</strong> | Public:{' '}
+                  <strong>{publishingState.published ? 'Published' : 'Hidden'}</strong> | Locked:{' '}
+                  <strong>{publishingState.profileLocked ? 'Yes' : 'No'}</strong>
+                </p>
+                {publishingState.rejectionReason ? (
+                  <p className="mt-1 text-red-600">Rejection reason: {publishingState.rejectionReason}</p>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-muted-foreground">Loading moderation state...</p>
+            )}
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => void handlePublishingDecision('approve')}>
+                Approve & Publish
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => void handlePublishingDecision('reject')}>
+                Reject
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => void handlePublishingDecision('reopen')}>
+                Reopen Review
+              </Button>
+            </div>
+
+            <div className="mt-4">
+              <h3 className="text-sm font-semibold text-foreground">Pending Change Requests</h3>
+              <div className="mt-2 space-y-2">
+                {changeRequests.filter((item) => item.status === 'pending').slice(0, 8).map((item) => (
+                  <div key={item.id} className="rounded-md border border-border bg-muted/30 p-3 text-sm">
+                    <p className="font-medium text-foreground">
+                      {item.type} request - {new Date(item.requestedAt).toLocaleString()}
+                    </p>
+                    <p className="text-muted-foreground">{item.reason}</p>
+                    <div className="mt-2 flex gap-2">
+                      <Button size="sm" onClick={() => void handleChangeRequestDecision(item.id, 'approve')}>
+                        Approve
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => void handleChangeRequestDecision(item.id, 'reject')}>
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {changeRequests.filter((item) => item.status === 'pending').length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pending change requests.</p>
+                ) : null}
+              </div>
+            </div>
+          </section>
 
           {/* Contestants Table */}
           <div className="bg-card border border-border rounded-lg overflow-hidden">

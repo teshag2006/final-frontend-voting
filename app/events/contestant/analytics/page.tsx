@@ -1,6 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { mockAnalyticsData } from '@/lib/dashboard-mock';
+import { CampaignAttributionChart } from '@/components/dashboard/campaign-attribution-chart';
+import { DeliverablePerformanceTable } from '@/components/dashboard/deliverable-performance-table';
 import {
   LineChart,
   Line,
@@ -12,9 +15,18 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import type { ContestantAttributionItem } from '@/lib/contestant-runtime-store';
 
 export default function AnalyticsPage() {
   const { daily_votes, hourly_distribution, fraud_metrics } = mockAnalyticsData;
+  const [attribution, setAttribution] = useState<ContestantAttributionItem[]>([]);
+
+  useEffect(() => {
+    fetch('/api/contestant/sponsors/attribution')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setAttribution((data as ContestantAttributionItem[]) || []))
+      .catch(() => setAttribution([]));
+  }, []);
 
   return (
     <div className="p-6">
@@ -59,6 +71,11 @@ export default function AnalyticsPage() {
           <InfoTile label="Confirmed Fraud" value={fraud_metrics.confirmed_fraud.toLocaleString()} />
           <InfoTile label="Flagged" value={fraud_metrics.flagged_votes.toLocaleString()} />
         </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        <CampaignAttributionChart data={attribution} />
+        <DeliverablePerformanceTable data={attribution} />
       </div>
     </div>
   );
