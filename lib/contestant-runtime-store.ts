@@ -124,7 +124,7 @@ export interface ContestantProfileVersion {
 export interface ContestantShareKitLink {
   id: string;
   label: string;
-  channel: 'instagram' | 'tiktok' | 'youtube' | 'x' | 'facebook' | 'website';
+  channel: 'instagram' | 'tiktok' | 'youtube' | 'x' | 'facebook';
   url: string;
   updatedAt: string;
 }
@@ -355,7 +355,7 @@ let shareKitStore: ContestantShareKitLink[] = [
   {
     id: 'share-2',
     label: 'Sponsor Media Deck',
-    channel: 'website',
+    channel: 'youtube',
     url: 'https://cdn.castaway.example/amina/media-deck.pdf',
     updatedAt: '2026-02-19T18:15:00.000Z',
   },

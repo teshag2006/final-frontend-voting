@@ -12,7 +12,6 @@ export interface UserProfile {
   bio: string;
   phone?: string;
   location?: string;
-  website?: string;
   birthDate?: string;
   verified: boolean;
   verificationDate?: string;
@@ -109,7 +108,6 @@ export const mockUsers: User[] = [
       bio: 'Aspiring performer',
       location: 'Addis Ababa, Ethiopia',
       phone: '+1-555-0101',
-      website: 'https://johncontestant.com',
       verified: true,
       verificationDate: '2024-02-01',
     },

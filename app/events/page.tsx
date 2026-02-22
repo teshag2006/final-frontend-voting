@@ -9,7 +9,6 @@ export const metadata: Metadata = {
     title: 'Events | Enterprise Voting & Sponsorship Platform',
     description:
       'Africa’s trusted voting and sponsorship ecosystem with real-time integrity monitoring.',
-    type: 'website',
   },
 };
 

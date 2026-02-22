@@ -62,15 +62,15 @@ export function VotingHistory({ stats }: VotingHistoryProps) {
   }));
 
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-border">
+    <div className="overflow-hidden rounded-[22px] border border-white/80 bg-white/90 shadow-[0_18px_38px_-24px_rgba(33,46,105,0.55)] backdrop-blur">
+      <div className="border-b border-border/80 px-5 py-4">
         <div className="flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-muted-foreground" />
+          <BarChart3 className="h-5 w-5 text-primary" />
           <h3 className="text-base font-bold text-foreground">
             Voting History
           </h3>
         </div>
-        <p className="mt-0.5 text-sm text-muted-foreground">Last 7 days</p>
+        <p className="mt-0.5 text-base text-muted-foreground">Last 7 days</p>
       </div>
 
       <div className="p-4">
@@ -122,9 +122,8 @@ export function VotingHistory({ stats }: VotingHistoryProps) {
         </div>
       </div>
 
-      {/* Social + Total Support */}
-      <div className="px-5 pb-4 flex items-center justify-between">
-        <span className="rounded bg-destructive/10 px-2.5 py-1 text-sm font-bold text-destructive">
+      <div className="flex items-center justify-between px-5 pb-4">
+        <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-base font-bold text-emerald-700">
           Total Support
         </span>
         <div className="flex items-center gap-1.5">

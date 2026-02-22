@@ -31,7 +31,7 @@ export function RelatedContestants({ contestants, eventSlug, currentContestantSl
 
   return (
     <section>
-      <h2 className="text-xl font-bold text-foreground md:text-2xl">
+      <h2 className="text-2xl font-bold text-foreground">
         Related Contestants
       </h2>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -39,7 +39,7 @@ export function RelatedContestants({ contestants, eventSlug, currentContestantSl
           <Link
             key={c.id}
             href={`/events/${eventSlug}/contestant/${c.slug}`}
-            className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/20"
+            className="group flex items-center gap-4 rounded-xl border border-white/90 bg-white/90 p-4 shadow-[0_16px_30px_-24px_rgba(33,46,105,0.55)] transition-all hover:border-primary/20 hover:shadow-md"
           >
             <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-border">
               <Image

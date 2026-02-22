@@ -22,7 +22,6 @@ export function generateEventMetadata(
       title: event.name,
       description: event.description || 'Join the voting event',
       url,
-      type: 'website',
       images: [
         {
           url: imageUrl,
@@ -67,7 +66,6 @@ export function generateContestantMetadata(
         contestant.description ||
         `Vote for ${contestant.name}${contestant.category ? ` in the ${contestant.category} category` : ''}`,
       url,
-      type: 'website',
       images: [
         {
           url: imageUrl,

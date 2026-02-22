@@ -54,7 +54,6 @@ export const mockContestantProfile: ContestantProfile = {
       id: "sp-zenith",
       name: "Zenith Bank",
       logo_url: "https://picsum.photos/seed/sponsor-zenith/1200/800",
-      website_url: "#",
       approved: true,
       status: "active",
     },

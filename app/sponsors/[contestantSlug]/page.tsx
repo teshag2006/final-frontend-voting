@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ArrowLeft, ExternalLink, Flame, Globe, ShieldCheck, Sparkles, Trophy } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Flame, ShieldCheck, Sparkles, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getSponsorCampaignTracking, getSponsorContestantDetail } from '@/lib/api';
@@ -69,7 +69,6 @@ export default function SponsorContestantDetailPage() {
 
   const socialPlatforms = withPopularPlatforms(contestant.socialPlatforms);
   const topProfile = socialPlatforms.find((item) => item.followers > 0);
-  const website = topProfile ? getDisplayUrl(topProfile.externalUrl) : 'No primary website';
   const campaignItems = campaigns.length > 0 ? campaigns : mockSponsorCampaignTracking.filter((item) => item.contestantSlug === contestant.slug);
 
   return (
@@ -148,7 +147,6 @@ export default function SponsorContestantDetailPage() {
                   <>
                     <Field label="Company Name" value={`${contestant.name} Talent Partnerships`} />
                     <Field label="Industry" value={contestant.category} />
-                    <Field label="Website" value={website} icon={<Globe className="h-4 w-4 text-slate-400" />} />
                     <Field
                       label="About"
                       value={`${contestant.name} is currently ranked #${contestant.rank} with ${contestant.votes.toLocaleString()} votes and ${contestant.followers.toLocaleString()} followers. Last 7 days: ${signedPercent(contestant.votes7dGrowth)} votes, ${signedPercent(contestant.followers7dGrowth)} followers.`}
@@ -160,7 +158,6 @@ export default function SponsorContestantDetailPage() {
                   <>
                     <Field label="Primary Handle" value={topProfile?.username || 'Not available'} />
                     <Field label="Primary Platform" value={topProfile?.platform || 'Not available'} />
-                    <Field label="Public Link" value={topProfile?.externalUrl || 'Not available'} />
                     <Field label="Region" value="Global Audience Reach" />
                   </>
                 ) : null}
@@ -202,17 +199,7 @@ export default function SponsorContestantDetailPage() {
                     {socialPlatforms.map((platform) => (
                       <tr key={platform.platform} className="border-t border-slate-100 text-sm text-slate-700">
                         <td className="px-3 py-3 font-medium text-slate-900">{platform.platform}</td>
-                        <td className="px-3 py-3">
-                          <a
-                            href={platform.externalUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-800"
-                          >
-                            {platform.username}
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
-                        </td>
+                        <td className="px-3 py-3">{platform.username}</td>
                         <td className="px-3 py-3">{platform.followers.toLocaleString()}</td>
                         <td className="px-3 py-3">{platform.engagementRate.toFixed(1)}%</td>
                       </tr>
@@ -353,7 +340,6 @@ function withPopularPlatforms(platforms: SocialPlatformMetric[]): SocialPlatform
       followers: 0,
       engagementRate: 0,
       lastUpdated: today,
-      externalUrl: 'https://instagram.com',
     },
     {
       platform: 'TikTok',
@@ -361,7 +347,6 @@ function withPopularPlatforms(platforms: SocialPlatformMetric[]): SocialPlatform
       followers: 0,
       engagementRate: 0,
       lastUpdated: today,
-      externalUrl: 'https://www.tiktok.com',
     },
     {
       platform: 'YouTube',
@@ -369,7 +354,6 @@ function withPopularPlatforms(platforms: SocialPlatformMetric[]): SocialPlatform
       followers: 0,
       engagementRate: 0,
       lastUpdated: today,
-      externalUrl: 'https://youtube.com',
     },
     {
       platform: 'X',
@@ -377,7 +361,6 @@ function withPopularPlatforms(platforms: SocialPlatformMetric[]): SocialPlatform
       followers: 0,
       engagementRate: 0,
       lastUpdated: today,
-      externalUrl: 'https://x.com',
     },
     {
       platform: 'Facebook',
@@ -385,7 +368,6 @@ function withPopularPlatforms(platforms: SocialPlatformMetric[]): SocialPlatform
       followers: 0,
       engagementRate: 0,
       lastUpdated: today,
-      externalUrl: 'https://facebook.com',
     },
     {
       platform: 'Snapchat',
@@ -393,7 +375,6 @@ function withPopularPlatforms(platforms: SocialPlatformMetric[]): SocialPlatform
       followers: 0,
       engagementRate: 0,
       lastUpdated: today,
-      externalUrl: 'https://www.snapchat.com',
     },
   ];
 
@@ -423,14 +404,6 @@ function integrityMessage(status: MarketplaceContestant['integrityStatus']) {
   if (status === 'verified') return 'All recent sponsorship votes passed integrity checks.';
   if (status === 'under_review') return 'Integrity checks are in progress for the latest activity window.';
   return 'Integrity risk signals are elevated and under active review.';
-}
-
-function getDisplayUrl(url: string) {
-  try {
-    return new URL(url).hostname.replace('www.', '');
-  } catch {
-    return url;
-  }
 }
 
 function signedPercent(value: number) {

@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Event Archive | Voting Platform',
     description: 'Browse past voting events and view results from previous seasons.',
-    type: 'website',
   },
 };
 

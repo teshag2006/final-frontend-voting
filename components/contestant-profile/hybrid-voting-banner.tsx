@@ -2,7 +2,7 @@ import { CheckCircle2, Shield, Phone, Globe } from "lucide-react";
 
 export function HybridVotingBanner() {
   return (
-    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <section className="rounded-[24px] border border-white/80 bg-white/85 p-5 shadow-[0_20px_45px_-30px_rgba(37,53,118,0.45)] backdrop-blur">
       <div className="flex items-center gap-2 mb-4">
         <Shield className="h-5 w-5 text-accent" />
         <h3 className="text-base font-bold text-foreground">

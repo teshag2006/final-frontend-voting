@@ -38,7 +38,6 @@ export async function generateMetadata({
     openGraph: {
       title: `${category.name} - Miss & Mr Africa`,
       description: `Vote for your favorite ${category.name} contestant.`,
-      type: 'website',
     },
   };
 }

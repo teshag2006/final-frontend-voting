@@ -9,7 +9,6 @@ const channelOptions: Array<ContestantShareKitLink['channel']> = [
   'youtube',
   'x',
   'facebook',
-  'website',
 ];
 
 export function ShareKitPanel({

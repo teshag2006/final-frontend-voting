@@ -11,8 +11,6 @@ export interface Sponsor {
   name: string;
   logo_url?: string;
   logoUrl?: string;
-  website_url?: string;
-  websiteUrl?: string;
   status?: 'draft' | 'active' | 'paused' | 'ended';
   approved?: boolean;
   slot?: string;

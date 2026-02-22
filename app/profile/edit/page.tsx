@@ -16,7 +16,6 @@ function EditProfileContent() {
     bio: user?.profile?.bio || '',
     location: user?.profile?.location || '',
     phone: user?.profile?.phone || '',
-    website: user?.profile?.website || '',
     birthDate: user?.profile?.birthDate || '',
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -45,7 +44,6 @@ function EditProfileContent() {
       bio: formData.bio,
       location: formData.location,
       phone: formData.phone,
-      website: formData.website,
       birthDate: formData.birthDate,
     });
 
@@ -128,21 +126,6 @@ function EditProfileContent() {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="+1 (555) 000-0000"
-                  className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-
-              {/* Website */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
-                  Website
-                </label>
-                <input
-                  type="url"
-                  name="website"
-                  value={formData.website}
-                  onChange={handleChange}
-                  placeholder="https://example.com"
                   className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>

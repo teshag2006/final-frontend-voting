@@ -26,7 +26,6 @@ export interface SocialPlatformMetric {
   followers: number;
   engagementRate: number;
   lastUpdated: string;
-  externalUrl: string;
 }
 
 export interface MarketplaceContestant {
@@ -114,7 +113,6 @@ export interface SponsorProfileSettings {
     logoUrl: string;
     description: string;
     industry: string;
-    website: string;
   };
   contact: {
     contactPerson: string;
@@ -154,7 +152,6 @@ export const mockSponsorInventory: Sponsor[] = [
     id: 'sp-zenith',
     name: 'Zenith Bank',
     logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Zenith_Bank_logo.svg/512px-Zenith_Bank_logo.svg.png',
-    website_url: 'https://example.com/zenith',
     status: 'active',
     approved: true,
   },
@@ -162,7 +159,6 @@ export const mockSponsorInventory: Sponsor[] = [
     id: 'sp-mtn',
     name: 'MTN',
     logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/New-mtn-logo.jpg/512px-New-mtn-logo.jpg',
-    website_url: 'https://example.com/mtn',
     status: 'active',
     approved: true,
   },
@@ -170,7 +166,6 @@ export const mockSponsorInventory: Sponsor[] = [
     id: 'sp-coke',
     name: 'Coca-Cola',
     logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Coca-Cola_logo.svg/512px-Coca-Cola_logo.svg.png',
-    website_url: 'https://example.com/coke',
     status: 'active',
     approved: true,
   },
@@ -178,7 +173,6 @@ export const mockSponsorInventory: Sponsor[] = [
     id: 'sp-samsung',
     name: 'Samsung',
     logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Samsung_Logo.svg/512px-Samsung_Logo.svg.png',
-    website_url: 'https://example.com/samsung',
     status: 'active',
     approved: true,
   },
@@ -186,7 +180,6 @@ export const mockSponsorInventory: Sponsor[] = [
     id: 'sp-airtel',
     name: 'Airtel',
     logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Airtel_logo.svg/512px-Airtel_logo.svg.png',
-    website_url: 'https://example.com/airtel',
     status: 'active',
     approved: true,
   },
@@ -324,7 +317,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 410000,
         engagementRate: 8.9,
         lastUpdated: '2026-02-18T10:25:00Z',
-        externalUrl: 'https://instagram.com/sarahm.live',
       },
       {
         platform: 'TikTok',
@@ -332,7 +324,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 360000,
         engagementRate: 9.4,
         lastUpdated: '2026-02-18T10:25:00Z',
-        externalUrl: 'https://tiktok.com/@sarahm.official',
       },
       {
         platform: 'Facebook',
@@ -340,7 +331,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 98000,
         engagementRate: 4.9,
         lastUpdated: '2026-02-18T10:25:00Z',
-        externalUrl: 'https://facebook.com/sarahm.official',
       },
       {
         platform: 'Snapchat',
@@ -348,7 +338,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 74000,
         engagementRate: 6.3,
         lastUpdated: '2026-02-18T10:25:00Z',
-        externalUrl: 'https://www.snapchat.com/add/sarahm.snap',
       },
     ],
     voteTrend7d: [
@@ -394,7 +383,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 320000,
         engagementRate: 7.1,
         lastUpdated: '2026-02-18T09:00:00Z',
-        externalUrl: 'https://instagram.com/davidk.fit',
       },
       {
         platform: 'TikTok',
@@ -402,7 +390,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 150000,
         engagementRate: 8.3,
         lastUpdated: '2026-02-18T09:00:00Z',
-        externalUrl: 'https://tiktok.com/@davidk.sports',
       },
       {
         platform: 'YouTube',
@@ -410,7 +397,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 210000,
         engagementRate: 6.8,
         lastUpdated: '2026-02-18T09:00:00Z',
-        externalUrl: 'https://youtube.com/@davidk',
       },
       {
         platform: 'Facebook',
@@ -418,7 +404,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 86000,
         engagementRate: 3.9,
         lastUpdated: '2026-02-18T09:00:00Z',
-        externalUrl: 'https://facebook.com/davidk.fit',
       },
       {
         platform: 'Snapchat',
@@ -426,7 +411,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 51000,
         engagementRate: 5.2,
         lastUpdated: '2026-02-18T09:00:00Z',
-        externalUrl: 'https://www.snapchat.com/add/davidk.snap',
       },
     ],
     voteTrend7d: [
@@ -472,7 +456,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 250000,
         engagementRate: 6.0,
         lastUpdated: '2026-02-18T12:00:00Z',
-        externalUrl: 'https://instagram.com/annat.actor',
       },
       {
         platform: 'TikTok',
@@ -480,7 +463,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 93000,
         engagementRate: 5.7,
         lastUpdated: '2026-02-18T12:00:00Z',
-        externalUrl: 'https://tiktok.com/@annat.reels',
       },
       {
         platform: 'X',
@@ -488,7 +470,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 160000,
         engagementRate: 2.8,
         lastUpdated: '2026-02-18T12:00:00Z',
-        externalUrl: 'https://x.com/annat',
       },
       {
         platform: 'Facebook',
@@ -496,7 +477,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 42000,
         engagementRate: 3.1,
         lastUpdated: '2026-02-18T12:00:00Z',
-        externalUrl: 'https://facebook.com/annat.actor',
       },
       {
         platform: 'Snapchat',
@@ -504,7 +484,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 37000,
         engagementRate: 4.4,
         lastUpdated: '2026-02-18T12:00:00Z',
-        externalUrl: 'https://www.snapchat.com/add/annat.snap',
       },
     ],
     voteTrend7d: [
@@ -550,7 +529,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 210000,
         engagementRate: 5.8,
         lastUpdated: '2026-02-18T07:10:00Z',
-        externalUrl: 'https://tiktok.com/@ahmedl.moves',
       },
       {
         platform: 'Instagram',
@@ -558,7 +536,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 80000,
         engagementRate: 4.2,
         lastUpdated: '2026-02-18T07:10:00Z',
-        externalUrl: 'https://instagram.com/ahmedl',
       },
       {
         platform: 'Facebook',
@@ -566,7 +543,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 29000,
         engagementRate: 2.7,
         lastUpdated: '2026-02-18T07:10:00Z',
-        externalUrl: 'https://facebook.com/ahmedl.moves',
       },
       {
         platform: 'Snapchat',
@@ -574,7 +550,6 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
         followers: 26000,
         engagementRate: 4.1,
         lastUpdated: '2026-02-18T07:10:00Z',
-        externalUrl: 'https://www.snapchat.com/add/ahmedl.snap',
       },
     ],
     voteTrend7d: [
@@ -701,7 +676,6 @@ export const mockSponsorProfileSettings: SponsorProfileSettings = {
     logoUrl: 'https://picsum.photos/seed/sponsor-zenith/1200/800',
     description: 'Pan-African banking brand supporting youth and creator economy initiatives.',
     industry: 'Finance',
-    website: 'https://example.com/zenith',
   },
   contact: {
     contactPerson: 'Helen Worku',

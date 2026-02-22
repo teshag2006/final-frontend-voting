@@ -134,7 +134,7 @@ export const EVENT_CONFIG = {
 export const CONTESTANT_CONFIG = {
   // Profile fields
   requiredProfileFields: ['name', 'email', 'description', 'image'],
-  optionalProfileFields: ['website', 'social', 'biography', 'location'],
+  optionalProfileFields: ['social', 'biography', 'location'],
   
   // Profile images
   profileImageMaxSize: 5 * 1024 * 1024, // 5MB

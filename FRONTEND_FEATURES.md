@@ -317,7 +317,7 @@ A | B | C | D | E | F | G | ... | Z
 #### About Section
 - Bio/description
 - Achievements
-- Links (social media, website)
+- Links (social media)
 - Sponsor logos
 - Contact information
 

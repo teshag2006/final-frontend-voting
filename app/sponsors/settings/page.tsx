@@ -163,14 +163,6 @@ export default function SponsorProfileSettingsPage() {
                       setDraftSettings((prev) => ({ ...prev, general: { ...prev.general, industry: value } }))
                     }
                   />
-                  <Field
-                    label="Website"
-                    value={draftSettings.general.website}
-                    className="sm:col-span-2"
-                    onChange={(value) =>
-                      setDraftSettings((prev) => ({ ...prev, general: { ...prev.general, website: value } }))
-                    }
-                  />
                   <div className="sm:col-span-2">
                     <label className="mb-1 block text-xs text-slate-500">About Us</label>
                     <textarea

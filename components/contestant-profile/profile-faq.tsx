@@ -18,10 +18,10 @@ export function ProfileFAQ({ items }: ProfileFAQProps) {
 
   return (
     <section id="faq" className="scroll-mt-20">
-      <h2 className="text-xl font-bold text-foreground md:text-2xl">
+      <h2 className="text-2xl font-bold text-foreground">
         Voting FAQ
       </h2>
-      <div className="mt-4 rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+      <div className="mt-4 overflow-hidden rounded-[24px] border border-white/80 bg-white/85 shadow-[0_20px_45px_-30px_rgba(37,53,118,0.45)] backdrop-blur">
         <Accordion type="single" collapsible className="w-full">
           {safeItems.map((item) => (
             <AccordionItem

@@ -1,10 +1,11 @@
 import Link from "next/link";
 
 const footerLinks = [
+  { label: "Voting FAQ", href: "/voting-faq" },
   { label: "Terms", href: "/terms" },
   { label: "Privacy", href: "/privacy" },
   { label: "Fraud Policy", href: "/fraud-policy" },
-  { label: "Transparency Statement", href: "/transparency" },
+  { label: "Transparency Statement", href: "/transparency-statement" },
 ];
 
 const socialLinks = [

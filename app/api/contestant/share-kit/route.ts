@@ -4,7 +4,7 @@ import {
   upsertContestantShareKitLink,
 } from '@/lib/contestant-runtime-store';
 
-const allowedChannels = ['instagram', 'tiktok', 'youtube', 'x', 'facebook', 'website'] as const;
+const allowedChannels = ['instagram', 'tiktok', 'youtube', 'x', 'facebook'] as const;
 
 export async function GET() {
   return NextResponse.json(getContestantShareKit());

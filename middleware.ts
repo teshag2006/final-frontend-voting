@@ -7,7 +7,18 @@ import { SESSION_COOKIE } from '@/lib/server/session-constants';
  * Prevents unauthorized access before pages render (avoids redirect flicker)
  */
 
-const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'];
+const publicRoutes = [
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/voting-faq',
+  '/terms',
+  '/privacy',
+  '/fraud-policy',
+  '/transparency',
+  '/transparency-statement',
+];
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const token = request.cookies.get(SESSION_COOKIE)?.value;

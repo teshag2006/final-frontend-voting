@@ -87,8 +87,6 @@ components:
           type: string
         phone:
           type: string
-        website:
-          type: string
         birthDate:
           type: string
           format: date

@@ -34,16 +34,16 @@ export function PublicVerificationBadges({
   ];
 
   return (
-    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
       {rows.map((item) => {
         const Icon = item.icon;
         return (
           <div
             key={item.id}
-            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+            className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm shadow-sm ${
               item.active
                 ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                : 'border-slate-200 bg-slate-50 text-slate-500'
+                : 'border-slate-200 bg-slate-100 text-slate-500'
             }`}
           >
             <Icon className="h-4 w-4" />

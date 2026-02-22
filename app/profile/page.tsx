@@ -2,7 +2,6 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ProtectedRouteWrapper } from '@/components/auth/protected-route-wrapper';
@@ -13,7 +12,6 @@ import Link from 'next/link';
 function ProfileContent() {
   const { user } = useAuth();
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
 
   if (!user) {
     return null;
@@ -104,19 +102,6 @@ function ProfileContent() {
                 <div>
                   <label className="text-sm font-semibold text-slate-400">Phone</label>
                   <p className="text-white mt-1">{user.profile.phone}</p>
-                </div>
-              )}
-              {user.profile?.website && (
-                <div>
-                  <label className="text-sm font-semibold text-slate-400">Website</label>
-                  <a
-                    href={user.profile.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 mt-1 block"
-                  >
-                    {user.profile.website}
-                  </a>
                 </div>
               )}
             </div>

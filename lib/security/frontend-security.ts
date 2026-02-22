@@ -11,7 +11,6 @@ export interface ProfileInput {
   bio?: string;
   location?: string;
   phone?: string;
-  website?: string;
 }
 
 export function sanitizePlainText(input: string, maxLength?: number): string {
@@ -19,17 +18,6 @@ export function sanitizePlainText(input: string, maxLength?: number): string {
   const collapsed = withoutTags.replace(/\s+/g, ' ').trim();
   if (!maxLength) return collapsed;
   return collapsed.slice(0, maxLength);
-}
-
-export function isSafeHttpUrl(value: string): boolean {
-  if (!value) return true;
-
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
-  } catch {
-    return false;
-  }
 }
 
 export function validateImageFile(file: File): ValidationResult {
@@ -68,10 +56,6 @@ export function validateProfileInput(input: ProfileInput): ValidationResult {
     if (!/^[0-9+\-()\s]{7,20}$/.test(phone)) {
       return { valid: false, error: 'Phone format is invalid.' };
     }
-  }
-
-  if (input.website && !isSafeHttpUrl(input.website.trim())) {
-    return { valid: false, error: 'Website must be a valid http(s) URL.' };
   }
 
   return { valid: true };
