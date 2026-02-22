@@ -1,7 +1,9 @@
  'use client';
 
+import { useMemo, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { ActiveJobsTab } from '@/components/admin/queue-active-jobs-tab';
 import { FailedJobsTab } from '@/components/admin/queue-failed-jobs-tab';
@@ -17,16 +19,62 @@ import {
   generateJobsOverTimeData,
   generateProcessingLatencyData,
 } from '@/lib/queue-job-mock';
+import type { PaginationParams } from '@/types/queue-job';
 
 export default function JobsPage() {
-  // Generate mock data for this session
-  const activeJobs = generateActiveJobsList(8);
-  const failedJobs = generateFailedJobsList(12);
-  const completedJobs = generateCompletedJobsList(15);
-  const dlqJobs = generateDLQJobsList(3);
-  const queueMetrics = generateQueueMetrics();
-  const jobsOverTime = generateJobsOverTimeData(24);
-  const processingLatency = generateProcessingLatencyData(24);
+  const [activeJobs, setActiveJobs] = useState(() => generateActiveJobsList(8));
+  const [failedJobs, setFailedJobs] = useState(() => generateFailedJobsList(12));
+  const [completedJobs, setCompletedJobs] = useState(() => generateCompletedJobsList(15));
+  const [dlqJobs, setDlqJobs] = useState(() => generateDLQJobsList(3));
+  const [queueMetrics] = useState(() => generateQueueMetrics());
+  const [jobsOverTime] = useState(() => generateJobsOverTimeData(24));
+  const [processingLatency] = useState(() => generateProcessingLatencyData(24));
+
+  const [activePagination, setActivePagination] = useState<PaginationParams>({ page: 1, pageSize: 10 });
+  const [failedPagination, setFailedPagination] = useState<PaginationParams>({ page: 1, pageSize: 10 });
+  const [completedPagination, setCompletedPagination] = useState<PaginationParams>({ page: 1, pageSize: 10 });
+  const [dlqPagination, setDlqPagination] = useState<PaginationParams>({ page: 1, pageSize: 10 });
+
+  const [selectedJob, setSelectedJob] = useState<any | null>(null);
+  const [logJobId, setLogJobId] = useState<string | null>(null);
+
+  const pagedActiveJobs = useMemo(() => {
+    const start = (activePagination.page - 1) * activePagination.pageSize;
+    return activeJobs.slice(start, start + activePagination.pageSize);
+  }, [activeJobs, activePagination]);
+
+  const pagedFailedJobs = useMemo(() => {
+    const start = (failedPagination.page - 1) * failedPagination.pageSize;
+    return failedJobs.slice(start, start + failedPagination.pageSize);
+  }, [failedJobs, failedPagination]);
+
+  const pagedCompletedJobs = useMemo(() => {
+    const start = (completedPagination.page - 1) * completedPagination.pageSize;
+    return completedJobs.slice(start, start + completedPagination.pageSize);
+  }, [completedJobs, completedPagination]);
+
+  const pagedDlqJobs = useMemo(() => {
+    const start = (dlqPagination.page - 1) * dlqPagination.pageSize;
+    return dlqJobs.slice(start, start + dlqPagination.pageSize);
+  }, [dlqJobs, dlqPagination]);
+
+  const currentlyProcessing = activeJobs.filter((job) => job.status === 'ACTIVE').length;
+  const avgProcessingSeconds = useMemo(() => {
+    if (queueMetrics.length === 0) return 0;
+    const avg = queueMetrics.reduce((sum, metric) => sum + Number(metric.averageDuration || 0), 0) / queueMetrics.length;
+    return Number(avg.toFixed(1));
+  }, [queueMetrics]);
+
+  const openJobDetails = (job: any) => {
+    setSelectedJob(job);
+  };
+
+  const mockLogsForJob = (jobId: string) => [
+    `[${new Date().toISOString()}] worker-01: picked job ${jobId}`,
+    `[${new Date().toISOString()}] worker-01: validating payload`,
+    `[${new Date().toISOString()}] worker-01: retry policy checked`,
+    `[${new Date().toISOString()}] worker-01: completed log stream`,
+  ].join('\n');
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,7 +102,7 @@ export default function JobsPage() {
               <CardContent>
                 <div className="text-3xl font-bold">{activeJobs.length}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {Math.floor(Math.random() * 5)} processing
+                  {currentlyProcessing} processing
                 </p>
               </CardContent>
             </Card>
@@ -95,7 +143,7 @@ export default function JobsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {(Math.random() * 10 + 2).toFixed(1)}s
+                  {avgProcessingSeconds}s
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Last 24 hours
@@ -145,12 +193,14 @@ export default function JobsPage() {
                 </CardHeader>
                 <CardContent>
                   <ActiveJobsTab
-                    jobs={activeJobs}
+                    jobs={pagedActiveJobs}
                     total={activeJobs.length}
-                    onViewDetails={(job) => console.log('View job details:', job.id)}
+                    onViewDetails={openJobDetails}
                     onCancelJob={async (jobId) => {
-                      console.log('Cancel job:', jobId);
+                      setActiveJobs((prev) => prev.filter((job) => job.id !== jobId));
                     }}
+                    onPaginationChange={setActivePagination}
+                    pagination={activePagination}
                   />
                 </CardContent>
               </Card>
@@ -167,13 +217,33 @@ export default function JobsPage() {
                 </CardHeader>
                 <CardContent>
                   <FailedJobsTab
-                    jobs={failedJobs}
+                    jobs={pagedFailedJobs}
                     total={failedJobs.length}
                     onRetry={async (jobId) => {
-                      console.log('Retry job:', jobId);
+                      setFailedJobs((prev) => {
+                        const target = prev.find((job) => job.id === jobId);
+                        if (target) {
+                          setActiveJobs((activePrev) => [
+                            {
+                              id: `retry_${target.id}`,
+                              queueName: target.queueName,
+                              jobType: target.jobType,
+                              status: 'WAITING',
+                              priority: 'HIGH',
+                              attempts: target.attempts,
+                              maxRetries: target.maxRetries,
+                              startedAt: new Date(),
+                            },
+                            ...activePrev,
+                          ]);
+                        }
+                        return prev.filter((job) => job.id !== jobId);
+                      });
                     }}
-                    onViewDetails={(job) => console.log('View job details:', job.id)}
-                    onViewLogs={(jobId) => console.log('View logs for:', jobId)}
+                    onViewDetails={openJobDetails}
+                    onViewLogs={(jobId) => setLogJobId(jobId)}
+                    onPaginationChange={setFailedPagination}
+                    pagination={failedPagination}
                   />
                 </CardContent>
               </Card>
@@ -190,9 +260,11 @@ export default function JobsPage() {
                 </CardHeader>
                 <CardContent>
                   <CompletedJobsTab
-                    jobs={completedJobs}
+                    jobs={pagedCompletedJobs}
                     total={completedJobs.length}
-                    onViewDetails={(job) => console.log('View job details:', job.id)}
+                    onViewDetails={openJobDetails}
+                    onPaginationChange={setCompletedPagination}
+                    pagination={completedPagination}
                   />
                 </CardContent>
               </Card>
@@ -218,16 +290,36 @@ export default function JobsPage() {
                 </CardHeader>
                 <CardContent>
                   <DLQTab
-                    jobs={dlqJobs}
+                    jobs={pagedDlqJobs}
                     total={dlqJobs.length}
                     userRole="super_admin"
                     onRetry={async (jobId) => {
-                      console.log('Retry DLQ job:', jobId);
+                      setDlqJobs((prev) => {
+                        const target = prev.find((job) => job.id === jobId);
+                        if (target) {
+                          setActiveJobs((activePrev) => [
+                            {
+                              id: `dlq_retry_${target.id}`,
+                              queueName: target.queueName,
+                              jobType: target.jobType,
+                              status: 'WAITING',
+                              priority: 'HIGH',
+                              attempts: 0,
+                              maxRetries: target.maxRetries,
+                              startedAt: new Date(),
+                            },
+                            ...activePrev,
+                          ]);
+                        }
+                        return prev.filter((job) => job.id !== jobId);
+                      });
                     }}
                     onDelete={async (jobId) => {
-                      console.log('Delete DLQ job:', jobId);
+                      setDlqJobs((prev) => prev.filter((job) => job.id !== jobId));
                     }}
-                    onViewDetails={(job) => console.log('View job details:', job.id)}
+                    onViewDetails={openJobDetails}
+                    onPaginationChange={setDlqPagination}
+                    pagination={dlqPagination}
                   />
                 </CardContent>
               </Card>
@@ -255,6 +347,32 @@ export default function JobsPage() {
             </CardContent>
           </Card>
         </main>
+
+        <Dialog open={Boolean(selectedJob)} onOpenChange={(open) => !open && setSelectedJob(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Job Details</DialogTitle>
+            </DialogHeader>
+            {selectedJob ? (
+              <pre className="max-h-[60vh] overflow-auto rounded-md border border-border bg-muted/30 p-3 text-xs">
+{JSON.stringify(selectedJob, null, 2)}
+              </pre>
+            ) : null}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={Boolean(logJobId)} onOpenChange={(open) => !open && setLogJobId(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Job Logs</DialogTitle>
+            </DialogHeader>
+            {logJobId ? (
+              <pre className="max-h-[60vh] overflow-auto rounded-md border border-border bg-muted/30 p-3 text-xs">
+{mockLogsForJob(logJobId)}
+              </pre>
+            ) : null}
+          </DialogContent>
+        </Dialog>
       </div>
   );
 }

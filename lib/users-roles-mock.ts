@@ -1,10 +1,8 @@
-'use client';
-
-import { AdminUserData } from '@/components/admin/admin-users-table';
-import { RoleData } from '@/components/admin/roles-table';
-import { SessionData } from '@/components/admin/active-sessions-table';
-import { AuditEntry } from '@/components/admin/role-audit-table';
-import { PermissionData, RoleType } from '@/components/admin/permissions-matrix';
+import type { AdminUserData } from '@/components/admin/admin-users-table';
+import type { RoleData } from '@/components/admin/roles-table';
+import type { SessionData } from '@/components/admin/active-sessions-table';
+import type { AuditEntry } from '@/components/admin/role-audit-table';
+import type { PermissionData, RoleType } from '@/components/admin/permissions-matrix';
 
 const userFirstNames = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Emma', 'Robert', 'Lisa'];
 const userLastNames = ['Admin', 'Manager', 'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia'];

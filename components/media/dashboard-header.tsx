@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Download, ChevronDown, LogOut, Settings } from 'lucide-react';
+import { ChevronDown, LogOut, Settings } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -64,38 +64,6 @@ export function MediaDashboardHeader() {
 
         {/* Controls */}
         <div className="flex items-center gap-2 md:gap-4">
-          {/* Export Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden md:flex border-gray-300 text-gray-700 hover:bg-gray-50"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-
-          {/* CSV Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50 gap-1"
-              >
-                <span className="hidden sm:inline">CSV</span>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="border-gray-200 bg-white">
-              <DropdownMenuItem className="text-gray-700 hover:bg-gray-50 cursor-pointer">
-                Export CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-700 hover:bg-gray-50 cursor-pointer">
-                Export PDF
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           {/* User Profile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

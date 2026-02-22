@@ -38,6 +38,7 @@ interface ContestantsTableProps {
   onReject?: (contestant: ContestantData) => void;
   onDisable?: (contestant: ContestantData) => void;
   onDelete?: (contestant: ContestantData) => void;
+  onLoginAsContestant?: (contestant: ContestantData) => void;
   pageInfo?: { current: number; total: number; perPage: number };
 }
 
@@ -53,6 +54,7 @@ export function ContestantsTable({
   onReject,
   onDisable,
   onDelete,
+  onLoginAsContestant,
   pageInfo,
 }: ContestantsTableProps) {
   const handleSort = (column: string) => {
@@ -232,6 +234,10 @@ export function ContestantsTable({
                         <span>Disable</span>
                       </DropdownMenuItem>
                     )}
+
+                    <DropdownMenuItem onClick={() => onLoginAsContestant?.(contestant)}>
+                      <span>Login as Contestant</span>
+                    </DropdownMenuItem>
 
                     <DropdownMenuItem onClick={() => onDelete?.(contestant)} className="text-red-600">
                       <span>Delete</span>

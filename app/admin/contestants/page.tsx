@@ -226,6 +226,61 @@ export default function AdminContestantsPage() {
     }
   };
 
+  const handleLoginAsContestant = async (contestant: ContestantData) => {
+    const confirmed = window.confirm(
+      `Login as contestant "${contestant.name}"? You will switch to contestant dashboard.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch('/api/admin/contestants/impersonate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          contestantId: contestant.id,
+          name: contestant.name,
+          email: contestant.email,
+          avatar: contestant.avatar,
+        }),
+      });
+
+      if (!response.ok) {
+        window.alert('Could not start contestant login. Please try again.');
+        return;
+      }
+
+      const payload = (await response.json()) as {
+        user?: { id: string; email: string; name: string; role: 'contestant'; avatar?: string };
+      };
+      if (!payload.user) {
+        window.alert('Contestant session data is missing.');
+        return;
+      }
+
+      localStorage.setItem('auth_user_id', payload.user.id);
+      localStorage.setItem('auth_user_role', payload.user.role);
+      localStorage.setItem('auth_impersonation_user', JSON.stringify(payload.user));
+
+      const expiresAt = Date.now() + 60 * 60 * 1000;
+      const token = btoa(
+        JSON.stringify({
+          id: payload.user.id,
+          email: payload.user.email,
+          role: payload.user.role,
+          name: payload.user.name,
+        })
+      );
+      localStorage.setItem('auth_token', `${token}.${Date.now()}`);
+      localStorage.setItem('refresh_token', Math.random().toString(36).slice(2));
+      localStorage.setItem('token_expires_at', String(expiresAt));
+
+      window.location.href = '/events/contestant/dashboard';
+    } catch {
+      window.alert('Could not start contestant login. Please try again.');
+    }
+  };
+
   const handlePublishingDecision = async (action: 'approve' | 'reject' | 'reopen') => {
     const reason =
       action === 'reject'
@@ -387,62 +442,6 @@ export default function AdminContestantsPage() {
             </div>
           </div>
 
-          <section className="mb-6 rounded-lg border border-border bg-card p-4">
-            <h2 className="text-lg font-semibold text-foreground">Contestant Publishing Moderation</h2>
-            {publishingState ? (
-              <div className="mt-2 text-sm text-muted-foreground">
-                <p>
-                  Submission: <strong>{publishingState.submissionStatus}</strong> | Admin review:{' '}
-                  <strong>{publishingState.adminReviewStatus}</strong> | Public:{' '}
-                  <strong>{publishingState.published ? 'Published' : 'Hidden'}</strong> | Locked:{' '}
-                  <strong>{publishingState.profileLocked ? 'Yes' : 'No'}</strong>
-                </p>
-                {publishingState.rejectionReason ? (
-                  <p className="mt-1 text-red-600">Rejection reason: {publishingState.rejectionReason}</p>
-                ) : null}
-              </div>
-            ) : (
-              <p className="mt-2 text-sm text-muted-foreground">Loading moderation state...</p>
-            )}
-
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button size="sm" onClick={() => void handlePublishingDecision('approve')}>
-                Approve & Publish
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => void handlePublishingDecision('reject')}>
-                Reject
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => void handlePublishingDecision('reopen')}>
-                Reopen Review
-              </Button>
-            </div>
-
-            <div className="mt-4">
-              <h3 className="text-sm font-semibold text-foreground">Pending Change Requests</h3>
-              <div className="mt-2 space-y-2">
-                {changeRequests.filter((item) => item.status === 'pending').slice(0, 8).map((item) => (
-                  <div key={item.id} className="rounded-md border border-border bg-muted/30 p-3 text-sm">
-                    <p className="font-medium text-foreground">
-                      {item.type} request - {new Date(item.requestedAt).toLocaleString()}
-                    </p>
-                    <p className="text-muted-foreground">{item.reason}</p>
-                    <div className="mt-2 flex gap-2">
-                      <Button size="sm" onClick={() => void handleChangeRequestDecision(item.id, 'approve')}>
-                        Approve
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => void handleChangeRequestDecision(item.id, 'reject')}>
-                        Reject
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {changeRequests.filter((item) => item.status === 'pending').length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No pending change requests.</p>
-                ) : null}
-              </div>
-            </div>
-          </section>
-
           {/* Contestants Table */}
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             {isLoading ? (
@@ -462,6 +461,7 @@ export default function AdminContestantsPage() {
                 onReject={handleRejectContestant}
                 onDisable={handleDisableContestant}
                 onDelete={handleDeleteContestant}
+                onLoginAsContestant={handleLoginAsContestant}
                 pageInfo={{
                   current: currentPage,
                   total: filteredContestants.length,

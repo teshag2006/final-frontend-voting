@@ -67,7 +67,7 @@ export function AdminUsersTable({
   if (users.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-muted-foreground">
-        <p>No admin users found</p>
+        <p>No users found</p>
       </div>
     );
   }

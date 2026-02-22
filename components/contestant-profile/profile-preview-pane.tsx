@@ -24,7 +24,13 @@ function getYouTubeEmbedUrl(raw: string): string {
   }
 }
 
-export function ProfilePreviewPane({ value }: { value: ContestantProfileComposerData }) {
+export function ProfilePreviewPane({
+  value,
+  galleryImages = [],
+}: {
+  value: ContestantProfileComposerData;
+  galleryImages?: string[];
+}) {
   const youtubeEmbedUrl = getYouTubeEmbedUrl(value.youtube || '');
 
   return (
@@ -57,6 +63,23 @@ export function ProfilePreviewPane({ value }: { value: ContestantProfileComposer
             />
           </div>
         ) : null}
+        <div className="mt-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Gallery</p>
+          {galleryImages.length > 0 ? (
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {galleryImages.slice(0, 6).map((src, index) => (
+                <img
+                  key={`${src}-${index}`}
+                  src={src}
+                  alt={`Gallery ${index + 1}`}
+                  className="h-16 w-full rounded-md object-cover"
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="mt-1 text-xs text-slate-500">No gallery photos uploaded.</p>
+          )}
+        </div>
       </div>
     </aside>
   );

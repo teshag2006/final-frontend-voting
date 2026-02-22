@@ -5,6 +5,7 @@ import {
   isYouTubeUrl,
   normalizeYouTubeUrl,
   isContestantProfileLocked,
+  removeContestantMedia,
 } from '@/lib/contestant-runtime-store';
 
 export async function GET() {
@@ -35,4 +36,25 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json(addContestantMedia({ kind, label, url }), { status: 201 });
+}
+
+export async function DELETE(request: NextRequest) {
+  if (isContestantProfileLocked()) {
+    return NextResponse.json(
+      { message: 'Media is locked after approval. Submit a change request.' },
+      { status: 423 }
+    );
+  }
+
+  const id = String(request.nextUrl.searchParams.get('id') || '').trim();
+  if (!id) {
+    return NextResponse.json({ message: 'id is required' }, { status: 400 });
+  }
+
+  const ok = removeContestantMedia(id);
+  if (!ok) {
+    return NextResponse.json({ message: 'Media not found' }, { status: 404 });
+  }
+
+  return NextResponse.json({ success: true });
 }

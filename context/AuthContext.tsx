@@ -45,6 +45,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkExistingAuth = async () => {
       setIsLoading(true);
       try {
+        const impersonationRaw = localStorage.getItem('auth_impersonation_user');
+        if (impersonationRaw) {
+          const parsed = JSON.parse(impersonationRaw) as Partial<AuthUser>;
+          if (parsed?.id && parsed?.role === 'contestant') {
+            setUser({
+              id: String(parsed.id),
+              email: String(parsed.email || ''),
+              name: String(parsed.name || 'Contestant'),
+              role: 'contestant',
+              avatar: parsed.avatar ? String(parsed.avatar) : undefined,
+            });
+            localStorage.setItem('auth_user_id', String(parsed.id));
+            localStorage.setItem('auth_user_role', 'contestant');
+            setIsLoading(false);
+            return;
+          }
+        }
+
         const storedUserId = localStorage.getItem('auth_user_id');
         if (storedUserId) {
           const retrievedUser = getUserById(storedUserId);

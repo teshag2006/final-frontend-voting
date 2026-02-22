@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ProtectedRouteWrapper } from '@/components/auth/protected-route-wrapper';
 import Link from 'next/link';
 import { AdminUsersTable, type AdminUserData } from '@/components/admin/admin-users-table';
@@ -19,9 +22,29 @@ import {
   generateMockPermissions,
 } from '@/lib/users-roles-mock';
 
+const CREATE_ROLE_OPTIONS: RoleType[] = [
+  'ADMIN',
+  'FINANCE_ADMIN',
+  'FRAUD_ADMIN',
+  'MEDIA_ADMIN',
+  'VIEW_ONLY_ADMIN',
+  'SUPER_ADMIN',
+];
+
 export default function AdminUsersAndRolesPage() {
   const [activeTab, setActiveTab] = useState('users');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState<{
+    fullName: string;
+    email: string;
+    role: RoleType;
+  }>({
+    fullName: '',
+    email: '',
+    role: 'ADMIN',
+  });
 
   // Admin Users Tab State
   const [adminUsers, setAdminUsers] = useState<AdminUserData[]>([]);
@@ -42,24 +65,37 @@ export default function AdminUsersAndRolesPage() {
   // Audit Tab State
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
 
-  // Initialize mock data
+  // Initialize data from backend, fallback to mock in dev
   useEffect(() => {
-    setTimeout(() => {
-      const mockUsers = generateMockAdminUsers(25);
+    const loadData = async () => {
       const mockRoles = generateMockRoles();
       const mockSessions = generateMockSessions(15);
       const mockAudit = generateMockAuditEntries(50);
       const mockPermissions = generateMockPermissions();
+      let users: AdminUserData[] = [];
 
-      setAdminUsers(mockUsers);
-      setDisplayedUsers(mockUsers);
+      try {
+        const response = await fetch('/api/admin/users');
+        if (response.ok) {
+          const payload = (await response.json()) as AdminUserData[];
+          users = Array.isArray(payload) ? payload : [];
+        } else {
+          users = generateMockAdminUsers(25);
+        }
+      } catch {
+        users = generateMockAdminUsers(25);
+      }
+
+      setAdminUsers(users);
+      setDisplayedUsers(users);
       setRoles(mockRoles);
       setAllRoles(mockRoles.map((r) => r.name));
       setSessions(mockSessions);
       setAuditEntries(mockAudit);
       setPermissions(mockPermissions);
       setIsLoading(false);
-    }, 800);
+    };
+    void loadData();
   }, []);
 
   // Apply sorting for users
@@ -123,6 +159,42 @@ export default function AdminUsersAndRolesPage() {
     }
   };
 
+  const handleCreateUser = async () => {
+    const fullName = createForm.fullName.trim();
+    const email = createForm.email.trim();
+    if (!fullName || !email) {
+      alert('Full name and email are required.');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName,
+          email,
+          role: createForm.role,
+          is2FAEnabled: false,
+          status: 'ACTIVE',
+        }),
+      });
+
+      if (!response.ok) {
+        alert('Could not create user. Please try again.');
+        return;
+      }
+
+      const created = (await response.json()) as AdminUserData;
+      setAdminUsers((prev) => [created, ...prev]);
+      setCreateForm({ fullName: '', email: '', role: 'ADMIN' });
+      setIsCreateOpen(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // Session Actions
   const handleForceLogoutSession = (session: SessionData) => {
     if (confirm(`Force logout session ${session.id.slice(0, 8)}?`)) {
@@ -168,9 +240,9 @@ export default function AdminUsersAndRolesPage() {
               </div>
 
               {activeTab === 'users' && (
-                <Button className="gap-2 w-full sm:w-auto" size="lg">
+                <Button className="gap-2 w-full sm:w-auto" size="lg" onClick={() => setIsCreateOpen(true)}>
                   <Plus className="h-5 w-5" />
-                  <span>Create Admin</span>
+                  <span>Create User</span>
                 </Button>
               )}
             </div>
@@ -182,7 +254,7 @@ export default function AdminUsersAndRolesPage() {
           {/* Tabs Navigation */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 mb-6">
-              <TabsTrigger value="users">Admin Users</TabsTrigger>
+              <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="roles">Roles</TabsTrigger>
               <TabsTrigger value="permissions">Permissions</TabsTrigger>
               <TabsTrigger value="sessions">Sessions</TabsTrigger>
@@ -194,7 +266,7 @@ export default function AdminUsersAndRolesPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    Showing {displayedUsers.length} of {adminUsers.length} admin users
+                    Showing {displayedUsers.length} of {adminUsers.length} users
                   </p>
                 </div>
               </div>
@@ -270,6 +342,67 @@ export default function AdminUsersAndRolesPage() {
             </TabsContent>
           </Tabs>
         </main>
+
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create User</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="create-full-name">Full Name</Label>
+                <Input
+                  id="create-full-name"
+                  placeholder="e.g. Selam Mekonnen"
+                  value={createForm.fullName}
+                  onChange={(event) =>
+                    setCreateForm((prev) => ({ ...prev, fullName: event.target.value }))
+                  }
+                  disabled={isSaving}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-email">Email</Label>
+                <Input
+                  id="create-email"
+                  type="email"
+                  placeholder="e.g. selam@example.com"
+                  value={createForm.email}
+                  onChange={(event) =>
+                    setCreateForm((prev) => ({ ...prev, email: event.target.value }))
+                  }
+                  disabled={isSaving}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-role">Role</Label>
+                <select
+                  id="create-role"
+                  value={createForm.role}
+                  onChange={(event) =>
+                    setCreateForm((prev) => ({ ...prev, role: event.target.value as RoleType }))
+                  }
+                  disabled={isSaving}
+                  className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                >
+                  {CREATE_ROLE_OPTIONS.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsCreateOpen(false)} disabled={isSaving}>
+                Cancel
+              </Button>
+              <Button onClick={() => void handleCreateUser()} disabled={isSaving}>
+                {isSaving ? 'Creating...' : 'Create User'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedRouteWrapper>
   );

@@ -13,6 +13,7 @@ import {
   Handshake,
   Calendar,
   Bell,
+  Image,
 } from 'lucide-react';
 
 export function DashboardNavTabs() {
@@ -53,6 +54,11 @@ export function DashboardNavTabs() {
       name: 'Sponsors',
       href: '/events/contestant/sponsors',
       icon: Handshake,
+    },
+    {
+      name: 'Gallery',
+      href: '/events/contestant/gallery',
+      icon: Image,
     },
     {
       name: 'Event',

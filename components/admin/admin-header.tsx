@@ -1,10 +1,20 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Settings, Bell, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
 
 export function AdminHeader() {
+  const { logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.replace('/login');
+  };
+
   return (
     <header className="border-b border-border bg-card sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -17,17 +27,21 @@ export function AdminHeader() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="hidden sm:flex gap-2">
-              <Bell className="h-4 w-4" />
-              <span className="text-sm">Notifications</span>
+            <Button asChild variant="ghost" size="sm" className="hidden sm:flex gap-2">
+              <Link href="/admin/notifications">
+                <Bell className="h-4 w-4" />
+                <span className="text-sm">Notifications</span>
+              </Link>
             </Button>
 
-            <Button variant="ghost" size="sm" className="hidden sm:flex gap-2">
-              <Settings className="h-4 w-4" />
-              <span className="text-sm">Settings</span>
+            <Button asChild variant="ghost" size="sm" className="hidden sm:flex gap-2">
+              <Link href="/admin/settings">
+                <Settings className="h-4 w-4" />
+                <span className="text-sm">Settings</span>
+              </Link>
             </Button>
 
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
               <span className="text-sm">Logout</span>
             </Button>

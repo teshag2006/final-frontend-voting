@@ -121,9 +121,16 @@ class AuthService {
     // Clear user session
     localStorage.removeItem('auth_user_id');
     localStorage.removeItem('auth_user_role');
+    localStorage.removeItem('auth_impersonation_user');
 
-    // Invalidate server session cookie.
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => undefined);
+    // Invalidate server session cookie (best effort). Guard against
+    // sync fetch errors and navigation-race aborts in dev.
+    try {
+      void fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin', keepalive: true })
+        .catch(() => undefined);
+    } catch {
+      // Ignore logout network issues; local auth state is already cleared.
+    }
   }
 
   /**

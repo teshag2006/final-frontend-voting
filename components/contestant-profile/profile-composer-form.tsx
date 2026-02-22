@@ -7,11 +7,15 @@ import type { ContestantProfileComposerData } from '@/lib/contestant-runtime-sto
 
 export function ProfileComposerForm({
   value,
+  galleryItems,
   onChange,
+  onRemoveGallery,
   onSave,
 }: {
   value: ContestantProfileComposerData;
+  galleryItems: Array<{ id: string; url: string; label: string }>;
   onChange: (next: ContestantProfileComposerData) => void;
+  onRemoveGallery: (mediaId: string) => Promise<void>;
   onSave: () => Promise<void>;
 }) {
   const [localError, setLocalError] = useState('');
@@ -102,6 +106,32 @@ export function ProfileComposerForm({
             Upload Photo
           </Button>
         </div>
+      </div>
+      <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <p className="text-sm font-medium text-slate-900">Gallery Photos</p>
+        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {galleryItems.map((item) => (
+            <div key={item.id} className="relative overflow-hidden rounded-md border border-slate-200 bg-white">
+              <img src={item.url} alt={item.label || 'Gallery photo'} className="h-24 w-full object-cover" />
+              <button
+                type="button"
+                onClick={() => void onRemoveGallery(item.id)}
+                className="absolute right-1 top-1 rounded-full bg-black/70 p-1 text-white"
+                aria-label="Remove gallery photo"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+          {galleryItems.length === 0 ? (
+            <div className="col-span-2 rounded-md border border-dashed border-slate-300 bg-white p-4 text-xs text-slate-500 sm:col-span-3">
+              No gallery photos yet.
+            </div>
+          ) : null}
+        </div>
+        <p className="mt-3 text-xs text-slate-500">
+          Upload new gallery photos from the dedicated Gallery menu.
+        </p>
       </div>
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         <input value={value.displayName} onChange={(e) => onChange({ ...value, displayName: e.target.value })} className="h-10 rounded-md border border-slate-300 px-3 text-sm" placeholder="Display name" />

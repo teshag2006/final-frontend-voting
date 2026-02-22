@@ -496,6 +496,14 @@ export function addContestantMedia(payload: Pick<ContestantMediaItem, 'kind' | '
   return item;
 }
 
+export function removeContestantMedia(mediaId: string) {
+  const target = mediaStore.find((item) => item.id === mediaId);
+  if (!target) return false;
+  mediaStore = mediaStore.filter((item) => item.id !== mediaId);
+  pushAudit('media_removed', `${target.kind}: ${target.label}`);
+  return true;
+}
+
 export function updateContestantCompliance(payload: Partial<ContestantComplianceData>) {
   complianceStore = { ...complianceStore, ...payload };
   pushAudit('compliance_updated', 'Compliance details updated');
@@ -881,14 +889,19 @@ export function reviewContestantChangeRequest(payload: {
       complianceStore = { ...complianceStore, ...(target.payload as Partial<ContestantComplianceData>) };
     }
     if (target.type === 'media') {
-      const mediaPayload = target.payload as Partial<ContestantMediaItem>;
-      if (mediaPayload.kind && mediaPayload.label && mediaPayload.url) {
+      const payload = target.payload as Partial<ContestantMediaItem> & {
+        action?: 'remove';
+        mediaId?: string;
+      };
+      if (payload.action === 'remove' && payload.mediaId) {
+        mediaStore = mediaStore.filter((item) => item.id !== String(payload.mediaId));
+      } else if (payload.kind && payload.label && payload.url) {
         mediaStore = [
           {
             id: mkId('media'),
-            kind: mediaPayload.kind,
-            label: String(mediaPayload.label),
-            url: String(mediaPayload.url),
+            kind: payload.kind,
+            label: String(payload.label),
+            url: String(payload.url),
             status: 'approved',
           },
           ...mediaStore,

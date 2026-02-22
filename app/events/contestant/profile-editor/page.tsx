@@ -7,6 +7,7 @@ import { ProfileVersionHistory } from '@/components/contestant-profile/profile-v
 import { ShareKitPanel } from '@/components/contestant-profile/share-kit-panel';
 import type {
   ContestantChangeRequest,
+  ContestantMediaItem,
   ContestantProfileComposerData,
   ContestantProfileVersion,
   ContestantPublishingState,
@@ -17,15 +18,17 @@ export default function ContestantProfileEditorPage() {
   const [profile, setProfile] = useState<ContestantProfileComposerData | null>(null);
   const [versions, setVersions] = useState<ContestantProfileVersion[]>([]);
   const [shareKit, setShareKit] = useState<ContestantShareKitLink[]>([]);
+  const [media, setMedia] = useState<ContestantMediaItem[]>([]);
   const [publishing, setPublishing] = useState<ContestantPublishingState | null>(null);
   const [requests, setRequests] = useState<ContestantChangeRequest[]>([]);
   const [message, setMessage] = useState('');
 
   async function loadProfile() {
-    const [profileRes, versionsRes, shareKitRes, publishingRes, requestsRes] = await Promise.all([
+    const [profileRes, versionsRes, shareKitRes, mediaRes, publishingRes, requestsRes] = await Promise.all([
       fetch('/api/contestant/profile'),
       fetch('/api/contestant/profile-versions'),
       fetch('/api/contestant/share-kit'),
+      fetch('/api/contestant/media'),
       fetch('/api/contestant/publishing-state'),
       fetch('/api/contestant/change-requests'),
     ]);
@@ -33,6 +36,7 @@ export default function ContestantProfileEditorPage() {
     if (profileRes.ok) setProfile((await profileRes.json()) as ContestantProfileComposerData);
     if (versionsRes.ok) setVersions((await versionsRes.json()) as ContestantProfileVersion[]);
     if (shareKitRes.ok) setShareKit((await shareKitRes.json()) as ContestantShareKitLink[]);
+    if (mediaRes.ok) setMedia((await mediaRes.json()) as ContestantMediaItem[]);
     if (publishingRes.ok) setPublishing((await publishingRes.json()) as ContestantPublishingState);
     if (requestsRes.ok) setRequests((await requestsRes.json()) as ContestantChangeRequest[]);
   }
@@ -62,6 +66,10 @@ export default function ContestantProfileEditorPage() {
 
   if (!profile) return <div className="p-6 text-slate-600">Loading profile editor...</div>;
 
+  const galleryItems = media
+    .filter((item) => item.kind === 'gallery_image')
+    .map((item) => ({ id: item.id, url: item.url, label: item.label }));
+
   return (
     <div className="space-y-4 p-6">
       {publishing ? (
@@ -86,7 +94,39 @@ export default function ContestantProfileEditorPage() {
         <div className="space-y-6">
           <ProfileComposerForm
             value={profile}
+            galleryItems={galleryItems}
             onChange={setProfile}
+            onRemoveGallery={async (mediaId) => {
+              const res = await fetch(`/api/contestant/media?id=${encodeURIComponent(mediaId)}`, {
+                method: 'DELETE',
+              });
+              if (res.status === 423) {
+                const reason = window.prompt('Gallery is locked. Enter reason for gallery removal request:');
+                if (reason) {
+                  await fetch('/api/contestant/change-requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      type: 'media',
+                      reason,
+                      payload: {
+                        action: 'remove',
+                        mediaId,
+                      },
+                    }),
+                  });
+                  setMessage('Gallery removal request submitted for admin review.');
+                }
+                return;
+              }
+              if (!res.ok) {
+                const errorBody = (await res.json().catch(() => ({}))) as { message?: string };
+                setMessage(errorBody.message || 'Could not remove gallery photo.');
+                return;
+              }
+              setMessage('Gallery photo removed.');
+              await loadProfile();
+            }}
             onSave={async () => {
               const res = await fetch('/api/contestant/profile', {
                 method: 'PATCH',
@@ -128,7 +168,7 @@ export default function ContestantProfileEditorPage() {
         </div>
 
         <div className="space-y-6">
-          <ProfilePreviewPane value={profile} />
+          <ProfilePreviewPane value={profile} galleryImages={galleryItems.map((item) => item.url)} />
           <ProfileVersionHistory versions={versions} />
         </div>
       </div>
