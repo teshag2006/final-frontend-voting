@@ -4,6 +4,7 @@ import { type ChangeEvent, useRef, useState } from 'react';
 import { Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ContestantProfileComposerData } from '@/lib/contestant-runtime-store';
+import { sanitizePlainText } from '@/lib/security/frontend-security';
 
 export function ProfileComposerForm({
   value,
@@ -20,22 +21,14 @@ export function ProfileComposerForm({
 }) {
   const [localError, setLocalError] = useState('');
   const photoInputRef = useRef<HTMLInputElement | null>(null);
-
-  const isValidYouTubeUrl = (raw: string) => {
-    try {
-      const url = new URL(raw);
-      const host = url.hostname.toLowerCase().replace(/^www\./, '');
-      if (host === 'youtu.be') return Boolean(url.pathname.replace('/', '').trim());
-      if (host === 'youtube.com' || host === 'm.youtube.com') {
-        if (url.pathname === '/watch') return Boolean(url.searchParams.get('v'));
-        if (url.pathname.startsWith('/shorts/')) return Boolean(url.pathname.split('/')[2]);
-        if (url.pathname.startsWith('/embed/')) return Boolean(url.pathname.split('/')[2]);
-      }
-      return false;
-    } catch {
-      return false;
-    }
+  const normalizeHandle = (raw: string) => {
+    let next = raw.trim();
+    next = next.replace(/^https?:\/\/(www\.)?(instagram\.com\/|tiktok\.com\/@|youtube\.com\/@|x\.com\/|facebook\.com\/|snapchat\.com\/add\/)/i, '');
+    next = next.replace(/^@/, '');
+    next = next.split(/[/?#]/)[0] || '';
+    return next;
   };
+  const isSafeHandle = (raw: string) => /^[A-Za-z0-9._]{1,50}$/.test(raw);
 
   const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -69,11 +62,36 @@ export function ProfileComposerForm({
   };
 
   const handleSaveClick = async () => {
-    if (value.youtube.trim() && !isValidYouTubeUrl(value.youtube.trim())) {
-      setLocalError('Enter a valid YouTube URL (youtube.com or youtu.be).');
+    setLocalError('');
+    const nextProfile: ContestantProfileComposerData = {
+      ...value,
+      displayName: sanitizePlainText(value.displayName, 80),
+      category: sanitizePlainText(value.category, 80),
+      location: sanitizePlainText(value.location, 120),
+      bio: sanitizePlainText(value.bio, 500),
+      instagram: value.instagram ? `@${normalizeHandle(value.instagram)}` : '',
+      tiktok: value.tiktok ? `@${normalizeHandle(value.tiktok)}` : '',
+      youtubeHandle: normalizeHandle(value.youtubeHandle),
+      x: normalizeHandle(value.x),
+      facebook: normalizeHandle(value.facebook),
+      snapchat: normalizeHandle(value.snapchat),
+    };
+
+    const handlesToCheck = [
+      nextProfile.instagram.replace(/^@/, ''),
+      nextProfile.tiktok.replace(/^@/, ''),
+      nextProfile.youtubeHandle,
+      nextProfile.x,
+      nextProfile.facebook,
+      nextProfile.snapchat,
+    ].filter(Boolean);
+
+    if (handlesToCheck.some((item) => !isSafeHandle(item))) {
+      setLocalError('Usernames may only contain letters, numbers, dots, and underscores.');
       return;
     }
-    setLocalError('');
+
+    onChange(nextProfile);
     await onSave();
   };
 
@@ -138,17 +156,92 @@ export function ProfileComposerForm({
         <input value={value.category} onChange={(e) => onChange({ ...value, category: e.target.value })} className="h-10 rounded-md border border-slate-300 px-3 text-sm" placeholder="Category" />
         <input value={value.location} onChange={(e) => onChange({ ...value, location: e.target.value })} className="h-10 rounded-md border border-slate-300 px-3 text-sm md:col-span-2" placeholder="Location" />
         <textarea value={value.bio} onChange={(e) => onChange({ ...value, bio: e.target.value })} className="min-h-24 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-2" placeholder="Bio" />
-        <input value={value.instagram} onChange={(e) => onChange({ ...value, instagram: e.target.value })} className="h-10 rounded-md border border-slate-300 px-3 text-sm" placeholder="Instagram handle (no URL)" />
-        <input value={value.tiktok} onChange={(e) => onChange({ ...value, tiktok: e.target.value })} className="h-10 rounded-md border border-slate-300 px-3 text-sm" placeholder="TikTok handle (no URL)" />
-        <input
-          value={value.youtube}
-          onChange={(e) => onChange({ ...value, youtube: e.target.value })}
-          className="h-10 rounded-md border border-slate-300 px-3 text-sm md:col-span-2"
-          placeholder="YouTube video URL (https://www.youtube.com/watch?v=...)"
-        />
-        <p className="text-xs text-slate-500 md:col-span-2">
-          Only YouTube video URLs are accepted for intro video to reduce phishing risk.
-        </p>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 md:col-span-2">
+          <p className="text-sm font-medium text-slate-900">Social Media Usernames</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Enter only username. Domain is fixed to prevent scam links.
+          </p>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <label className="space-y-1">
+              <span className="text-xs text-slate-600">Instagram</span>
+              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
+                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://instagram.com/</span>
+                <input
+                  value={normalizeHandle(value.instagram)}
+                  onChange={(e) => {
+                    const handle = normalizeHandle(e.target.value);
+                    onChange({ ...value, instagram: handle ? `@${handle}` : '' });
+                  }}
+                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
+                  placeholder="username"
+                />
+              </div>
+            </label>
+            <label className="space-y-1">
+              <span className="text-xs text-slate-600">YouTube</span>
+              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
+                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://youtube.com/@</span>
+                <input
+                  value={normalizeHandle(value.youtubeHandle)}
+                  onChange={(e) => onChange({ ...value, youtubeHandle: normalizeHandle(e.target.value) })}
+                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
+                  placeholder="username"
+                />
+              </div>
+            </label>
+            <label className="space-y-1">
+              <span className="text-xs text-slate-600">TikTok</span>
+              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
+                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://tiktok.com/@</span>
+                <input
+                  value={normalizeHandle(value.tiktok)}
+                  onChange={(e) => {
+                    const handle = normalizeHandle(e.target.value);
+                    onChange({ ...value, tiktok: handle ? `@${handle}` : '' });
+                  }}
+                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
+                  placeholder="username"
+                />
+              </div>
+            </label>
+            <label className="space-y-1">
+              <span className="text-xs text-slate-600">X</span>
+              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
+                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://x.com/</span>
+                <input
+                  value={normalizeHandle(value.x)}
+                  onChange={(e) => onChange({ ...value, x: normalizeHandle(e.target.value) })}
+                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
+                  placeholder="username"
+                />
+              </div>
+            </label>
+            <label className="space-y-1">
+              <span className="text-xs text-slate-600">Facebook</span>
+              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
+                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://facebook.com/</span>
+                <input
+                  value={normalizeHandle(value.facebook)}
+                  onChange={(e) => onChange({ ...value, facebook: normalizeHandle(e.target.value) })}
+                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
+                  placeholder="username"
+                />
+              </div>
+            </label>
+            <label className="space-y-1">
+              <span className="text-xs text-slate-600">Snapchat</span>
+              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
+                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://snapchat.com/add/</span>
+                <input
+                  value={normalizeHandle(value.snapchat)}
+                  onChange={(e) => onChange({ ...value, snapchat: normalizeHandle(e.target.value) })}
+                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
+                  placeholder="username"
+                />
+              </div>
+            </label>
+          </div>
+        </div>
       </div>
       {localError ? <p className="mt-2 text-sm text-red-700">{localError}</p> : null}
       <Button className="mt-3" onClick={() => void handleSaveClick()}>

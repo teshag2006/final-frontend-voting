@@ -36,6 +36,22 @@ export default function AdminUsersAndRolesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isAssignRoleOpen, setIsAssignRoleOpen] = useState(false);
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<AdminUserData | null>(null);
+  const [editForm, setEditForm] = useState<{
+    fullName: string;
+    email: string;
+    status: AdminUserData['status'];
+  }>({
+    fullName: '',
+    email: '',
+    status: 'ACTIVE',
+  });
+  const [assignRole, setAssignRole] = useState<RoleType>('ADMIN');
+  const [tempPassword, setTempPassword] = useState('');
   const [createForm, setCreateForm] = useState<{
     fullName: string;
     email: string;
@@ -64,6 +80,36 @@ export default function AdminUsersAndRolesPage() {
 
   // Audit Tab State
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+
+  const appendAudit = (
+    action: AuditEntry['action'],
+    target: string,
+    details: string,
+    riskLevel: AuditEntry['riskLevel'] = 'MEDIUM'
+  ) => {
+    setAuditEntries((prev) => [
+      {
+        id: `AUDIT-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        action,
+        actor: 'Current Admin',
+        target,
+        details,
+        riskLevel,
+      },
+      ...prev,
+    ]);
+  };
+
+  const patchUser = async (id: string, patch: Partial<AdminUserData>) => {
+    const response = await fetch('/api/admin/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, patch }),
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as AdminUserData;
+  };
 
   // Initialize data from backend, fallback to mock in dev
   useEffect(() => {
@@ -120,42 +166,132 @@ export default function AdminUsersAndRolesPage() {
 
   // User Actions
   const handleViewUser = (user: AdminUserData) => {
-    console.log('View user:', user);
+    setSelectedUser(user);
+    setIsViewOpen(true);
   };
 
   const handleEditUser = (user: AdminUserData) => {
-    console.log('Edit user:', user);
+    setSelectedUser(user);
+    setEditForm({
+      fullName: user.fullName,
+      email: user.email,
+      status: user.status,
+    });
+    setIsEditOpen(true);
   };
 
   const handleAssignRole = (user: AdminUserData) => {
-    console.log('Assign role to:', user);
+    setSelectedUser(user);
+    setAssignRole(user.role);
+    setIsAssignRoleOpen(true);
   };
 
   const handleDisableUser = (user: AdminUserData) => {
     if (confirm(`Disable user ${user.fullName}?`)) {
+      const previous = user.status;
       setAdminUsers((prev) =>
         prev.map((u) => (u.id === user.id ? { ...u, status: 'DISABLED' as const } : u))
       );
+      void patchUser(user.id, { status: 'DISABLED' }).then((updated) => {
+        if (!updated) {
+          setAdminUsers((prev) =>
+            prev.map((u) => (u.id === user.id ? { ...u, status: previous } : u))
+          );
+          alert('Could not disable user.');
+          return;
+        }
+        appendAudit('ROLE_CHANGED', user.email, `User status changed to DISABLED for ${user.fullName}.`, 'HIGH');
+      });
     }
   };
 
   const handleForceLogout = (user: AdminUserData) => {
     if (confirm(`Force logout user ${user.fullName}?`)) {
-      console.log('Force logout:', user);
+      const before = sessions.length;
+      setSessions((prev) => prev.filter((s) => s.userId !== user.id));
+      const removed = before - sessions.filter((s) => s.userId !== user.id).length;
+      appendAudit('FORCE_LOGOUT', user.email, `Forced logout for ${user.fullName}. Revoked active sessions.`, 'MEDIUM');
+      alert(`Forced logout complete. ${removed > 0 ? `${removed} session(s) revoked.` : 'No active sessions found.'}`);
     }
   };
 
   const handleResetPassword = (user: AdminUserData) => {
     if (confirm(`Reset password for ${user.fullName}? They will receive an email with a temporary password.`)) {
-      console.log('Reset password:', user);
+      const generated = `Tmp!${Math.random().toString(36).slice(-8)}A1`;
+      setSelectedUser(user);
+      setTempPassword(generated);
+      setIsResetPasswordOpen(true);
+      appendAudit('PASSWORD_RESET', user.email, `Password reset triggered for ${user.fullName}.`, 'MEDIUM');
     }
   };
 
   const handleToggle2FA = (user: AdminUserData) => {
     if (confirm(`${user.is2FAEnabled ? 'Disable' : 'Enable'} 2FA for ${user.fullName}?`)) {
+      const nextValue = !user.is2FAEnabled;
       setAdminUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, is2FAEnabled: !u.is2FAEnabled } : u))
+        prev.map((u) => (u.id === user.id ? { ...u, is2FAEnabled: nextValue } : u))
       );
+      void patchUser(user.id, { is2FAEnabled: nextValue }).then((updated) => {
+        if (!updated) {
+          setAdminUsers((prev) =>
+            prev.map((u) => (u.id === user.id ? { ...u, is2FAEnabled: user.is2FAEnabled } : u))
+          );
+          alert('Could not update 2FA setting.');
+          return;
+        }
+        appendAudit(
+          nextValue ? '2FA_ENABLED' : '2FA_DISABLED',
+          user.email,
+          `${nextValue ? 'Enabled' : 'Disabled'} 2FA for ${user.fullName}.`,
+          nextValue ? 'LOW' : 'HIGH'
+        );
+      });
+    }
+  };
+
+  const handleSaveEditedUser = async () => {
+    if (!selectedUser) return;
+    const fullName = editForm.fullName.trim();
+    const email = editForm.email.trim().toLowerCase();
+    if (!fullName || !email) {
+      alert('Full name and email are required.');
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const updated = await patchUser(selectedUser.id, {
+        fullName,
+        email,
+        status: editForm.status,
+      });
+      if (!updated) {
+        alert('Could not update user.');
+        return;
+      }
+      setAdminUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      appendAudit('ROLE_CHANGED', updated.email, `Updated user profile for ${updated.fullName}.`, 'MEDIUM');
+      setIsEditOpen(false);
+      setSelectedUser(null);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveAssignedRole = async () => {
+    if (!selectedUser) return;
+    setIsSaving(true);
+    try {
+      const updated = await patchUser(selectedUser.id, { role: assignRole });
+      if (!updated) {
+        alert('Could not assign role.');
+        return;
+      }
+      setAdminUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      appendAudit('ROLE_ASSIGNED', updated.email, `Assigned role ${assignRole} to ${updated.fullName}.`, 'HIGH');
+      setIsAssignRoleOpen(false);
+      setSelectedUser(null);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -400,6 +536,123 @@ export default function AdminUsersAndRolesPage() {
               <Button onClick={() => void handleCreateUser()} disabled={isSaving}>
                 {isSaving ? 'Creating...' : 'Create User'}
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>User Details</DialogTitle>
+            </DialogHeader>
+            {selectedUser ? (
+              <div className="space-y-2 text-sm">
+                <p><strong>ID:</strong> {selectedUser.id}</p>
+                <p><strong>Name:</strong> {selectedUser.fullName}</p>
+                <p><strong>Email:</strong> {selectedUser.email}</p>
+                <p><strong>Role:</strong> {selectedUser.role}</p>
+                <p><strong>Status:</strong> {selectedUser.status}</p>
+                <p><strong>2FA:</strong> {selectedUser.is2FAEnabled ? 'Enabled' : 'Disabled'}</p>
+                <p><strong>Last Login:</strong> {new Date(selectedUser.lastLogin).toLocaleString()}</p>
+                <p><strong>Created:</strong> {new Date(selectedUser.createdAt).toLocaleString()}</p>
+              </div>
+            ) : null}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsViewOpen(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit User</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="edit-user-name">Full Name</Label>
+                <Input
+                  id="edit-user-name"
+                  value={editForm.fullName}
+                  onChange={(event) => setEditForm((prev) => ({ ...prev, fullName: event.target.value }))}
+                  disabled={isSaving}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-user-email">Email</Label>
+                <Input
+                  id="edit-user-email"
+                  type="email"
+                  value={editForm.email}
+                  onChange={(event) => setEditForm((prev) => ({ ...prev, email: event.target.value }))}
+                  disabled={isSaving}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-user-status">Status</Label>
+                <select
+                  id="edit-user-status"
+                  value={editForm.status}
+                  onChange={(event) => setEditForm((prev) => ({ ...prev, status: event.target.value as AdminUserData['status'] }))}
+                  disabled={isSaving}
+                  className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                >
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="DISABLED">DISABLED</option>
+                  <option value="LOCKED">LOCKED</option>
+                </select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditOpen(false)} disabled={isSaving}>Cancel</Button>
+              <Button onClick={() => void handleSaveEditedUser()} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isAssignRoleOpen} onOpenChange={setIsAssignRoleOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign Role</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              <Label htmlFor="assign-role">Role</Label>
+              <select
+                id="assign-role"
+                value={assignRole}
+                onChange={(event) => setAssignRole(event.target.value as RoleType)}
+                disabled={isSaving}
+                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+              >
+                {CREATE_ROLE_OPTIONS.map((role) => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </select>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAssignRoleOpen(false)} disabled={isSaving}>Cancel</Button>
+              <Button onClick={() => void handleSaveAssignedRole()} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Assign'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isResetPasswordOpen} onOpenChange={setIsResetPasswordOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Temporary Password Generated</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 text-sm">
+              <p><strong>User:</strong> {selectedUser?.fullName}</p>
+              <p><strong>Email:</strong> {selectedUser?.email}</p>
+              <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 font-mono text-amber-900">{tempPassword}</p>
+              <p className="text-muted-foreground">Share securely with the user and ask them to rotate it immediately.</p>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsResetPasswordOpen(false)}>Close</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

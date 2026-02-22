@@ -4,30 +4,26 @@ import { useEffect, useState } from 'react';
 import { ProfileComposerForm } from '@/components/contestant-profile/profile-composer-form';
 import { ProfilePreviewPane } from '@/components/contestant-profile/profile-preview-pane';
 import { ProfileVersionHistory } from '@/components/contestant-profile/profile-version-history';
-import { ShareKitPanel } from '@/components/contestant-profile/share-kit-panel';
 import type {
   ContestantChangeRequest,
   ContestantMediaItem,
   ContestantProfileComposerData,
   ContestantProfileVersion,
   ContestantPublishingState,
-  ContestantShareKitLink,
 } from '@/lib/contestant-runtime-store';
 
 export default function ContestantProfileEditorPage() {
   const [profile, setProfile] = useState<ContestantProfileComposerData | null>(null);
   const [versions, setVersions] = useState<ContestantProfileVersion[]>([]);
-  const [shareKit, setShareKit] = useState<ContestantShareKitLink[]>([]);
   const [media, setMedia] = useState<ContestantMediaItem[]>([]);
   const [publishing, setPublishing] = useState<ContestantPublishingState | null>(null);
   const [requests, setRequests] = useState<ContestantChangeRequest[]>([]);
   const [message, setMessage] = useState('');
 
   async function loadProfile() {
-    const [profileRes, versionsRes, shareKitRes, mediaRes, publishingRes, requestsRes] = await Promise.all([
+    const [profileRes, versionsRes, mediaRes, publishingRes, requestsRes] = await Promise.all([
       fetch('/api/contestant/profile'),
       fetch('/api/contestant/profile-versions'),
-      fetch('/api/contestant/share-kit'),
       fetch('/api/contestant/media'),
       fetch('/api/contestant/publishing-state'),
       fetch('/api/contestant/change-requests'),
@@ -35,7 +31,6 @@ export default function ContestantProfileEditorPage() {
 
     if (profileRes.ok) setProfile((await profileRes.json()) as ContestantProfileComposerData);
     if (versionsRes.ok) setVersions((await versionsRes.json()) as ContestantProfileVersion[]);
-    if (shareKitRes.ok) setShareKit((await shareKitRes.json()) as ContestantShareKitLink[]);
     if (mediaRes.ok) setMedia((await mediaRes.json()) as ContestantMediaItem[]);
     if (publishingRes.ok) setPublishing((await publishingRes.json()) as ContestantPublishingState);
     if (requestsRes.ok) setRequests((await requestsRes.json()) as ContestantChangeRequest[]);
@@ -148,10 +143,6 @@ export default function ContestantProfileEditorPage() {
               await loadProfile();
             }}
           />
-          <ShareKitPanel
-            links={shareKit}
-            onCreated={(item) => setShareKit((prev) => [item, ...prev])}
-          />
 
           <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h3 className="text-lg font-semibold text-slate-900">My Change Requests</h3>
@@ -168,7 +159,7 @@ export default function ContestantProfileEditorPage() {
         </div>
 
         <div className="space-y-6">
-          <ProfilePreviewPane value={profile} galleryImages={galleryItems.map((item) => item.url)} />
+          <ProfilePreviewPane value={profile} />
           <ProfileVersionHistory versions={versions} />
         </div>
       </div>

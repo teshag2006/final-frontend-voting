@@ -6,6 +6,8 @@ export function getDefaultGeneralSettings() {
     currency: 'USD',
     supportEmail: 'support@example.com',
     termsConditionsUrl: 'https://example.com/terms',
+    logoUrl: '',
+    faviconUrl: '',
   };
 }
 

@@ -30,6 +30,10 @@ export interface ContestantProfileComposerData {
   photoUrl: string;
   instagram: string;
   tiktok: string;
+  youtubeHandle: string;
+  x: string;
+  facebook: string;
+  snapchat: string;
   youtube: string;
 }
 
@@ -174,6 +178,10 @@ let profileStore: ContestantProfileComposerData = {
   photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600',
   instagram: '@amina.live',
   tiktok: '@amina.music',
+  youtubeHandle: 'amina',
+  x: 'amina',
+  facebook: 'amina',
+  snapchat: 'amina',
   youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
 };
 
@@ -531,6 +539,22 @@ export function updateContestantProfile(payload: Partial<ContestantProfileCompos
     throw new Error('TikTok must be a handle, not a URL');
   }
 
+  if (payload.youtubeHandle !== undefined && /^https?:\/\//i.test(String(payload.youtubeHandle).trim())) {
+    throw new Error('YouTube username must be a handle, not a URL');
+  }
+
+  if (payload.x !== undefined && /^https?:\/\//i.test(String(payload.x).trim())) {
+    throw new Error('X username must be a handle, not a URL');
+  }
+
+  if (payload.facebook !== undefined && /^https?:\/\//i.test(String(payload.facebook).trim())) {
+    throw new Error('Facebook username must be a handle, not a URL');
+  }
+
+  if (payload.snapchat !== undefined && /^https?:\/\//i.test(String(payload.snapchat).trim())) {
+    throw new Error('Snapchat username must be a handle, not a URL');
+  }
+
   if (payload.photoUrl !== undefined) {
     const nextPhoto = String(payload.photoUrl || '').trim();
     if (nextPhoto) {
@@ -879,6 +903,18 @@ export function reviewContestantChangeRequest(payload: {
       }
       if (patch.tiktok !== undefined && /^https?:\/\//i.test(String(patch.tiktok).trim())) {
         delete patch.tiktok;
+      }
+      if (patch.youtubeHandle !== undefined && /^https?:\/\//i.test(String(patch.youtubeHandle).trim())) {
+        delete patch.youtubeHandle;
+      }
+      if (patch.x !== undefined && /^https?:\/\//i.test(String(patch.x).trim())) {
+        delete patch.x;
+      }
+      if (patch.facebook !== undefined && /^https?:\/\//i.test(String(patch.facebook).trim())) {
+        delete patch.facebook;
+      }
+      if (patch.snapchat !== undefined && /^https?:\/\//i.test(String(patch.snapchat).trim())) {
+        delete patch.snapchat;
       }
       profileStore = { ...profileStore, ...patch };
     }

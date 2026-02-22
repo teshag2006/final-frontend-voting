@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { sanitizePlainText } from '@/lib/security/frontend-security';
 
 export interface ContestantFormData {
   id?: string;
@@ -65,6 +66,9 @@ export function CreateEditContestantModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [adminIntroVideoUrl, setAdminIntroVideoUrl] = useState('');
+  const [introVideoMessage, setIntroVideoMessage] = useState('');
+  const isApprovedForIntroVideo = formData.status === 'APPROVED' || formData.status === 'ACTIVE';
 
   useEffect(() => {
     if (initialData) {
@@ -88,15 +92,40 @@ export function CreateEditContestantModal({
     setErrors({});
   }, [initialData, isOpen]);
 
+  useEffect(() => {
+    if (!isOpen || !initialData?.id) return;
+    let mounted = true;
+    void fetch(`/api/admin/contestants/${encodeURIComponent(initialData.id)}/profile-video`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { introVideoUrl?: string } | null) => {
+        if (!mounted) return;
+        setAdminIntroVideoUrl(payload?.introVideoUrl || '');
+        setIntroVideoMessage('');
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setAdminIntroVideoUrl('');
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [isOpen, initialData]);
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
+    const safeName = sanitizePlainText(formData.name || '', 120);
+    const safeBio = sanitizePlainText(formData.bio || '', 1000);
 
-    if (!formData.name.trim()) {
+    if (!safeName.trim()) {
       newErrors.name = 'Name is required';
     }
 
     if (!formData.category) {
       newErrors.category = 'Category is required';
+    }
+
+    if (safeBio.length > 1000) {
+      newErrors.bio = 'Bio is too long';
     }
 
     setErrors(newErrors);
@@ -111,7 +140,12 @@ export function CreateEditContestantModal({
     }
 
     try {
-      await onSubmit(formData);
+      const sanitized: ContestantFormData = {
+        ...formData,
+        name: sanitizePlainText(formData.name || '', 120),
+        bio: sanitizePlainText(formData.bio || '', 1000),
+      };
+      await onSubmit(sanitized);
       onClose();
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -150,9 +184,49 @@ export function CreateEditContestantModal({
     });
   };
 
+  const handleAdminIntroVideoSave = async () => {
+    setIntroVideoMessage('');
+    if (!isApprovedForIntroVideo) {
+      setIntroVideoMessage('Intro video can only be set after contestant is approved.');
+      return;
+    }
+    if (!initialData?.id) {
+      setIntroVideoMessage('Contestant id is missing.');
+      return;
+    }
+    const value = adminIntroVideoUrl.trim();
+    if (value) {
+      try {
+        const parsed = new URL(value);
+        const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+        const isYoutubeHost = host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be';
+        if (!isYoutubeHost) {
+          setIntroVideoMessage('Only valid YouTube URLs are allowed.');
+          return;
+        }
+      } catch {
+        setIntroVideoMessage('Only valid YouTube URLs are allowed.');
+        return;
+      }
+    }
+    const response = await fetch(`/api/admin/contestants/${encodeURIComponent(initialData.id)}/profile-video`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ introVideoUrl: value }),
+    });
+
+    if (!response.ok) {
+      const errorBody = (await response.json().catch(() => ({}))) as { message?: string };
+      setIntroVideoMessage(errorBody.message || 'Could not update intro video.');
+      return;
+    }
+
+    setIntroVideoMessage('Intro video updated.');
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto max-w-2xl">
         <DialogHeader>
           <DialogTitle>{initialData ? 'Edit Contestant' : 'Create Contestant'}</DialogTitle>
         </DialogHeader>
@@ -260,7 +334,38 @@ export function CreateEditContestantModal({
               rows={3}
               placeholder="Enter contestant bio..."
             />
+            {errors.bio && <p className="text-xs text-red-500 mt-1">{errors.bio}</p>}
           </div>
+
+          {initialData ? (
+            <div>
+              <Label>Admin Intro Video Control</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Set or clear the contestant intro video from admin side only. Only valid YouTube URLs are accepted.
+              </p>
+              {isApprovedForIntroVideo ? (
+                <>
+                  <Input
+                    className="mt-2"
+                    value={adminIntroVideoUrl}
+                    onChange={(e) => setAdminIntroVideoUrl(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                    disabled={isLoading}
+                  />
+                  <div className="mt-2 flex items-center gap-2">
+                    <Button type="button" variant="outline" onClick={() => void handleAdminIntroVideoSave()} disabled={isLoading}>
+                      Save Intro Video
+                    </Button>
+                    {introVideoMessage ? <p className="text-xs text-muted-foreground">{introVideoMessage}</p> : null}
+                  </div>
+                </>
+              ) : (
+                <p className="mt-2 text-xs text-amber-700">
+                  Available only after status is set to Approved or Active.
+                </p>
+              )}
+            </div>
+          ) : null}
 
           {/* Category */}
           <div>

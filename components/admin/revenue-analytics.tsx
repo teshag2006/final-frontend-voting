@@ -51,7 +51,7 @@ export function RevenueAnalytics({ analytics }: RevenueAnalyticsProps) {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-              <p className="text-3xl font-bold text-foreground mt-2">
+              <p className="mt-2 break-words text-2xl font-bold text-foreground sm:text-3xl">
                 {formatCurrency(analytics.totalRevenue)}
               </p>
               <p className="text-xs text-green-600 dark:text-green-400 mt-2">
@@ -68,7 +68,7 @@ export function RevenueAnalytics({ analytics }: RevenueAnalyticsProps) {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <p className="text-sm font-medium text-muted-foreground">Avg Transaction</p>
-              <p className="text-3xl font-bold text-foreground mt-2">
+              <p className="mt-2 break-words text-2xl font-bold text-foreground sm:text-3xl">
                 {formatCurrency(analytics.averageTransaction)}
               </p>
               <p className="text-xs text-muted-foreground mt-2">

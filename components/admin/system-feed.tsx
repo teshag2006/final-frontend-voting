@@ -98,9 +98,9 @@ export function SystemFeed({ data, onLoadMore }: SystemFeedProps) {
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{event.title}</p>
-                    <p className="text-xs opacity-90 mt-1">{event.description}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium break-words">{event.title}</p>
+                    <p className="mt-1 break-words text-xs opacity-90">{event.description}</p>
                   </div>
                   <Badge
                     variant="outline"
@@ -127,7 +127,7 @@ export function SystemFeed({ data, onLoadMore }: SystemFeedProps) {
                     <span className="px-2 py-1 rounded bg-current/10">{event.related.eventName}</span>
                   )}
                   {event.related?.deviceId && (
-                    <span className="px-2 py-1 rounded bg-current/10 font-mono">
+                    <span className="max-w-full break-all px-2 py-1 rounded bg-current/10 font-mono">
                       {event.related.deviceId}
                     </span>
                   )}

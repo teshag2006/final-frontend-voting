@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, PlusCircle, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 interface PhotoGalleryProps {
@@ -47,10 +47,6 @@ export function PhotoGallery({ photos, contestantName }: PhotoGalleryProps) {
     <section className="rounded-[24px] border border-white/80 bg-white/85 p-5 shadow-[0_20px_45px_-30px_rgba(37,53,118,0.45)] backdrop-blur">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <h2 className="text-2xl font-bold text-foreground">Photo Gallery</h2>
-        <button className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white/75 px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-          <PlusCircle className="h-3.5 w-3.5" />
-          Win Introduction
-        </button>
       </div>
 
       <div className="relative">

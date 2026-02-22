@@ -38,6 +38,19 @@ function getYouTubeVideoMeta(rawUrl?: string | null): { embedUrl: string; watchU
   }
 }
 
+function getSafeExternalHttpUrl(rawUrl?: string | null): string | null {
+  if (!rawUrl || typeof rawUrl !== 'string') return null;
+  const value = rawUrl.trim();
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 export function AboutSection({ contestant }: AboutSectionProps) {
   const safeAge =
     typeof contestant.age === "number" && Number.isFinite(contestant.age)
@@ -46,6 +59,7 @@ export function AboutSection({ contestant }: AboutSectionProps) {
   const safeCountry = contestant.country || "Pan-African";
   const safeCategory = contestant.category_name || "Contestant";
   const youtubeVideoMeta = getYouTubeVideoMeta(contestant.video_url);
+  const safeVideoUrl = getSafeExternalHttpUrl(contestant.video_url);
 
   const highlights = [
     contestant.is_verified ? "Profile identity verified" : "Identity verification pending",
@@ -111,9 +125,9 @@ export function AboutSection({ contestant }: AboutSectionProps) {
             </div>
           ) : contestant.video_thumbnail ? (
             <a
-              href={contestant.video_url || "#"}
-              target={contestant.video_url ? "_blank" : undefined}
-              rel={contestant.video_url ? "noopener noreferrer" : undefined}
+              href={safeVideoUrl || "#"}
+              target={safeVideoUrl ? "_blank" : undefined}
+              rel={safeVideoUrl ? "noopener noreferrer" : undefined}
               className="group relative block aspect-video cursor-pointer overflow-hidden rounded-xl border border-border bg-black"
             >
               <Image

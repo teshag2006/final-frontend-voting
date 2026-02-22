@@ -42,7 +42,7 @@ export function BlockchainPanel({ status }: BlockchainPanelProps) {
             <Layers className="h-4 w-4 text-blue-500" />
             <span className="text-xs text-muted-foreground font-medium">Total Batches</span>
           </div>
-          <p className="text-2xl font-bold text-foreground">{status.totalBatches}</p>
+          <p className="text-xl font-bold text-foreground sm:text-2xl">{status.totalBatches}</p>
         </div>
 
         <div className="p-4 rounded-lg border border-border hover:border-primary/50 transition-colors">
@@ -50,7 +50,7 @@ export function BlockchainPanel({ status }: BlockchainPanelProps) {
             <CheckCircle className="h-4 w-4 text-green-500" />
             <span className="text-xs text-muted-foreground font-medium">Confirmed</span>
           </div>
-          <p className="text-2xl font-bold text-green-600">{status.confirmedAnchors}</p>
+          <p className="text-xl font-bold text-green-600 sm:text-2xl">{status.confirmedAnchors}</p>
           <p className="text-xs text-muted-foreground mt-1">{confirmationRate}% confirmed</p>
         </div>
 
@@ -59,7 +59,7 @@ export function BlockchainPanel({ status }: BlockchainPanelProps) {
             <Clock className="h-4 w-4 text-amber-500" />
             <span className="text-xs text-muted-foreground font-medium">Pending</span>
           </div>
-          <p className="text-2xl font-bold text-amber-600">{status.pendingAnchors}</p>
+          <p className="text-xl font-bold text-amber-600 sm:text-2xl">{status.pendingAnchors}</p>
           <p className="text-xs text-muted-foreground mt-1">awaiting confirmation</p>
         </div>
 
@@ -68,7 +68,7 @@ export function BlockchainPanel({ status }: BlockchainPanelProps) {
             <Zap className="h-4 w-4 text-purple-500" />
             <span className="text-xs text-muted-foreground font-medium">Avg Time</span>
           </div>
-          <p className="text-2xl font-bold text-purple-600">
+          <p className="text-xl font-bold text-purple-600 sm:text-2xl">
             {formatTimeToAnchor(status.averageTimeToAnchor)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">to anchor</p>

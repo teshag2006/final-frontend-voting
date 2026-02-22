@@ -39,7 +39,7 @@ export function FraudSummary({ summary, alerts = [] }: FraudSummaryProps) {
               <AlertTriangle className="h-5 w-5 text-red-600" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Critical Alerts</p>
-                <p className="text-2xl font-bold text-red-600 mt-1">{summary.critical}</p>
+                <p className="mt-1 text-xl font-bold text-red-600 sm:text-2xl">{summary.critical}</p>
               </div>
             </div>
             <div className="text-right">
@@ -52,7 +52,7 @@ export function FraudSummary({ summary, alerts = [] }: FraudSummaryProps) {
               <AlertCircle className="h-5 w-5 text-orange-600" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">High Severity</p>
-                <p className="text-2xl font-bold text-orange-600 mt-1">{summary.high}</p>
+                <p className="mt-1 text-xl font-bold text-orange-600 sm:text-2xl">{summary.high}</p>
               </div>
             </div>
             <div className="text-right">
@@ -67,7 +67,7 @@ export function FraudSummary({ summary, alerts = [] }: FraudSummaryProps) {
               <Clock className="h-5 w-5 text-blue-600" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Pending Review</p>
-                <p className="text-2xl font-bold text-blue-600 mt-1">{summary.pending}</p>
+                <p className="mt-1 text-xl font-bold text-blue-600 sm:text-2xl">{summary.pending}</p>
               </div>
             </div>
             <div className="text-right">
@@ -82,7 +82,7 @@ export function FraudSummary({ summary, alerts = [] }: FraudSummaryProps) {
               <CheckCircle className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Resolved</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">{summary.resolved}</p>
+                <p className="mt-1 text-xl font-bold text-green-600 sm:text-2xl">{summary.resolved}</p>
               </div>
             </div>
             <div className="text-right">
@@ -94,7 +94,7 @@ export function FraudSummary({ summary, alerts = [] }: FraudSummaryProps) {
 
           <div className="pt-2 border-t border-border mt-4">
             <p className="text-sm text-muted-foreground">Fraud Votes Removed</p>
-            <p className="text-2xl font-bold text-foreground mt-2">
+            <p className="mt-2 text-xl font-bold text-foreground sm:text-2xl">
               {summary.fraudVotesRemoved.toLocaleString()}
             </p>
           </div>

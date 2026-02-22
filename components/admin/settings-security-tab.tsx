@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SecuritySettings } from '@/types/settings';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,11 @@ export function SettingsSecurityTab({ initialData, onSave, isLoading }: Settings
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showReAuthModal, setShowReAuthModal] = useState(false);
+
+  useEffect(() => {
+    setFormData(initialData);
+    setIsDirty(false);
+  }, [initialData]);
 
   const handleChange = (field: keyof SecuritySettings, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

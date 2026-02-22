@@ -11,6 +11,7 @@ export interface AdminContestantRecord {
   avatar?: string;
   galleryImages?: string[];
   email?: string;
+  introVideoUrl?: string;
 }
 
 let contestantsStore: AdminContestantRecord[] = [];
@@ -46,6 +47,15 @@ export function updateAdminContestant(
     ...contestantsStore.slice(index + 1),
   ];
   return { ...updated };
+}
+
+export function getAdminContestantById(id: string) {
+  const found = contestantsStore.find((item) => item.id === id);
+  return found ? { ...found } : null;
+}
+
+export function updateAdminContestantIntroVideo(id: string, introVideoUrl: string) {
+  return updateAdminContestant(id, { introVideoUrl });
 }
 
 export function deleteAdminContestant(id: string) {

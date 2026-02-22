@@ -199,7 +199,16 @@ export default function SponsorContestantDetailPage() {
                     {socialPlatforms.map((platform) => (
                       <tr key={platform.platform} className="border-t border-slate-100 text-sm text-slate-700">
                         <td className="px-3 py-3 font-medium text-slate-900">{platform.platform}</td>
-                        <td className="px-3 py-3">{platform.username}</td>
+                        <td className="px-3 py-3">
+                          <a
+                            href={getSocialProfileUrl(platform.platform, platform.username)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-700 underline-offset-2 hover:underline"
+                          >
+                            {platform.username}
+                          </a>
+                        </td>
                         <td className="px-3 py-3">{platform.followers.toLocaleString()}</td>
                         <td className="px-3 py-3">{platform.engagementRate.toFixed(1)}%</td>
                       </tr>
@@ -408,4 +417,16 @@ function integrityMessage(status: MarketplaceContestant['integrityStatus']) {
 
 function signedPercent(value: number) {
   return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+}
+
+function getSocialProfileUrl(platform: SocialPlatformMetric['platform'], username: string) {
+  const trimmed = username.trim();
+  const handle = trimmed.startsWith('@') ? trimmed.slice(1) : trimmed;
+
+  if (platform === 'Instagram') return `https://www.instagram.com/${handle}`;
+  if (platform === 'TikTok') return `https://www.tiktok.com/@${handle}`;
+  if (platform === 'YouTube') return `https://www.youtube.com/@${handle}`;
+  if (platform === 'X') return `https://x.com/${handle}`;
+  if (platform === 'Facebook') return `https://www.facebook.com/${encodeURIComponent(handle)}`;
+  return `https://www.snapchat.com/add/${handle}`;
 }

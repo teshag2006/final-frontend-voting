@@ -42,14 +42,14 @@ export function DeviceRiskPanel({ overview }: DeviceRiskPanelProps) {
       </div>
 
       {/* Key Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="p-4 rounded-lg border border-border">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="h-4 w-4 text-red-500" />
             <p className="text-xs text-muted-foreground font-medium">High Risk</p>
           </div>
-          <p className="text-2xl font-bold text-foreground">{overview.highRiskDevices}</p>
-          <p className="text-xs text-muted-foreground mt-1">devices flagged</p>
+          <p className="break-words text-xl font-bold text-foreground sm:text-2xl">{overview.highRiskDevices}</p>
+          <p className="mt-1 break-words text-xs text-muted-foreground">devices flagged</p>
         </div>
 
         <div className="p-4 rounded-lg border border-border">
@@ -57,8 +57,8 @@ export function DeviceRiskPanel({ overview }: DeviceRiskPanelProps) {
             <Zap className="h-4 w-4 text-orange-500" />
             <p className="text-xs text-muted-foreground font-medium">Bot Detected</p>
           </div>
-          <p className="text-2xl font-bold text-foreground">{overview.botFlaggedDevices}</p>
-          <p className="text-xs text-muted-foreground mt-1">suspicious patterns</p>
+          <p className="break-words text-xl font-bold text-foreground sm:text-2xl">{overview.botFlaggedDevices}</p>
+          <p className="mt-1 break-words text-xs text-muted-foreground">suspicious patterns</p>
         </div>
 
         <div className="p-4 rounded-lg border border-border bg-blue-50 dark:bg-blue-950/20">
@@ -66,8 +66,8 @@ export function DeviceRiskPanel({ overview }: DeviceRiskPanelProps) {
             <Shield className="h-4 w-4 text-blue-500" />
             <p className="text-xs text-muted-foreground font-medium">Avg Trust</p>
           </div>
-          <p className="text-2xl font-bold text-blue-600">{overview.averageTrustScore}</p>
-          <p className="text-xs text-muted-foreground mt-1">out of 100</p>
+          <p className="break-words text-xl font-bold text-blue-600 sm:text-2xl">{overview.averageTrustScore}</p>
+          <p className="mt-1 break-words text-xs text-muted-foreground">out of 100</p>
         </div>
       </div>
 

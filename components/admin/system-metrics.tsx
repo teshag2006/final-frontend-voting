@@ -21,12 +21,12 @@ function MetricCard({ icon, label, value, subtext, trend, className = '' }: Metr
   return (
     <Card className={`p-6 hover:shadow-lg transition-shadow ${className}`}>
       <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <p className="text-3xl font-bold text-foreground mt-2">
+        <div className="flex-1 min-w-0">
+          <p className="truncate text-sm font-medium text-muted-foreground">{label}</p>
+          <p className="mt-2 text-xl font-bold leading-tight text-foreground sm:text-2xl">
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>
-          {subtext && <p className="text-xs text-muted-foreground mt-2">{subtext}</p>}
+          {subtext && <p className="mt-2 truncate text-xs text-muted-foreground">{subtext}</p>}
           {trend !== undefined && (
             <div className="flex items-center gap-1 mt-3">
               <TrendingUp className={`h-4 w-4 ${trend > 0 ? 'text-green-500' : 'text-red-500'}`} />
@@ -61,7 +61,7 @@ export function SystemMetrics({ metrics }: SystemMetricsProps) {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
         <MetricCard
           icon={<Zap className="h-6 w-6 text-blue-500" />}
           label="Active Events"

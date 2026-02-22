@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    for (const handleKey of ['instagram', 'tiktok']) {
+    for (const handleKey of ['instagram', 'tiktok', 'youtubeHandle', 'x', 'facebook', 'snapchat']) {
       const value = changePayload[handleKey];
       if (typeof value === 'string' && /^https?:\/\//i.test(value.trim())) {
         return NextResponse.json(

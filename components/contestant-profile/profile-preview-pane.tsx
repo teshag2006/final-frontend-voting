@@ -26,10 +26,8 @@ function getYouTubeEmbedUrl(raw: string): string {
 
 export function ProfilePreviewPane({
   value,
-  galleryImages = [],
 }: {
   value: ContestantProfileComposerData;
-  galleryImages?: string[];
 }) {
   const youtubeEmbedUrl = getYouTubeEmbedUrl(value.youtube || '');
 
@@ -47,11 +45,6 @@ export function ProfilePreviewPane({
         <p className="text-xl font-semibold text-slate-900">{value.displayName || 'Display Name'}</p>
         <p className="text-sm text-slate-600">{value.category || 'Category'} - {value.location || 'Location'}</p>
         <p className="mt-2 text-sm text-slate-700">{value.bio || 'Your bio will appear here.'}</p>
-        <div className="mt-3 space-y-1 text-xs text-slate-500">
-          <p>Instagram: {value.instagram || '-'}</p>
-          <p>TikTok: {value.tiktok || '-'}</p>
-          <p>YouTube: {value.youtube || '-'}</p>
-        </div>
         {youtubeEmbedUrl ? (
           <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-black">
             <iframe
@@ -63,23 +56,6 @@ export function ProfilePreviewPane({
             />
           </div>
         ) : null}
-        <div className="mt-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Gallery</p>
-          {galleryImages.length > 0 ? (
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {galleryImages.slice(0, 6).map((src, index) => (
-                <img
-                  key={`${src}-${index}`}
-                  src={src}
-                  alt={`Gallery ${index + 1}`}
-                  className="h-16 w-full rounded-md object-cover"
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="mt-1 text-xs text-slate-500">No gallery photos uploaded.</p>
-          )}
-        </div>
       </div>
     </aside>
   );

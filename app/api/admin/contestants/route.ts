@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
     avatar: payload.avatar ? String(payload.avatar) : undefined,
     galleryImages: Array.isArray(payload.galleryImages) ? payload.galleryImages.map((item) => String(item)) : [],
     email: payload.email ? String(payload.email) : undefined,
+    introVideoUrl: payload.introVideoUrl ? String(payload.introVideoUrl) : undefined,
   });
   return NextResponse.json(created, { status: 201 });
 }
@@ -70,4 +71,3 @@ export async function DELETE(request: NextRequest) {
   }
   return NextResponse.json({ success: true });
 }
-
