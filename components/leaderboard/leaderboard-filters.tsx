@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -26,6 +25,7 @@ export function LeaderboardFilters({
   onExport,
   isLoading = false,
 }: LeaderboardFiltersProps) {
+  void onExport;
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [includePending, setIncludePending] = useState(false);
 
@@ -77,25 +77,6 @@ export function LeaderboardFilters({
         </div>
       </div>
 
-      {/* Export Buttons */}
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onExport?.('csv')}
-          disabled={isLoading}
-        >
-          Export CSV
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onExport?.('pdf')}
-          disabled={isLoading}
-        >
-          Export PDF
-        </Button>
-      </div>
     </div>
   );
 }

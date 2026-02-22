@@ -75,7 +75,9 @@ export default async function CategoryDetailsPage({
 
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {contestants.map((contestant: any) => (
+            {[...contestants]
+              .sort((a: any, b: any) => Number(b.votes ?? 0) - Number(a.votes ?? 0))
+              .map((contestant: any, index: number) => (
               <ContestantListCard
                 key={contestant.id}
                 contestant={{
@@ -83,7 +85,7 @@ export default async function CategoryDetailsPage({
                   full_name: contestant.name,
                   profile_image_url: contestant.image_url,
                   total_votes: Number(contestant.votes ?? 0),
-                  rank: contestant.ranking,
+                  rank: index + 1,
                   country: contestant.country ?? 'N/A',
                   is_verified: true,
                 }}

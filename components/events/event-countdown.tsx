@@ -70,24 +70,26 @@ export function EventCountdown({
   const timeUnitColor = eventStatus === 'UPCOMING' ? 'text-blue-600' : 'text-red-600';
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
-      <Clock className={`h-5 w-5 ${timeUnitColor}`} />
-      <div className="flex flex-col sm:flex-row items-center gap-2 text-sm sm:text-base">
-        <span className="font-medium text-slate-900">{countdownLabel}:</span>
-        <div className="flex gap-2 font-mono font-bold">
-          <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
-            {String(timeRemaining.days).padStart(2, '0')}d
-          </span>
-          <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
-            {String(timeRemaining.hours).padStart(2, '0')}h
-          </span>
-          <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
-            {String(timeRemaining.minutes).padStart(2, '0')}m
-          </span>
-          <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
-            {String(timeRemaining.seconds).padStart(2, '0')}s
-          </span>
-        </div>
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
+      <div className="flex items-center gap-2">
+        <Clock className={`h-5 w-5 ${timeUnitColor}`} />
+        <span className="whitespace-nowrap font-medium text-slate-900">
+          {countdownLabel}:
+        </span>
+      </div>
+      <div className="mt-2 flex gap-2 font-mono font-bold">
+        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
+          {String(timeRemaining.days).padStart(2, '0')}d
+        </span>
+        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
+          {String(timeRemaining.hours).padStart(2, '0')}h
+        </span>
+        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
+          {String(timeRemaining.minutes).padStart(2, '0')}m
+        </span>
+        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
+          {String(timeRemaining.seconds).padStart(2, '0')}s
+        </span>
       </div>
     </div>
   );
