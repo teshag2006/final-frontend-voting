@@ -30,6 +30,14 @@ interface CreateEditEventModalProps {
   onSave: (eventData: Partial<AdminEvent>) => void;
 }
 
+function toDateTimeLocal(value?: string): string {
+  if (!value) return '';
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return value;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 export function CreateEditEventModal({
   isOpen,
   event,
@@ -40,6 +48,10 @@ export function CreateEditEventModal({
     name: '',
     description: '',
     status: 'UPCOMING',
+    registrationStart: '',
+    registrationEnd: '',
+    votingStart: '',
+    votingEnd: '',
     startDate: '',
     endDate: '',
   });
@@ -54,6 +66,10 @@ export function CreateEditEventModal({
         name: event.name,
         description: event.description,
         status: event.status,
+        registrationStart: toDateTimeLocal(event.registrationStart),
+        registrationEnd: toDateTimeLocal(event.registrationEnd),
+        votingStart: toDateTimeLocal(event.votingStart || event.startDate),
+        votingEnd: toDateTimeLocal(event.votingEnd || event.endDate),
         startDate: event.startDate,
         endDate: event.endDate,
       });
@@ -62,6 +78,10 @@ export function CreateEditEventModal({
         name: '',
         description: '',
         status: 'UPCOMING',
+        registrationStart: '',
+        registrationEnd: '',
+        votingStart: '',
+        votingEnd: '',
         startDate: '',
         endDate: '',
       });
@@ -76,19 +96,43 @@ export function CreateEditEventModal({
       newErrors.name = 'Event name is required';
     }
 
-    if (!formData.startDate) {
-      newErrors.startDate = 'Start date is required';
+    if (!formData.registrationStart) {
+      newErrors.registrationStart = 'Registration start is required';
     }
 
-    if (!formData.endDate) {
-      newErrors.endDate = 'End date is required';
+    if (!formData.registrationEnd) {
+      newErrors.registrationEnd = 'Registration end is required';
     }
 
-    if (formData.startDate && formData.endDate) {
-      const start = new Date(formData.startDate);
-      const end = new Date(formData.endDate);
+    if (!formData.votingStart) {
+      newErrors.votingStart = 'Voting start is required';
+    }
+
+    if (!formData.votingEnd) {
+      newErrors.votingEnd = 'Voting end is required';
+    }
+
+    if (formData.registrationStart && formData.registrationEnd) {
+      const start = new Date(formData.registrationStart);
+      const end = new Date(formData.registrationEnd);
       if (start >= end) {
-        newErrors.endDate = 'End date must be after start date';
+        newErrors.registrationEnd = 'Registration end must be after registration start';
+      }
+    }
+
+    if (formData.votingStart && formData.votingEnd) {
+      const start = new Date(formData.votingStart);
+      const end = new Date(formData.votingEnd);
+      if (start >= end) {
+        newErrors.votingEnd = 'Voting end must be after voting start';
+      }
+    }
+
+    if (formData.registrationEnd && formData.votingStart) {
+      const registrationEnd = new Date(formData.registrationEnd);
+      const votingStart = new Date(formData.votingStart);
+      if (registrationEnd > votingStart) {
+        newErrors.votingStart = 'Voting start must be after registration end';
       }
     }
 
@@ -121,7 +165,11 @@ export function CreateEditEventModal({
     try {
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 500));
-      onSave(formData);
+      onSave({
+        ...formData,
+        startDate: formData.votingStart,
+        endDate: formData.votingEnd,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -176,43 +224,83 @@ export function CreateEditEventModal({
             />
           </div>
 
-          {/* Start Date */}
+          {/* Registration Start */}
           <div className="space-y-2">
-            <Label htmlFor="startDate" className="text-sm font-medium">
-              Start Date <span className="text-destructive">*</span>
+            <Label htmlFor="registrationStart" className="text-sm font-medium">
+              Registration Start <span className="text-destructive">*</span>
             </Label>
             <Input
-              id="startDate"
-              name="startDate"
-              type="date"
-              value={formData.startDate || ''}
+              id="registrationStart"
+              name="registrationStart"
+              type="datetime-local"
+              value={formData.registrationStart || ''}
               onChange={handleChange}
               disabled={isSubmitting}
-              aria-invalid={!!errors.startDate}
-              className={errors.startDate ? 'border-destructive' : ''}
+              aria-invalid={!!errors.registrationStart}
+              className={errors.registrationStart ? 'border-destructive' : ''}
             />
-            {errors.startDate && (
-              <p className="text-xs text-destructive mt-1">{errors.startDate}</p>
+            {errors.registrationStart && (
+              <p className="text-xs text-destructive mt-1">{errors.registrationStart}</p>
             )}
           </div>
 
-          {/* End Date */}
+          {/* Registration End */}
           <div className="space-y-2">
-            <Label htmlFor="endDate" className="text-sm font-medium">
-              End Date <span className="text-destructive">*</span>
+            <Label htmlFor="registrationEnd" className="text-sm font-medium">
+              Registration End <span className="text-destructive">*</span>
             </Label>
             <Input
-              id="endDate"
-              name="endDate"
-              type="date"
-              value={formData.endDate || ''}
+              id="registrationEnd"
+              name="registrationEnd"
+              type="datetime-local"
+              value={formData.registrationEnd || ''}
               onChange={handleChange}
               disabled={isSubmitting}
-              aria-invalid={!!errors.endDate}
-              className={errors.endDate ? 'border-destructive' : ''}
+              aria-invalid={!!errors.registrationEnd}
+              className={errors.registrationEnd ? 'border-destructive' : ''}
             />
-            {errors.endDate && (
-              <p className="text-xs text-destructive mt-1">{errors.endDate}</p>
+            {errors.registrationEnd && (
+              <p className="text-xs text-destructive mt-1">{errors.registrationEnd}</p>
+            )}
+          </div>
+
+          {/* Voting Start */}
+          <div className="space-y-2">
+            <Label htmlFor="votingStart" className="text-sm font-medium">
+              Voting Start <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="votingStart"
+              name="votingStart"
+              type="datetime-local"
+              value={formData.votingStart || ''}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              aria-invalid={!!errors.votingStart}
+              className={errors.votingStart ? 'border-destructive' : ''}
+            />
+            {errors.votingStart && (
+              <p className="text-xs text-destructive mt-1">{errors.votingStart}</p>
+            )}
+          </div>
+
+          {/* Voting End */}
+          <div className="space-y-2">
+            <Label htmlFor="votingEnd" className="text-sm font-medium">
+              Voting End (Date & Hour) <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="votingEnd"
+              name="votingEnd"
+              type="datetime-local"
+              value={formData.votingEnd || ''}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              aria-invalid={!!errors.votingEnd}
+              className={errors.votingEnd ? 'border-destructive' : ''}
+            />
+            {errors.votingEnd && (
+              <p className="text-xs text-destructive mt-1">{errors.votingEnd}</p>
             )}
           </div>
 

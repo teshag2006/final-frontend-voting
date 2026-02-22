@@ -49,6 +49,11 @@ function StatusBadge({ status }: { status: Event["status"] }) {
 }
 
 export function EventOverview({ event, className }: EventOverviewProps) {
+  const formatWindow = (start?: string, end?: string) => {
+    if (!start || !end) return null;
+    return `${new Date(start).toLocaleString()} - ${new Date(end).toLocaleString()}`;
+  };
+
   return (
     <div
       className={cn(
@@ -83,6 +88,18 @@ export function EventOverview({ event, className }: EventOverviewProps) {
           <InfoItem
             icon={<FileText className="h-4 w-4" />}
             label={event.voting_rules}
+          />
+        )}
+        {event.registration_start && event.registration_end && (
+          <InfoItem
+            icon={<CheckCircle2 className="h-4 w-4 text-blue-500" />}
+            label={`Registration: ${formatWindow(event.registration_start, event.registration_end)}`}
+          />
+        )}
+        {event.voting_start && event.voting_end && (
+          <InfoItem
+            icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+            label={`Voting: ${formatWindow(event.voting_start, event.voting_end)}`}
           />
         )}
         {event.revenue_share_disclosure && (

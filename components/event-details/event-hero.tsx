@@ -49,7 +49,7 @@ function HeroCountdown({ targetDate }: { targetDate: string }) {
   return (
     <div className="inline-flex items-center gap-3 rounded-xl bg-card/90 backdrop-blur-sm px-4 py-2.5 shadow-sm border border-border">
       <Calendar className="h-4 w-4 text-muted-foreground" />
-      <span className="text-xs font-medium text-muted-foreground">Apr</span>
+      <span className="text-xs font-medium text-muted-foreground">Ends in</span>
       <div className="flex items-center gap-3">
         <CountdownUnit value={timeLeft.days} label="Days" />
         <CountdownUnit value={timeLeft.hours} label="Hours" />
@@ -61,7 +61,7 @@ function HeroCountdown({ targetDate }: { targetDate: string }) {
 }
 
 export function EventHero({ event }: EventHeroProps) {
-  const isActive = event.status === "active";
+  const isActive = event.status === "active" || event.status === "LIVE";
 
   return (
     <section className="relative overflow-hidden">

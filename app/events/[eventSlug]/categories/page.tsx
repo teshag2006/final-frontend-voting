@@ -69,8 +69,8 @@ export default async function CategoriesPage({
         {/* Header */}
         <CategoryHeader category={headerCategory} eventSlug={eventSlug} />
 
-        {/* Countdown for upcoming events */}
-        {event.status === "UPCOMING" && (
+        {/* Countdown for upcoming and live events */}
+        {(event.status === "UPCOMING" || event.status === "LIVE" || event.status === "active") && (
           <div className="bg-white border-b border-slate-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <EventCountdown

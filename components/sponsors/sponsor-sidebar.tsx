@@ -2,13 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Search, Settings, ScrollText } from 'lucide-react';
+import { LayoutDashboard, Search, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { href: '/sponsors', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/sponsors/discover', label: 'Discover Contestants', icon: Search },
-  { href: '/sponsors/campaigns', label: 'Campaigns', icon: ScrollText },
   { href: '/sponsors/settings', label: 'Profile Settings', icon: Settings },
 ];
 

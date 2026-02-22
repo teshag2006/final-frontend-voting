@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { type ChangeEvent, type FormEvent, useState, useEffect } from 'react';
 import { Upload, X } from 'lucide-react';
 import {
   Dialog,
@@ -64,6 +64,7 @@ export function CreateEditContestantModal({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
 
   useEffect(() => {
     if (initialData) {
@@ -71,6 +72,7 @@ export function CreateEditContestantModal({
       if (initialData.avatar) {
         setAvatarPreview(initialData.avatar);
       }
+      setGalleryPreviews(initialData.galleryImages || []);
     } else {
       setFormData({
         name: '',
@@ -81,6 +83,7 @@ export function CreateEditContestantModal({
         galleryImages: [],
       });
       setAvatarPreview(null);
+      setGalleryPreviews([]);
     }
     setErrors({});
   }, [initialData, isOpen]);
@@ -100,7 +103,7 @@ export function CreateEditContestantModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -115,7 +118,7 @@ export function CreateEditContestantModal({
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // In real app, would upload to server
@@ -126,6 +129,25 @@ export function CreateEditContestantModal({
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleGalleryChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    files.forEach((file) => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setGalleryPreviews((prev) => {
+          const next = [...prev, result].slice(0, 8);
+          setFormData((current) => ({ ...current, galleryImages: next }));
+          return next;
+        });
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   return (
@@ -169,6 +191,48 @@ export function CreateEditContestantModal({
                   disabled={isLoading}
                 />
               </label>
+            </div>
+          </div>
+
+          {/* Gallery Photos */}
+          <div>
+            <Label>Contestant Photos</Label>
+            <div className="mt-2 space-y-3">
+              <label className="inline-flex cursor-pointer items-center rounded-md border border-dashed border-border px-3 py-2 text-sm hover:bg-muted">
+                <Upload className="mr-2 h-4 w-4 text-muted-foreground" />
+                Add Photos
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleGalleryChange}
+                  className="hidden"
+                  disabled={isLoading}
+                />
+              </label>
+              {galleryPreviews.length > 0 ? (
+                <div className="grid grid-cols-4 gap-2">
+                  {galleryPreviews.map((src, index) => (
+                    <div key={`${src}-${index}`} className="relative">
+                      <img src={src} alt={`Contestant gallery ${index + 1}`} className="h-16 w-full rounded-md object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = galleryPreviews.filter((_, i) => i !== index);
+                          setGalleryPreviews(next);
+                          setFormData((current) => ({ ...current, galleryImages: next }));
+                        }}
+                        className="absolute -right-1 -top-1 rounded-full bg-red-600 p-1 text-white"
+                        aria-label="Remove gallery photo"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">No additional photos uploaded.</p>
+              )}
             </div>
           </div>
 

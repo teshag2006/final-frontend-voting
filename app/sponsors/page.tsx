@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -10,6 +10,7 @@ import {
   CircleDollarSign,
   Info,
   LineChart,
+  RefreshCw,
   Shield,
   Sparkles,
   Wallet,
@@ -36,20 +37,34 @@ import {
 export default function SponsorsOverviewPage() {
   const [overview, setOverview] = useState<SponsorDashboardOverview>(mockSponsorDashboardOverview);
   const [campaigns, setCampaigns] = useState<SponsorCampaignTracking[]>(mockSponsorCampaignTracking);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadMessage, setLoadMessage] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
+  const loadDashboard = useCallback(async () => {
+    setIsLoading(true);
+    setLoadMessage(null);
+
+    const [overviewRes, campaignsRes] = await Promise.all([getSponsorDashboardOverview(), getSponsorCampaignTracking()]);
+    const hasOverview = Boolean(overviewRes);
+    const hasCampaigns = Boolean(campaignsRes);
+
+    if (overviewRes) setOverview(overviewRes);
+    if (campaignsRes) setCampaigns(campaignsRes);
+
+    if (!hasOverview && !hasCampaigns) {
+      setLoadMessage('Could not reach sponsor API. Showing mock data.');
+    } else if (!hasOverview || !hasCampaigns) {
+      setLoadMessage('Partially updated from API. Remaining values are from mock data.');
+    }
+
+    setLastUpdated(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-
-    Promise.all([getSponsorDashboardOverview(), getSponsorCampaignTracking()]).then(([overviewRes, campaignsRes]) => {
-      if (!mounted) return;
-      if (overviewRes) setOverview(overviewRes);
-      if (campaignsRes) setCampaigns(campaignsRes);
-    });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    void loadDashboard();
+  }, [loadDashboard]);
 
   const pendingVerification = overview.verificationStatus === 'pending';
   const recentCampaigns = campaigns.slice(0, 3);
@@ -61,11 +76,34 @@ export default function SponsorsOverviewPage() {
     <div className="min-h-screen bg-slate-100/80">
       <main className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <section>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Sponsor Dashboard</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Manage and track all your sponsorship campaigns from one dashboard.
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Sponsor Dashboard</h1>
+              <p className="mt-1 text-sm text-slate-600">
+                Manage and track all your sponsorship campaigns from one dashboard.
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Last updated: {lastUpdated || 'Not synced yet'}
+              </p>
+            </div>
+            <Button type="button" variant="outline" onClick={loadDashboard} disabled={isLoading}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </section>
+
+        {isLoading && (
+          <section className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+            Syncing latest sponsor metrics...
+          </section>
+        )}
+
+        {loadMessage && (
+          <section className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {loadMessage}
+          </section>
+        )}
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <KpiCard
@@ -209,6 +247,7 @@ export default function SponsorsOverviewPage() {
                     <th className="px-2 py-3 font-medium">Status</th>
                     <th className="px-2 py-3 font-medium">Payment</th>
                     <th className="px-2 py-3 font-medium">Admin Note</th>
+                    <th className="px-2 py-3 font-medium">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -235,6 +274,16 @@ export default function SponsorsOverviewPage() {
                       </td>
                       <td className="px-2 py-3">
                         <p className="line-clamp-2 text-sm text-slate-700">{campaign.adminNotes}</p>
+                      </td>
+                      <td className="px-2 py-3">
+                        <div className="flex flex-wrap gap-2">
+                          <Button asChild size="sm" variant="outline">
+                            <Link href={`/sponsors/${campaign.contestantSlug}`}>Contestant</Link>
+                          </Button>
+                          <Button asChild size="sm">
+                            <Link href={`/sponsors/campaigns?contestant=${campaign.contestantSlug}`}>Campaign</Link>
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -311,9 +360,9 @@ function CampaignStatusBadge({ status }: { status: SponsorCampaignTracking['camp
     status === 'draft'
       ? 'bg-slate-100 text-slate-700'
       : status === 'active'
-      ? 'bg-emerald-100 text-emerald-800'
+      ? 'bg-blue-100 text-blue-800'
       : status === 'completed'
-        ? 'bg-blue-100 text-blue-800'
+        ? 'bg-emerald-100 text-emerald-800'
         : status === 'pending_payment'
           ? 'bg-amber-100 text-amber-800'
           : 'bg-red-100 text-red-800';

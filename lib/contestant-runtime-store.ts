@@ -27,6 +27,7 @@ export interface ContestantProfileComposerData {
   bio: string;
   category: string;
   location: string;
+  photoUrl: string;
   instagram: string;
   tiktok: string;
   youtube: string;
@@ -170,9 +171,10 @@ let profileStore: ContestantProfileComposerData = {
   bio: 'Singer and performer focused on afro-fusion and live storytelling.',
   category: 'Singing',
   location: 'Addis Ababa, Ethiopia',
+  photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600',
   instagram: '@amina.live',
   tiktok: '@amina.music',
-  youtube: '@aminaofficial',
+  youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
 };
 
 let complianceStore: ContestantComplianceData = {
@@ -374,6 +376,43 @@ function mkId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+function extractYouTubeVideoId(raw: string): string | null {
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    const host = url.hostname.toLowerCase().replace(/^www\./, '');
+
+    if (host === 'youtu.be') {
+      const id = url.pathname.replace('/', '').trim();
+      return id || null;
+    }
+
+    if (host === 'youtube.com' || host === 'm.youtube.com') {
+      if (url.pathname === '/watch') {
+        return url.searchParams.get('v');
+      }
+      if (url.pathname.startsWith('/shorts/')) {
+        return url.pathname.split('/')[2] || null;
+      }
+      if (url.pathname.startsWith('/embed/')) {
+        return url.pathname.split('/')[2] || null;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+export function isYouTubeUrl(raw: string): boolean {
+  return Boolean(extractYouTubeVideoId(raw));
+}
+
+export function normalizeYouTubeUrl(raw: string): string {
+  const id = extractYouTubeVideoId(raw);
+  return id ? `https://www.youtube.com/watch?v=${id}` : '';
+}
+
 function pushAudit(action: string, detail: string) {
   auditStore.unshift({
     id: mkId('audit'),
@@ -468,6 +507,72 @@ export function getContestantCompliance() {
 }
 
 export function updateContestantProfile(payload: Partial<ContestantProfileComposerData>) {
+  if (payload.youtube !== undefined) {
+    const trimmed = String(payload.youtube || '').trim();
+    if (trimmed && !isYouTubeUrl(trimmed)) {
+      throw new Error('YouTube URL is required for intro video');
+    }
+    payload.youtube = trimmed ? normalizeYouTubeUrl(trimmed) : '';
+  }
+
+  if (payload.instagram !== undefined && /^https?:\/\//i.test(String(payload.instagram).trim())) {
+    throw new Error('Instagram must be a handle, not a URL');
+  }
+
+  if (payload.tiktok !== undefined && /^https?:\/\//i.test(String(payload.tiktok).trim())) {
+    throw new Error('TikTok must be a handle, not a URL');
+  }
+
+  if (payload.photoUrl !== undefined) {
+    const nextPhoto = String(payload.photoUrl || '').trim();
+    if (nextPhoto) {
+      const existingPhoto = mediaStore.find((item) => item.kind === 'profile_photo');
+      if (existingPhoto) {
+        mediaStore = mediaStore.map((item) =>
+          item.id === existingPhoto.id
+            ? { ...item, url: nextPhoto, status: 'pending' }
+            : item
+        );
+      } else {
+        mediaStore = [
+          {
+            id: mkId('media'),
+            kind: 'profile_photo',
+            label: 'Main Profile Photo',
+            url: nextPhoto,
+            status: 'pending',
+          },
+          ...mediaStore,
+        ];
+      }
+    }
+  }
+
+  if (payload.youtube !== undefined) {
+    const nextVideo = String(payload.youtube || '').trim();
+    if (nextVideo) {
+      const existingVideo = mediaStore.find((item) => item.kind === 'intro_video_embed');
+      if (existingVideo) {
+        mediaStore = mediaStore.map((item) =>
+          item.id === existingVideo.id
+            ? { ...item, url: nextVideo, status: 'pending' }
+            : item
+        );
+      } else {
+        mediaStore = [
+          {
+            id: mkId('media'),
+            kind: 'intro_video_embed',
+            label: 'Intro Video',
+            url: nextVideo,
+            status: 'pending',
+          },
+          ...mediaStore,
+        ];
+      }
+    }
+  }
+
   const changedFields = Object.entries(payload)
     .filter(([, value]) => value !== undefined)
     .map(([key]) => key);
@@ -756,7 +861,18 @@ export function reviewContestantChangeRequest(payload: {
 
   if (payload.action === 'approve') {
     if (target.type === 'profile') {
-      profileStore = { ...profileStore, ...(target.payload as Partial<ContestantProfileComposerData>) };
+      const patch = { ...(target.payload as Partial<ContestantProfileComposerData>) };
+      if (patch.youtube !== undefined) {
+        const trimmed = String(patch.youtube || '').trim();
+        patch.youtube = trimmed && isYouTubeUrl(trimmed) ? normalizeYouTubeUrl(trimmed) : profileStore.youtube;
+      }
+      if (patch.instagram !== undefined && /^https?:\/\//i.test(String(patch.instagram).trim())) {
+        delete patch.instagram;
+      }
+      if (patch.tiktok !== undefined && /^https?:\/\//i.test(String(patch.tiktok).trim())) {
+        delete patch.tiktok;
+      }
+      profileStore = { ...profileStore, ...patch };
     }
     if (target.type === 'onboarding') {
       onboardingStore = { ...onboardingStore, ...(target.payload as Partial<ContestantOnboardingData>) };

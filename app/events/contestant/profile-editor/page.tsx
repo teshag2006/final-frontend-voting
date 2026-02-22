@@ -39,7 +39,7 @@ export default function ContestantProfileEditorPage() {
 
   async function submitLockedChangeRequest(reason: string) {
     if (!profile) return;
-    await fetch('/api/contestant/change-requests', {
+    const res = await fetch('/api/contestant/change-requests', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -48,6 +48,11 @@ export default function ContestantProfileEditorPage() {
         payload: profile,
       }),
     });
+    if (!res.ok) {
+      const errorBody = (await res.json().catch(() => ({}))) as { message?: string };
+      setMessage(errorBody.message || 'Could not submit change request.');
+      return;
+    }
     setMessage('Profile update request submitted for admin review.');
   }
 
@@ -93,6 +98,12 @@ export default function ContestantProfileEditorPage() {
                 if (reason) {
                   await submitLockedChangeRequest(reason);
                 }
+              } else if (!res.ok) {
+                const errorBody = (await res.json().catch(() => ({}))) as { message?: string };
+                setMessage(errorBody.message || 'Profile update failed');
+                return;
+              } else {
+                setMessage('Profile updated successfully.');
               }
               await loadProfile();
             }}

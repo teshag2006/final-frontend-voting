@@ -1,11 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { ComponentType, ReactNode, useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useAuth } from '@/context/AuthContext';
 import {
   Activity,
   AlertTriangle,
@@ -20,7 +18,6 @@ import {
   LayoutDashboard,
   ListChecks,
   Menu,
-  LogOut,
   Megaphone,
   Moon,
   ReceiptText,
@@ -211,8 +208,6 @@ function SidebarNav({
 
 export function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { logout } = useAuth();
   const [theme, setTheme] = useState<AdminTheme>('dark');
   const isDark = theme === 'dark';
 
@@ -229,11 +224,6 @@ export function AdminShell({ children }: AdminShellProps) {
       localStorage.setItem('admin_theme', next);
       return next;
     });
-  };
-
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
   };
 
   return (
@@ -257,35 +247,25 @@ export function AdminShell({ children }: AdminShellProps) {
       </aside>
 
       <div className="lg:pl-72">
-        <header
-          className={cn(
-            'sticky top-0 z-20 border-b px-4 py-3 backdrop-blur',
-            isDark ? 'border-slate-200 bg-white/90' : 'border-slate-300 bg-white'
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-900">Admin Console</p>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleLogout} className="border-slate-300 bg-white">
-                <LogOut className="mr-1 h-4 w-4" />
-                Logout
-              </Button>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="border-slate-300 bg-white lg:hidden">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="left"
-                  className={cn('w-80 p-0', isDark ? 'border-white/10 bg-slate-950' : 'border-slate-200 bg-white')}
-                >
-                  <SidebarNav pathname={pathname} theme={theme} onToggleTheme={toggleTheme} />
-                </SheetContent>
-              </Sheet>
-            </div>
-          </div>
-        </header>
+        <div className="fixed left-3 top-3 z-40 lg:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-900 shadow-sm"
+                aria-label="Open admin menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent
+              side="left"
+              className={cn('w-80 p-0', isDark ? 'border-white/10 bg-slate-950' : 'border-slate-200 bg-white')}
+            >
+              <SidebarNav pathname={pathname} theme={theme} onToggleTheme={toggleTheme} />
+            </SheetContent>
+          </Sheet>
+        </div>
 
         <div className="min-h-screen">{children}</div>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ChangeEvent, type ReactNode, useMemo, useRef, useState } from 'react';
 import { Building2, CheckCircle2, Circle, FileText, Shield, UserRound } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,8 @@ export default function SponsorProfileSettingsPage() {
   const [draftSettings, setDraftSettings] = useState<SponsorProfileSettings>(mockSponsorProfileSettings);
   const [auditTrail, setAuditTrail] = useState<SponsorAuditEntry[]>([]);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -59,6 +61,42 @@ export default function SponsorProfileSettingsPage() {
   const handleDiscard = () => {
     setDraftSettings(settings);
     setSaveState('idle');
+    setLogoError(null);
+  };
+
+  const handleLogoButtonClick = () => {
+    logoInputRef.current?.click();
+  };
+
+  const handleLogoFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setLogoError('Please select an image file.');
+      event.target.value = '';
+      return;
+    }
+
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setLogoError('Logo must be 5MB or less.');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== 'string') {
+        setLogoError('Could not read logo file.');
+        return;
+      }
+      setLogoError(null);
+      setDraftSettings((prev) => ({ ...prev, general: { ...prev.general, logoUrl: result } }));
+    };
+    reader.onerror = () => setLogoError('Could not read logo file.');
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -97,7 +135,7 @@ export default function SponsorProfileSettingsPage() {
               </ul>
             </div>
             <Button
-              className="bg-amber-500 text-slate-900 hover:bg-amber-400"
+              className="bg-amber-600 !text-white hover:bg-amber-500"
               onClick={() => setTab(missingItems[0]?.toLowerCase().includes('address') ? 'contact' : 'legal')}
             >
               Add Missing Info
@@ -135,26 +173,52 @@ export default function SponsorProfileSettingsPage() {
                 <div className="space-y-2">
                   <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
                     <div className="flex h-36 w-full items-center justify-center p-4">
-                      <div className="text-center">
-                        <p className="text-4xl font-semibold tracking-wide text-slate-800">
-                          {draftSettings.general.companyName.slice(0, 1).toUpperCase()}
-                        </p>
-                        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                          {draftSettings.general.companyName}
-                        </p>
-                      </div>
+                      {draftSettings.general.logoUrl ? (
+                        <img
+                          src={draftSettings.general.logoUrl}
+                          alt={`${draftSettings.general.companyName} logo`}
+                          className="h-full w-full rounded-md object-cover"
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <p className="text-4xl font-semibold tracking-wide text-slate-800">
+                            {draftSettings.general.companyName.slice(0, 1).toUpperCase()}
+                          </p>
+                          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                            {draftSettings.general.companyName}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full">Change Logo</Button>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoFileChange}
+                  />
+                  <Button type="button" variant="outline" className="w-full" onClick={handleLogoButtonClick}>
+                    Change Logo
+                  </Button>
+                  {logoError && <p className="text-xs text-red-700">{logoError}</p>}
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field
-                    label="Upload Logo"
+                    label="Company Name"
                     value={draftSettings.general.companyName}
                     onChange={(value) =>
                       setDraftSettings((prev) => ({ ...prev, general: { ...prev.general, companyName: value } }))
                     }
+                  />
+                  <Field
+                    label="Logo URL"
+                    value={draftSettings.general.logoUrl}
+                    onChange={(value) =>
+                      setDraftSettings((prev) => ({ ...prev, general: { ...prev.general, logoUrl: value } }))
+                    }
+                    placeholder="https://example.com/logo.png"
                   />
                   <Field
                     label="Industry"

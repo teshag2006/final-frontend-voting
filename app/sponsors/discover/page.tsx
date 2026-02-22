@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { getSponsorDiscoverContestants } from '@/lib/api';
 import { mockMarketplaceContestants, type MarketplaceContestant } from '@/lib/sponsorship-mock';
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 4;
 
 export default function SponsorsDiscoverPage() {
   const [query, setQuery] = useState('');
@@ -69,6 +69,7 @@ export default function SponsorsDiscoverPage() {
   const totalPages = Math.max(1, Math.ceil(contestants.length / PAGE_SIZE));
   const activePage = Math.min(page, totalPages);
   const paginated = contestants.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
+  const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
   const maxVotes = Math.max(...apiContestants.map((item) => item.votes), 1000);
   const maxFollowers = Math.max(...apiContestants.map((item) => item.followers), 1000);
   const maxEngagement = Math.max(...apiContestants.map((item) => item.engagementRate), 10);
@@ -290,7 +291,7 @@ export default function SponsorsDiscoverPage() {
               <p className="text-sm text-slate-600">
                 Page {activePage} of {totalPages} ({contestants.length} results)
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -299,6 +300,17 @@ export default function SponsorsDiscoverPage() {
                 >
                   Previous
                 </Button>
+                {pageNumbers.map((pageNumber) => (
+                  <Button
+                    key={pageNumber}
+                    type="button"
+                    variant={pageNumber === activePage ? 'default' : 'outline'}
+                    onClick={() => setPage(pageNumber)}
+                    className="h-9 min-w-9 px-3"
+                  >
+                    {pageNumber}
+                  </Button>
+                ))}
                 <Button
                   type="button"
                   variant="outline"

@@ -17,5 +17,12 @@ export async function PATCH(request: NextRequest) {
     );
   }
   const payload = await request.json();
-  return NextResponse.json(updateContestantProfile(payload || {}));
+  try {
+    return NextResponse.json(updateContestantProfile(payload || {}));
+  } catch (error) {
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : 'Invalid profile payload' },
+      { status: 400 }
+    );
+  }
 }

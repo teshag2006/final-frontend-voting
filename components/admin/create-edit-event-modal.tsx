@@ -24,6 +24,10 @@ export interface EventFormData {
   id?: string;
   name: string;
   description: string;
+  registrationStart: string;
+  registrationEnd: string;
+  votingStart: string;
+  votingEnd: string;
   startDate: string;
   endDate: string;
   status: 'UPCOMING' | 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
@@ -37,6 +41,14 @@ interface CreateEditEventModalProps {
   isLoading?: boolean;
 }
 
+function toDateTimeLocal(value?: string): string {
+  if (!value) return '';
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return value;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 export function CreateEditEventModal({
   isOpen,
   onClose,
@@ -47,6 +59,10 @@ export function CreateEditEventModal({
   const [formData, setFormData] = useState<EventFormData>({
     name: '',
     description: '',
+    registrationStart: '',
+    registrationEnd: '',
+    votingStart: '',
+    votingEnd: '',
     startDate: '',
     endDate: '',
     status: 'UPCOMING',
@@ -57,11 +73,21 @@ export function CreateEditEventModal({
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        registrationStart: toDateTimeLocal(initialData.registrationStart),
+        registrationEnd: toDateTimeLocal(initialData.registrationEnd),
+        votingStart: toDateTimeLocal(initialData.votingStart || initialData.startDate),
+        votingEnd: toDateTimeLocal(initialData.votingEnd || initialData.endDate),
+      });
     } else {
       setFormData({
         name: '',
         description: '',
+        registrationStart: '',
+        registrationEnd: '',
+        votingStart: '',
+        votingEnd: '',
         startDate: '',
         endDate: '',
         status: 'UPCOMING',
@@ -76,17 +102,37 @@ export function CreateEditEventModal({
     if (!formData.name.trim()) {
       newErrors.name = 'Event name is required';
     }
-    if (!formData.startDate) {
-      newErrors.startDate = 'Start date is required';
+    if (!formData.registrationStart) {
+      newErrors.registrationStart = 'Registration start is required';
     }
-    if (!formData.endDate) {
-      newErrors.endDate = 'End date is required';
+    if (!formData.registrationEnd) {
+      newErrors.registrationEnd = 'Registration end is required';
     }
-    if (formData.startDate && formData.endDate) {
-      const start = new Date(formData.startDate);
-      const end = new Date(formData.endDate);
+    if (!formData.votingStart) {
+      newErrors.votingStart = 'Voting start is required';
+    }
+    if (!formData.votingEnd) {
+      newErrors.votingEnd = 'Voting end is required';
+    }
+    if (formData.registrationStart && formData.registrationEnd) {
+      const start = new Date(formData.registrationStart);
+      const end = new Date(formData.registrationEnd);
       if (start >= end) {
-        newErrors.endDate = 'End date must be after start date';
+        newErrors.registrationEnd = 'Registration end must be after registration start';
+      }
+    }
+    if (formData.votingStart && formData.votingEnd) {
+      const start = new Date(formData.votingStart);
+      const end = new Date(formData.votingEnd);
+      if (start >= end) {
+        newErrors.votingEnd = 'Voting end must be after voting start';
+      }
+    }
+    if (formData.registrationEnd && formData.votingStart) {
+      const registrationEnd = new Date(formData.registrationEnd);
+      const votingStart = new Date(formData.votingStart);
+      if (registrationEnd > votingStart) {
+        newErrors.votingStart = 'Voting start must be after registration end';
       }
     }
 
@@ -99,7 +145,11 @@ export function CreateEditEventModal({
 
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      await onSubmit({
+        ...formData,
+        startDate: formData.votingStart,
+        endDate: formData.votingEnd,
+      });
       onClose();
     } finally {
       setIsSubmitting(false);
@@ -154,38 +204,73 @@ export function CreateEditEventModal({
             />
           </div>
 
-          {/* Start & End Dates */}
+          {/* Registration Window */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="start-date" className="text-sm font-medium">
-                Start Date <span className="text-destructive">*</span>
+              <Label htmlFor="registration-start" className="text-sm font-medium">
+                Registration Start <span className="text-destructive">*</span>
               </Label>
               <Input
-                id="start-date"
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => handleChange('startDate', e.target.value)}
+                id="registration-start"
+                type="datetime-local"
+                value={formData.registrationStart}
+                onChange={(e) => handleChange('registrationStart', e.target.value)}
                 disabled={isSubmitting || isLoading}
-                className={errors.startDate ? 'border-destructive' : ''}
+                className={errors.registrationStart ? 'border-destructive' : ''}
               />
-              {errors.startDate && (
-                <p className="text-xs text-destructive">{errors.startDate}</p>
+              {errors.registrationStart && (
+                <p className="text-xs text-destructive">{errors.registrationStart}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="end-date" className="text-sm font-medium">
-                End Date <span className="text-destructive">*</span>
+              <Label htmlFor="registration-end" className="text-sm font-medium">
+                Registration End <span className="text-destructive">*</span>
               </Label>
               <Input
-                id="end-date"
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => handleChange('endDate', e.target.value)}
+                id="registration-end"
+                type="datetime-local"
+                value={formData.registrationEnd}
+                onChange={(e) => handleChange('registrationEnd', e.target.value)}
                 disabled={isSubmitting || isLoading}
-                className={errors.endDate ? 'border-destructive' : ''}
+                className={errors.registrationEnd ? 'border-destructive' : ''}
               />
-              {errors.endDate && <p className="text-xs text-destructive">{errors.endDate}</p>}
+              {errors.registrationEnd && <p className="text-xs text-destructive">{errors.registrationEnd}</p>}
+            </div>
+          </div>
+
+          {/* Voting Window */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="voting-start" className="text-sm font-medium">
+                Voting Start <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="voting-start"
+                type="datetime-local"
+                value={formData.votingStart}
+                onChange={(e) => handleChange('votingStart', e.target.value)}
+                disabled={isSubmitting || isLoading}
+                className={errors.votingStart ? 'border-destructive' : ''}
+              />
+              {errors.votingStart && (
+                <p className="text-xs text-destructive">{errors.votingStart}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="voting-end" className="text-sm font-medium">
+                Voting End (Date & Hour) <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="voting-end"
+                type="datetime-local"
+                value={formData.votingEnd}
+                onChange={(e) => handleChange('votingEnd', e.target.value)}
+                disabled={isSubmitting || isLoading}
+                className={errors.votingEnd ? 'border-destructive' : ''}
+              />
+              {errors.votingEnd && <p className="text-xs text-destructive">{errors.votingEnd}</p>}
             </div>
           </div>
 

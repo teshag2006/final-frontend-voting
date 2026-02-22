@@ -15,6 +15,10 @@ export interface EventData {
   name: string;
   description?: string;
   status: 'UPCOMING' | 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
+  registrationStart: string;
+  registrationEnd: string;
+  votingStart: string;
+  votingEnd: string;
   startDate: string;
   endDate: string;
   totalVotes: number;
@@ -99,8 +103,9 @@ export function EventsTable({
                 <SortIcon column="status" />
               </button>
             </th>
-            <th className="px-4 py-3 text-left font-semibold text-foreground">Start Date</th>
-            <th className="px-4 py-3 text-left font-semibold text-foreground">End Date</th>
+            <th className="px-4 py-3 text-left font-semibold text-foreground">Registration</th>
+            <th className="px-4 py-3 text-left font-semibold text-foreground">Voting</th>
+            <th className="px-4 py-3 text-left font-semibold text-foreground">Ends</th>
             <th className="px-4 py-3 text-right font-semibold text-foreground">Total Votes</th>
             <th className="px-4 py-3 text-right font-semibold text-foreground hidden sm:table-cell">
               Revenue
@@ -128,17 +133,44 @@ export function EventsTable({
                 <EventStatusBadge status={event.status} />
               </td>
               <td className="px-4 py-4 text-muted-foreground text-xs sm:text-sm">
-                {new Date(event.startDate).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}
+                <p>
+                  {new Date(event.registrationStart).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </p>
+                <p>
+                  {new Date(event.registrationEnd).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </p>
               </td>
               <td className="px-4 py-4 text-muted-foreground text-xs sm:text-sm">
-                {new Date(event.endDate).toLocaleDateString('en-US', {
+                <p>
+                  {new Date(event.votingStart).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </p>
+                <p>
+                  {new Date(event.votingEnd).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </p>
+              </td>
+              <td className="px-4 py-4 text-muted-foreground text-xs sm:text-sm">
+                {new Date(event.votingEnd).toLocaleString('en-US', {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
                 })}
               </td>
               <td className="px-4 py-4 text-right font-semibold text-foreground">

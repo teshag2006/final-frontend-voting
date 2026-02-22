@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { Bell, Crown } from 'lucide-react';
 import { ProtectedRouteWrapper } from '@/components/auth/protected-route-wrapper';
 import { SponsorSidebar } from '@/components/sponsors/sponsor-sidebar';
@@ -24,9 +25,9 @@ export default function SponsorsLayout({ children }: SponsorsLayoutProps) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button className="rounded-lg p-2 text-slate-100 transition-colors hover:bg-white/10" aria-label="Notifications">
+              <Link href="/notifications" className="rounded-lg p-2 text-slate-100 transition-colors hover:bg-white/10" aria-label="Notifications">
                 <Bell className="h-5 w-5" />
-              </button>
+              </Link>
               <SponsorLogoutButton />
             </div>
           </div>

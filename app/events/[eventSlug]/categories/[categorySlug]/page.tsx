@@ -65,7 +65,7 @@ export default async function CategoryDetailsPage({
           </div>
         </div>
 
-        {event.status === 'UPCOMING' && (
+        {(event.status === 'UPCOMING' || event.status === 'LIVE' || event.status === 'active') && (
           <div className="bg-white border-b border-slate-200">
             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
               <EventCountdown startDate={event.start_date} endDate={event.end_date} eventStatus={event.status} />

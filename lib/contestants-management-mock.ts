@@ -153,7 +153,7 @@ export function filterContestants(
 
 export function sortContestants(
   contestants: ContestantData[],
-  sortBy: 'name' | 'created' | 'votes' | 'revenue' = 'created',
+  sortBy: 'name' | 'category' | 'status' | 'created' | 'votes' | 'revenue' = 'created',
   sortOrder: 'asc' | 'desc' = 'desc'
 ): ContestantData[] {
   const sorted = [...contestants];
@@ -165,8 +165,14 @@ export function sortContestants(
       case 'name':
         compareValue = a.name.localeCompare(b.name);
         break;
+      case 'category':
+        compareValue = a.category.localeCompare(b.category);
+        break;
       case 'created':
         compareValue = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        break;
+      case 'status':
+        compareValue = a.status.localeCompare(b.status);
         break;
       case 'votes':
         compareValue = a.totalVotes - b.totalVotes;

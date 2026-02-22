@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   createContestantChangeRequest,
   getContestantChangeRequests,
+  isYouTubeUrl,
+  normalizeYouTubeUrl,
 } from '@/lib/contestant-runtime-store';
 
 const allowedTypes = ['onboarding', 'profile', 'media', 'compliance'] as const;
@@ -25,6 +27,46 @@ export async function POST(request: NextRequest) {
 
   if (!reason) {
     return NextResponse.json({ message: 'reason is required' }, { status: 400 });
+  }
+
+  if (type === 'profile') {
+    const youtube = changePayload.youtube;
+    if (typeof youtube === 'string') {
+      const trimmed = youtube.trim();
+      if (trimmed && !isYouTubeUrl(trimmed)) {
+        return NextResponse.json(
+          { message: 'Only a valid YouTube URL is allowed for intro video' },
+          { status: 400 }
+        );
+      }
+      if (trimmed) {
+        changePayload.youtube = normalizeYouTubeUrl(trimmed);
+      }
+    }
+
+    for (const handleKey of ['instagram', 'tiktok']) {
+      const value = changePayload[handleKey];
+      if (typeof value === 'string' && /^https?:\/\//i.test(value.trim())) {
+        return NextResponse.json(
+          { message: `${handleKey} must be a handle, not a URL` },
+          { status: 400 }
+        );
+      }
+    }
+  }
+
+  if (type === 'media') {
+    const kind = changePayload.kind;
+    const url = changePayload.url;
+    if (kind === 'intro_video_embed' && typeof url === 'string' && url.trim() && !isYouTubeUrl(url.trim())) {
+      return NextResponse.json(
+        { message: 'Only a valid YouTube URL is allowed for intro videos' },
+        { status: 400 }
+      );
+    }
+    if (kind === 'intro_video_embed' && typeof url === 'string' && isYouTubeUrl(url.trim())) {
+      changePayload.url = normalizeYouTubeUrl(url.trim());
+    }
   }
 
   return NextResponse.json(

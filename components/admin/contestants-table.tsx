@@ -22,13 +22,14 @@ export interface ContestantData {
   revenue: number;
   createdAt: string;
   avatar?: string;
+  galleryImages?: string[];
   email?: string;
 }
 
 interface ContestantsTableProps {
   contestants: ContestantData[];
   isLoading?: boolean;
-  sortBy?: 'name' | 'created' | 'votes' | 'revenue';
+  sortBy?: 'name' | 'category' | 'status' | 'created' | 'votes' | 'revenue';
   sortOrder?: 'asc' | 'desc';
   onSortChange?: (by: string, order: string) => void;
   onView?: (contestant: ContestantData) => void;
@@ -129,10 +130,42 @@ export function ContestantsTable({
                 <SortIcon column="name" />
               </div>
             </th>
-            <th className="px-4 py-3 text-left font-medium">Category</th>
-            <th className="px-4 py-3 text-left font-medium">Status</th>
-            <th className="px-4 py-3 text-right font-medium">Votes</th>
-            <th className="px-4 py-3 text-right font-medium">Revenue</th>
+            <th
+              className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-muted"
+              onClick={() => handleSort('category')}
+            >
+              <div className="flex items-center gap-1">
+                Category
+                <SortIcon column="category" />
+              </div>
+            </th>
+            <th
+              className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-muted"
+              onClick={() => handleSort('status')}
+            >
+              <div className="flex items-center gap-1">
+                Status
+                <SortIcon column="status" />
+              </div>
+            </th>
+            <th
+              className="px-4 py-3 text-right font-medium cursor-pointer hover:bg-muted"
+              onClick={() => handleSort('votes')}
+            >
+              <div className="flex items-center justify-end gap-1">
+                Votes
+                <SortIcon column="votes" />
+              </div>
+            </th>
+            <th
+              className="px-4 py-3 text-right font-medium cursor-pointer hover:bg-muted"
+              onClick={() => handleSort('revenue')}
+            >
+              <div className="flex items-center justify-end gap-1">
+                Revenue
+                <SortIcon column="revenue" />
+              </div>
+            </th>
             <th
               className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-muted"
               onClick={() => handleSort('created')}

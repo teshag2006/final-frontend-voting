@@ -3,6 +3,12 @@
 import { useState, useEffect } from 'react';
 import { Plus, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { ProtectedRouteWrapper } from '@/components/auth/protected-route-wrapper';
 import Link from 'next/link';
 import { ContestantsTable, type ContestantData } from '@/components/admin/contestants-table';
@@ -37,7 +43,7 @@ export default function AdminContestantsPage() {
     status: '',
   });
 
-  const [sortBy, setSortBy] = useState<'name' | 'created' | 'votes' | 'revenue'>('created');
+  const [sortBy, setSortBy] = useState<'name' | 'category' | 'status' | 'created' | 'votes' | 'revenue'>('created');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,10 +51,65 @@ export default function AdminContestantsPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedContestant, setSelectedContestant] = useState<ContestantData | undefined>();
+  const [viewContestant, setViewContestant] = useState<ContestantData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [publishingState, setPublishingState] = useState<ContestantPublishingState | null>(null);
   const [changeRequests, setChangeRequests] = useState<ContestantChangeRequest[]>([]);
+
+  const loadContestantsFromApi = async (): Promise<ContestantData[] | null> => {
+    try {
+      const response = await fetch('/api/admin/contestants');
+      if (!response.ok) {
+        return null;
+      }
+      const payload = (await response.json()) as ContestantData[];
+      return Array.isArray(payload) ? payload : [];
+    } catch {
+      return null;
+    }
+  };
+
+  const syncContestantCreate = async (contestant: ContestantData): Promise<ContestantData | null> => {
+    try {
+      const response = await fetch('/api/admin/contestants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contestant),
+      });
+      if (!response.ok) return null;
+      return (await response.json()) as ContestantData;
+    } catch {
+      return null;
+    }
+  };
+
+  const syncContestantPatch = async (
+    id: string,
+    patch: Partial<ContestantData>
+  ): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/admin/contestants', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, patch }),
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
+
+  const syncContestantDelete = async (id: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/admin/contestants?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
 
   const loadModeration = async () => {
     const [publishingRes, requestsRes] = await Promise.all([
@@ -63,15 +124,21 @@ export default function AdminContestantsPage() {
     }
   };
 
-  // Initialize mock data
+  // Initialize contestants data with backend-first + mock fallback
   useEffect(() => {
-    setTimeout(() => {
-      const mockContestants = generateMockContestants(120);
-      setAllContestants(mockContestants);
+    const loadContestantsData = async () => {
       const mockCategories = getCategories();
       setCategories(mockCategories);
+      const data = await loadContestantsFromApi();
+      if (data === null) {
+        const mockContestants = generateMockContestants(120);
+        setAllContestants(mockContestants);
+      } else {
+        setAllContestants(data);
+      }
       setIsLoading(false);
-    }, 600);
+    };
+    void loadContestantsData();
     void loadModeration();
   }, []);
 
@@ -100,41 +167,62 @@ export default function AdminContestantsPage() {
   };
 
   const handleViewContestant = (contestant: ContestantData) => {
-    // In real app, navigate to detail page
-    console.log('View contestant:', contestant);
+    setViewContestant(contestant);
   };
 
-  const handleApproveContestant = (contestant: ContestantData) => {
+  const handleApproveContestant = async (contestant: ContestantData) => {
     if (confirm(`Approve contestant "${contestant.name}"?`)) {
       setAllContestants((prev) =>
         prev.map((c) => (c.id === contestant.id ? { ...c, status: 'APPROVED' as const } : c))
       );
+      const ok = await syncContestantPatch(contestant.id, { status: 'APPROVED' });
+      if (!ok) {
+        setAllContestants((prev) =>
+          prev.map((c) => (c.id === contestant.id ? { ...c, status: contestant.status } : c))
+        );
+      }
     }
   };
 
-  const handleRejectContestant = (contestant: ContestantData) => {
+  const handleRejectContestant = async (contestant: ContestantData) => {
     if (confirm(`Reject contestant "${contestant.name}"?`)) {
       setAllContestants((prev) =>
         prev.map((c) => (c.id === contestant.id ? { ...c, status: 'REJECTED' as const } : c))
       );
+      const ok = await syncContestantPatch(contestant.id, { status: 'REJECTED' });
+      if (!ok) {
+        setAllContestants((prev) =>
+          prev.map((c) => (c.id === contestant.id ? { ...c, status: contestant.status } : c))
+        );
+      }
     }
   };
 
-  const handleDisableContestant = (contestant: ContestantData) => {
+  const handleDisableContestant = async (contestant: ContestantData) => {
     if (confirm(`Disable contestant "${contestant.name}"? They will not appear in voting.`)) {
       setAllContestants((prev) =>
         prev.map((c) => (c.id === contestant.id ? { ...c, status: 'DISABLED' as const } : c))
       );
+      const ok = await syncContestantPatch(contestant.id, { status: 'DISABLED' });
+      if (!ok) {
+        setAllContestants((prev) =>
+          prev.map((c) => (c.id === contestant.id ? { ...c, status: contestant.status } : c))
+        );
+      }
     }
   };
 
-  const handleDeleteContestant = (contestant: ContestantData) => {
+  const handleDeleteContestant = async (contestant: ContestantData) => {
     if (
       confirm(
         `Delete contestant "${contestant.name}"? This action cannot be undone and will remove all associated votes.`
       )
     ) {
       setAllContestants((prev) => prev.filter((c) => c.id !== contestant.id));
+      const ok = await syncContestantDelete(contestant.id);
+      if (!ok) {
+        setAllContestants((prev) => [contestant, ...prev]);
+      }
     }
   };
 
@@ -167,31 +255,38 @@ export default function AdminContestantsPage() {
   const handleModalSubmit = async (data: ContestantFormData) => {
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
     try {
       if (selectedContestant) {
         // Edit existing contestant
+        const patch: Partial<ContestantData> = {
+          name: data.name,
+          bio: data.bio,
+          category: categories.find((cat) => cat.id === data.category)?.name || selectedContestant.category,
+          categoryId: data.category,
+          status: data.status || selectedContestant.status,
+          avatar: data.avatar || selectedContestant.avatar,
+          galleryImages: data.galleryImages || selectedContestant.galleryImages,
+        };
         setAllContestants((prev) =>
           prev.map((c) =>
             c.id === selectedContestant.id
               ? {
                   ...c,
-                  name: data.name,
-                  bio: data.bio,
-                  category: categories.find((cat) => cat.id === data.category)?.name || c.category,
-                  categoryId: data.category,
-                  status: data.status || c.status,
-                  avatar: data.avatar || c.avatar,
+                  ...patch,
                 }
               : c
           )
         );
+        const ok = await syncContestantPatch(selectedContestant.id, patch);
+        if (!ok) {
+          setAllContestants((prev) =>
+            prev.map((c) => (c.id === selectedContestant.id ? selectedContestant : c))
+          );
+        }
       } else {
         // Create new contestant
-        const newContestant: ContestantData = {
-          id: `#${String(5000 + allContestants.length).padStart(4, '0')}`,
+        const fallbackContestant: ContestantData = {
+          id: `#${Date.now()}`,
           ...data,
           category: categories.find((cat) => cat.id === data.category)?.name || '',
           categoryId: data.category,
@@ -200,7 +295,8 @@ export default function AdminContestantsPage() {
           revenue: 0,
           createdAt: new Date().toISOString(),
         };
-        setAllContestants((prev) => [newContestant, ...prev]);
+        const created = await syncContestantCreate(fallbackContestant);
+        setAllContestants((prev) => [created ?? fallbackContestant, ...prev]);
       }
       setIsSubmitting(false);
     } catch (error) {
@@ -210,7 +306,7 @@ export default function AdminContestantsPage() {
   };
 
   const handleSortChange = (by: string, order: string) => {
-    setSortBy(by as 'name' | 'created' | 'votes' | 'revenue');
+    setSortBy(by as 'name' | 'category' | 'status' | 'created' | 'votes' | 'revenue');
     setSortOrder(order as 'asc' | 'desc');
   };
 
@@ -473,6 +569,67 @@ export default function AdminContestantsPage() {
           categories={categories}
           isLoading={isSubmitting}
         />
+
+        <Dialog open={Boolean(viewContestant)} onOpenChange={(open) => !open && setViewContestant(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Contestant Details</DialogTitle>
+            </DialogHeader>
+            {viewContestant ? (
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  {viewContestant.avatar ? (
+                    <img
+                      src={viewContestant.avatar}
+                      alt={viewContestant.name}
+                      className="h-24 w-24 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-slate-100 text-sm text-slate-500">
+                      No photo
+                    </div>
+                  )}
+                  <div className="space-y-1 text-sm">
+                    <p className="text-xl font-semibold text-slate-900">{viewContestant.name}</p>
+                    <p className="text-slate-600">ID: {viewContestant.id}</p>
+                    <p className="text-slate-600">Category: {viewContestant.category}</p>
+                    <p className="text-slate-600">Status: {viewContestant.status}</p>
+                    <p className="text-slate-600">Votes: {viewContestant.totalVotes.toLocaleString()}</p>
+                    <p className="text-slate-600">
+                      Revenue: $
+                      {viewContestant.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="mb-1 text-sm font-medium text-slate-900">Bio</p>
+                  <p className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                    {viewContestant.bio || 'No bio provided.'}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-sm font-medium text-slate-900">Uploaded Photos</p>
+                  {viewContestant.galleryImages && viewContestant.galleryImages.length > 0 ? (
+                    <div className="grid grid-cols-4 gap-2">
+                      {viewContestant.galleryImages.map((src, index) => (
+                        <img
+                          key={`${src}-${index}`}
+                          src={src}
+                          alt={`${viewContestant.name} photo ${index + 1}`}
+                          className="h-16 w-full rounded-md object-cover"
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">No additional photos uploaded.</p>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedRouteWrapper>
   );
