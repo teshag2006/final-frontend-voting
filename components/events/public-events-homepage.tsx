@@ -294,7 +294,7 @@ export function PublicEventsHomepage() {
             <Link href="/signup" className="hidden text-sm text-slate-200 hover:text-white sm:inline-block">
               Register
             </Link>
-            <Button asChild className="bg-amber-400 text-slate-950 hover:bg-amber-300">
+            <Button asChild className="bg-amber-400 text-white hover:bg-amber-300">
               <Link href="/sponsors">Start Sponsoring</Link>
             </Button>
           </div>
@@ -327,11 +327,11 @@ export function PublicEventsHomepage() {
                 enterprise compliance, and real-time engagement.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button asChild className="h-11 bg-amber-400 px-6 text-slate-950 hover:bg-amber-300">
+                <Button asChild className="h-11 bg-amber-400 px-6 text-white hover:bg-amber-300">
                   <Link href={primaryEventHref}>Vote Now</Link>
                 </Button>
                 <Button asChild variant="outline" className="h-11 border-white/30 bg-white/5 px-6 text-white hover:bg-white/10">
-                  <Link href="#live-events">Discover Events</Link>
+                  <Link href={primaryLeaderboardHref}>View Leaderboard</Link>
                 </Button>
                 <Button asChild variant="outline" className="h-11 border-emerald-300/40 bg-emerald-400/10 px-6 text-emerald-100 hover:bg-emerald-400/20">
                   <Link href="/sponsors">Become a Sponsor</Link>
@@ -340,15 +340,10 @@ export function PublicEventsHomepage() {
             </div>
 
             <div className="mt-10 rounded-2xl border border-white/20 bg-white/10 p-3 shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_20px_45px_rgba(2,8,23,0.42)] backdrop-blur-xl">
-              <div className="grid gap-4 md:grid-cols-5">
+              <div className="grid gap-4 md:grid-cols-4">
                 {metrics.map((metric) => (
                   <EventMetric key={metric.label} {...metric} />
                 ))}
-                <div className="flex items-center justify-end px-2">
-                  <Button asChild variant="outline" className="border-emerald-300/50 bg-emerald-300/10 text-emerald-100 hover:bg-emerald-300/20">
-                    <Link href="#pwa-strip">Install App</Link>
-                  </Button>
-                </div>
               </div>
             </div>
           </div>
@@ -395,7 +390,7 @@ export function PublicEventsHomepage() {
                     {(19200 + index * 7800).toLocaleString()} votes cast
                   </p>
                   <div className="mt-4 flex items-center gap-2">
-                    <Button asChild className="flex-1 bg-amber-400 text-slate-950 hover:bg-amber-300">
+                    <Button asChild className="flex-1 bg-blue-600 text-white hover:bg-blue-700">
                       <Link href={`/events/${event.slug}`}>Vote Now</Link>
                     </Button>
                     <Button asChild variant="outline" className="flex-1 border-white/25 bg-white/5 text-white hover:bg-white/10">
@@ -595,24 +590,6 @@ export function PublicEventsHomepage() {
           </div>
         </section>
 
-        <section id="pwa-strip" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-emerald-300/30 bg-gradient-to-r from-emerald-400/15 via-emerald-300/10 to-cyan-300/10 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="font-semibold text-emerald-100">Install App for Faster Voting & Live Notifications</p>
-                <p className="text-sm text-slate-200">Optimized mobile voting with real-time leaderboard updates.</p>
-              </div>
-              <div className="flex gap-2">
-                <Button asChild className="bg-emerald-300 text-slate-900 hover:bg-emerald-200">
-                  <Link href={primaryEventHref}>Install</Link>
-                </Button>
-                <Button asChild variant="outline" className="border-emerald-200/40 bg-transparent text-emerald-100 hover:bg-emerald-200/10">
-                  <Link href="/how-it-works">Learn More</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       <footer className="mt-10 border-t border-white/10 bg-[#020616]">

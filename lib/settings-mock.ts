@@ -1,6 +1,11 @@
 export function getDefaultGeneralSettings() {
   return {
     systemName: 'Voting Platform',
+    siteTitle: 'Voting Platform',
+    metaDescription: 'Secure online voting platform for events, contestants, and sponsors.',
+    metaKeywords: 'voting, events, leaderboard, contestants, sponsors',
+    canonicalBaseUrl: 'https://example.com',
+    defaultOgImageUrl: '',
     defaultLanguage: 'en',
     timezone: 'UTC',
     currency: 'USD',

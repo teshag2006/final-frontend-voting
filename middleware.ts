@@ -10,8 +10,10 @@ import { SESSION_COOKIE } from '@/lib/server/session-constants';
 const publicRoutes = [
   '/login',
   '/signup',
+  '/leaderboard',
   '/forgot-password',
   '/reset-password',
+  '/verify-email',
   '/voting-faq',
   '/terms',
   '/privacy',

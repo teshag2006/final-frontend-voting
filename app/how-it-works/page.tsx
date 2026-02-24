@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { CheckCircle2, Lock, Shield, Zap } from 'lucide-react';
-import Link from 'next/link';
+import { EventNavbar } from '@/components/event-details/event-navbar';
 
 export const metadata: Metadata = {
   title: 'How It Works | Voting Platform',
@@ -10,16 +10,7 @@ export const metadata: Metadata = {
 export default function HowItWorksPage() {
   return (
     <main className="min-h-screen bg-white">
-      <header className="sticky top-0 z-40 border-b border-blue-900 bg-gradient-to-r from-slate-900 to-blue-900">
-        <div className="max-w-4xl mx-auto px-4 py-4 md:px-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl md:text-2xl font-semibold text-white">How It Works</h1>
-            <Link href="/events" className="text-sm text-slate-200 hover:text-white">
-              Back to Events
-            </Link>
-          </div>
-        </div>
-      </header>
+      <EventNavbar />
       <div className="max-w-4xl mx-auto px-4 py-12 md:py-16">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">How It Works</h1>
 

@@ -1,11 +1,13 @@
 import { NextRequest } from 'next/server';
 import { buildSigninResponse, jsonError } from '@/lib/server/auth-route-utils';
 import {
+  createEmailConfirmationToken,
   registerServerContestant,
   registerServerSponsor,
   registerServerVoter,
 } from '@/lib/server/auth-users';
 import type { UserRole } from '@/lib/mock-users';
+import { sendTransactionalEmail } from '@/lib/server/email-service';
 
 function parseSignupPayload(payload: unknown): {
   name: string;
@@ -51,6 +53,18 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return jsonError('An account with this email already exists', 409);
+    }
+
+    const token = createEmailConfirmationToken(user.email);
+    if (token) {
+      const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
+      const confirmUrl = `${appBaseUrl}/verify-email?token=${encodeURIComponent(token)}`;
+      void sendTransactionalEmail({
+        to: user.email,
+        subject: 'Confirm your account',
+        htmlBody: `<p>Hello ${user.name},</p><p>Please confirm your account by clicking the link below:</p><p><a href="${confirmUrl}">${confirmUrl}</a></p><p>If you did not create this account, you can ignore this email.</p>`,
+        textBody: `Hello ${user.name},\n\nPlease confirm your account by visiting:\n${confirmUrl}\n\nIf you did not create this account, you can ignore this email.`,
+      });
     }
 
     return buildSigninResponse(user);

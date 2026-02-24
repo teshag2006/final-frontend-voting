@@ -102,6 +102,50 @@ export function SettingsGeneralTab({ initialData, onSave, isLoading }: SettingsG
             />
           </SettingsFormField>
 
+          <SettingsFormField label="Site Title" required>
+            <Input
+              value={formData.siteTitle || ''}
+              onChange={(e) => handleChange('siteTitle', e.target.value)}
+              placeholder="Enter default site title"
+            />
+          </SettingsFormField>
+
+          <SettingsFormField label="Meta Description">
+            <textarea
+              value={formData.metaDescription || ''}
+              onChange={(e) => handleChange('metaDescription', e.target.value)}
+              placeholder="Enter default SEO meta description"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+              rows={3}
+            />
+          </SettingsFormField>
+
+          <SettingsFormField label="Meta Keywords">
+            <Input
+              value={formData.metaKeywords || ''}
+              onChange={(e) => handleChange('metaKeywords', e.target.value)}
+              placeholder="keyword1, keyword2, keyword3"
+            />
+          </SettingsFormField>
+
+          <SettingsFormField label="Canonical Base URL">
+            <Input
+              type="url"
+              value={formData.canonicalBaseUrl || ''}
+              onChange={(e) => handleChange('canonicalBaseUrl', e.target.value)}
+              placeholder="https://yourdomain.com"
+            />
+          </SettingsFormField>
+
+          <SettingsFormField label="Default Open Graph Image URL">
+            <Input
+              type="url"
+              value={formData.defaultOgImageUrl || ''}
+              onChange={(e) => handleChange('defaultOgImageUrl', e.target.value)}
+              placeholder="https://yourdomain.com/og-image.jpg"
+            />
+          </SettingsFormField>
+
           <SettingsFormField label="Default Language" required>
             <select
               value={formData.defaultLanguage}
