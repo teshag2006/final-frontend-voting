@@ -1,0 +1,16 @@
+EvalError: Code generation from strings disallowed for this context
+    at <unknown> (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\middleware.js:51)
+    at (middleware)/./node_modules/next/dist/build/webpack/loaders/next-middleware-loader.js?absolutePagePath=C%3A%5CUsers%5CAdministrator.ETNRMKHAAA43424%5CDesktop%5CMd%20files%5CMD%20FILES%5Cfinal-frontend-voting%5Cmiddleware.ts&page=%2Fmiddleware&rootDir=C%3A%5CUsers%5CAdministrator.ETNRMKHAAA43424%5CDesktop%5CMd%20files%5CMD%20FILES%5Cfinal-frontend-voting&matchers=&preferredRegion=&middlewareConfig=e30%3D! (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\middleware.js:51:1)
+    at __webpack_require__ (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-runtime-webpack.js:37:33)
+    at __webpack_exec__ (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\middleware.js:1131:48)
+    at <unknown> (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\middleware.js:1132:37)
+    at webpackJsonpCallback (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-runtime-webpack.js:1178:39)
+    at <unknown> (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\middleware.js:9:61)
+EvalError: Code generation from strings disallowed for this context
+    at <unknown> (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\middleware.js:51)
+    at (middleware)/./node_modules/next/dist/build/webpack/loaders/next-middleware-loader.js?absolutePagePath=C%3A%5CUsers%5CAdministrator.ETNRMKHAAA43424%5CDesktop%5CMd%20files%5CMD%20FILES%5Cfinal-frontend-voting%5Cmiddleware.ts&page=%2Fmiddleware&rootDir=C%3A%5CUsers%5CAdministrator.ETNRMKHAAA43424%5CDesktop%5CMd%20files%5CMD%20FILES%5Cfinal-frontend-voting&matchers=&preferredRegion=&middlewareConfig=e30%3D! (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\middleware.js:51:1)
+    at __webpack_require__ (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-runtime-webpack.js:37:33)
+    at __webpack_exec__ (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\middleware.js:1131:48)
+    at <unknown> (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\middleware.js:1132:37)
+    at webpackJsonpCallback (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\edge-runtime-webpack.js:1178:39)
+    at <unknown> (C:\Users\Administrator.ETNRMKHAAA43424\Desktop\Md files\MD FILES\final-frontend-voting\.next\server\middleware.js:9:61)

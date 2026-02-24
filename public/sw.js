@@ -1,4 +1,4 @@
-const CACHE_NAME = 'voting-pwa-v1';
+const CACHE_NAME = 'voting-pwa-v2';
 const OFFLINE_URLS = ['/', '/events', '/leaderboard'];
 
 self.addEventListener('install', (event) => {
@@ -23,6 +23,10 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+  // Never cache Next.js build artifacts to avoid stale chunk/runtime errors.
+  if (url.pathname.startsWith('/_next/')) return;
 
   event.respondWith(
     fetch(event.request)

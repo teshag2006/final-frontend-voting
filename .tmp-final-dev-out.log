@@ -1,0 +1,129 @@
+
+> voting-platform@1.1.0 dev
+> next dev --port 3000
+
+   ▲ Next.js 15.5.12
+   - Local:        http://localhost:3000
+   - Network:      http://10.98.184.64:3000
+
+ ✓ Starting...
+ ✓ Ready in 4.9s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1115ms (116 modules)
+ ○ Compiling /events ...
+ ✓ Compiled /events in 5s (1070 modules)
+ GET /events 200 in 6956ms
+ GET /events 200 in 4180ms
+ ✓ Compiled in 5.5s (326 modules)
+ ○ Compiling /access-denied ...
+ ✓ Compiled /manifest.webmanifest in 7.9s (766 modules)
+ GET /manifest.webmanifest 200 in 5671ms
+ GET /access-denied 200 in 9117ms
+ GET /events 200 in 943ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 1962ms (803 modules)
+ GET /login 200 in 2037ms
+ GET /login 200 in 4184ms
+ GET /manifest.webmanifest 200 in 259ms
+ GET /login 200 in 227ms
+ GET /manifest.webmanifest 200 in 267ms
+ ✓ Compiled /api/auth/signin in 493ms (796 modules)
+ POST /api/auth/signin 200 in 682ms
+ ○ Compiling /admin/dashboard ...
+ ✓ Compiled /admin/dashboard in 11.1s (2060 modules)
+ GET /admin/dashboard 200 in 12383ms
+ GET /manifest.webmanifest 200 in 177ms
+ ○ Compiling /admin/events ...
+ ✓ Compiled /admin/events in 2.5s (2145 modules)
+ GET /admin/events 200 in 2907ms
+ GET /manifest.webmanifest 200 in 197ms
+ ○ Compiling /admin/reports ...
+ ✓ Compiled /admin/reports in 2s (2187 modules)
+ GET /admin/reports 200 in 2526ms
+ GET /manifest.webmanifest 200 in 139ms
+ ○ Compiling /admin/dashboard-enhanced ...
+ ✓ Compiled /admin/dashboard-enhanced in 2s (2208 modules)
+ GET /admin/dashboard-enhanced 200 in 2552ms
+ GET /manifest.webmanifest 200 in 451ms
+ ○ Compiling /events/[eventSlug]/leaderboard ...
+ ✓ Compiled /events/[eventSlug]/leaderboard in 1795ms (2264 modules)
+ GET /events/miss-africa-2026/leaderboard 200 in 3836ms
+ GET /events/miss-africa-2026/leaderboard 200 in 280ms
+ ○ Compiling /api/leaderboard ...
+ ✓ Compiled /api/leaderboard in 3.1s (2266 modules)
+ GET /api/leaderboard?eventId=event-1&limit=5 200 in 3449ms
+ GET /api/leaderboard?eventId=event-1&limit=5 200 in 3448ms
+ GET /manifest.webmanifest 200 in 1929ms
+ GET /manifest.webmanifest 200 in 404ms
+ ○ Compiling /sponsors ...
+ ✓ Compiled /sponsors in 2.2s (2315 modules)
+ GET /sponsors 200 in 2909ms
+ GET /login 200 in 432ms
+ GET /manifest.webmanifest 200 in 314ms
+ GET /login 200 in 111ms
+ GET /manifest.webmanifest 200 in 193ms
+ GET /login 200 in 271ms
+ GET /manifest.webmanifest 200 in 171ms
+ GET /login 200 in 115ms
+ GET /manifest.webmanifest 200 in 120ms
+ GET /login 200 in 507ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1046ms (2278 modules)
+ GET /evets 404 in 1694ms
+ GET /manifest.webmanifest 200 in 276ms
+ GET /events 200 in 1116ms
+ GET /manifest.webmanifest 200 in 233ms
+ ○ Compiling /how-it-works ...
+ ✓ Compiled /how-it-works in 1249ms (2294 modules)
+ GET /how-it-works 200 in 1593ms
+ GET /manifest.webmanifest 200 in 152ms
+ GET /manifest.webmanifest 200 in 127ms
+ GET /events 200 in 1558ms
+ GET /admin/dashboard-enhanced 200 in 2647ms
+ ✓ Compiled in 7.1s (2931 modules)
+ GET /admin/dashboard-enhanced 200 in 862ms
+ ○ Compiling /manifest.webmanifest ...
+ ✓ Compiled /manifest.webmanifest in 1950ms (2194 modules)
+ GET /manifest.webmanifest 200 in 2268ms
+ GET /admin/dashboard-enhanced 200 in 389ms
+ GET /manifest.webmanifest 200 in 119ms
+ ✓ Compiled in 2.2s (1079 modules)
+ GET /admin/dashboard-enhanced 200 in 289ms
+ GET /manifest.webmanifest 200 in 128ms
+ GET /how-it-works 200 in 157ms
+ GET /manifest.webmanifest 200 in 121ms
+ GET /how-it-works 200 in 403ms
+ GET /how-it-works 200 in 190ms
+ GET /how-it-works 200 in 130ms
+ GET /manifest.webmanifest 200 in 243ms
+ ✓ Compiled in 1244ms (1079 modules)
+ GET /events 200 in 1333ms
+ GET /admin/dashboard-enhanced 200 in 1498ms
+ GET /manifest.webmanifest 200 in 112ms
+ GET /manifest.webmanifest 200 in 87ms
+ ✓ Compiled in 1652ms (1823 modules)
+ GET /events 200 in 1159ms
+ GET /admin/dashboard-enhanced 200 in 1413ms
+ GET /manifest.webmanifest 200 in 127ms
+ GET /manifest.webmanifest 200 in 82ms
+ GET /events 200 in 576ms
+ GET /manifest.webmanifest 200 in 156ms
+ GET /how-it-works 200 in 145ms
+ GET /manifest.webmanifest 200 in 119ms
+ GET /how-it-works 200 in 2293ms
+ GET /manifest.webmanifest 200 in 214ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.3s (1836 modules)
+ GET / 200 in 3464ms
+ GET /events 200 in 1031ms
+ GET /manifest.webmanifest 200 in 1030ms
+ GET /events 200 in 61ms
+ GET /manifest.webmanifest 200 in 189ms
+ GET /how-it-works 200 in 158ms
+ GET /manifest.webmanifest 200 in 114ms
+ GET /manifest.webmanifest 200 in 161ms
+ GET /how-it-works 200 in 164ms
+ GET /manifest.webmanifest 200 in 132ms
+ GET /manifest.webmanifest 200 in 179ms
+ GET /how-it-works 200 in 137ms
+ GET /manifest.webmanifest 200 in 117ms

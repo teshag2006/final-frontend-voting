@@ -1,5 +1,3 @@
-import 'server-only';
-
 import type { UserRole } from '@/lib/mock-users';
 
 export interface EdgeSessionUser {

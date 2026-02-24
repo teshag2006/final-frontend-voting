@@ -12,11 +12,24 @@ export default function AccessDeniedPage() {
 
   const handleGoHome = () => {
     router.push('/');
+    window.setTimeout(() => {
+      if (window.location.pathname === '/access-denied') {
+        window.location.assign('/');
+      }
+    }, 200);
   };
 
   const handleLogout = () => {
-    logout();
-    router.push('/login');
+    try {
+      logout();
+    } finally {
+      router.push('/login');
+      window.setTimeout(() => {
+        if (window.location.pathname === '/access-denied') {
+          window.location.assign('/login');
+        }
+      }, 200);
+    }
   };
 
   const handleGoToDashboard = () => {

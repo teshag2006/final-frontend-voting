@@ -1,0 +1,53 @@
+
+> voting-platform@1.1.0 dev
+> next dev --port 3000
+
+   ▲ Next.js 15.5.12
+   - Local:        http://localhost:3000
+   - Network:      http://10.98.184.64:3000
+
+ ✓ Starting...
+ ✓ Ready in 4.7s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1172ms (116 modules)
+ ○ Compiling /events ...
+ ✓ Compiled /events in 16.2s (1102 modules)
+ GET /events 200 in 17617ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 8.6s (760 modules)
+ GET /login 200 in 8634ms
+ GET /login 200 in 9684ms
+ GET /login 200 in 1204ms
+ GET /login 200 in 435ms
+ GET /login 200 in 721ms
+ GET /login 200 in 375ms
+ GET /login 200 in 359ms
+ GET /login 200 in 250ms
+ GET /login 200 in 410ms
+ GET /login 200 in 387ms
+ GET /login 200 in 304ms
+ GET /login 200 in 338ms
+ GET /login 200 in 323ms
+ GET /login 200 in 366ms
+ GET /login 200 in 323ms
+ GET /login 200 in 258ms
+ GET /login 200 in 224ms
+ GET /login 200 in 254ms
+ GET /login 200 in 232ms
+ GET /login 200 in 215ms
+ GET /login 200 in 299ms
+ GET /login 200 in 339ms
+ GET /login 200 in 382ms
+ GET /login 200 in 255ms
+ GET /login 200 in 197ms
+ GET /login 200 in 299ms
+ GET /login 200 in 232ms
+ GET /login 200 in 264ms
+ GET /login 200 in 213ms
+ GET /login 200 in 229ms
+ GET /login 200 in 204ms
+ GET /login 200 in 248ms
+ GET /login 200 in 364ms
+ GET /login 200 in 280ms
+ GET /login 200 in 272ms
+ ✓ Compiled in 187ms (116 modules)

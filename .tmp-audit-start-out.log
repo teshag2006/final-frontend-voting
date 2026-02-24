@@ -1,0 +1,10 @@
+
+> voting-platform@1.1.0 start
+> next start -p 4015
+
+   ▲ Next.js 15.5.12
+   - Local:        http://localhost:4015
+   - Network:      http://10.98.184.64:4015
+
+ ✓ Starting...
+ ✓ Ready in 455ms

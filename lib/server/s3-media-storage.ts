@@ -1,27 +1,51 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { slugify } from '@/lib/slug';
 
-const AWS_REGION = process.env.AWS_REGION || '';
-const AWS_S3_BUCKET = process.env.AWS_S3_BUCKET || '';
-const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || '';
-const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || '';
-const AWS_S3_PUBLIC_BASE_URL = process.env.AWS_S3_PUBLIC_BASE_URL || '';
+type S3Config = {
+  region: string;
+  bucket: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  publicBaseUrl: string;
+};
 
-function ensureS3Config() {
-  if (!AWS_REGION || !AWS_S3_BUCKET || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+function readS3Config(): S3Config {
+  return {
+    region: process.env.AWS_REGION || '',
+    bucket: process.env.AWS_S3_BUCKET || '',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    publicBaseUrl: process.env.AWS_S3_PUBLIC_BASE_URL || '',
+  };
+}
+
+function ensureS3Config(config: S3Config) {
+  if (!config.region || !config.bucket || !config.accessKeyId || !config.secretAccessKey) {
     throw new Error(
       'AWS S3 is not configured. Set AWS_REGION, AWS_S3_BUCKET, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY.'
     );
   }
 }
 
-const s3Client = new S3Client({
-  region: AWS_REGION,
-  credentials: {
-    accessKeyId: AWS_ACCESS_KEY_ID,
-    secretAccessKey: AWS_SECRET_ACCESS_KEY,
-  },
-});
+let s3Client: S3Client | null = null;
+let cachedConfigSignature = '';
+
+function getS3Client() {
+  const config = readS3Config();
+  ensureS3Config(config);
+  const signature = `${config.region}:${config.accessKeyId}:${config.bucket}`;
+  if (!s3Client || signature !== cachedConfigSignature) {
+    s3Client = new S3Client({
+      region: config.region,
+      credentials: {
+        accessKeyId: config.accessKeyId,
+        secretAccessKey: config.secretAccessKey,
+      },
+    });
+    cachedConfigSignature = signature;
+  }
+  return { client: s3Client, config };
+}
 
 function extensionFromContentType(contentType: string): string {
   switch (contentType.toLowerCase()) {
@@ -68,11 +92,11 @@ function parseDataUrl(dataUrl: string): { contentType: string; bytes: Uint8Array
   return { contentType, bytes };
 }
 
-function buildPublicUrl(key: string) {
-  if (AWS_S3_PUBLIC_BASE_URL) {
-    return `${AWS_S3_PUBLIC_BASE_URL.replace(/\/+$/, '')}/${key}`;
+function buildPublicUrl(config: S3Config, key: string) {
+  if (config.publicBaseUrl) {
+    return `${config.publicBaseUrl.replace(/\/+$/, '')}/${key}`;
   }
-  return `https://${AWS_S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${key}`;
+  return `https://${config.bucket}.s3.${config.region}.amazonaws.com/${key}`;
 }
 
 function sanitizeFileName(name: string) {
@@ -92,7 +116,7 @@ export async function uploadBinaryToS3(payload: {
   prefix?: string;
   fileName?: string;
 }) {
-  ensureS3Config();
+  const { client, config } = getS3Client();
   const prefix = payload.prefix || 'uploads';
   const contentType = String(payload.contentType || 'application/octet-stream').toLowerCase();
   const normalizedName = sanitizeFileName(payload.fileName || 'file');
@@ -106,9 +130,9 @@ export async function uploadBinaryToS3(payload: {
   const ext = extFromName || extFromType;
   const key = `${prefix}/${new Date().toISOString().slice(0, 10)}/${fileSlug}-${uniqueSuffix}${ext ? `.${ext}` : ''}`;
 
-  await s3Client.send(
+  await client.send(
     new PutObjectCommand({
-      Bucket: AWS_S3_BUCKET,
+      Bucket: config.bucket,
       Key: key,
       Body: payload.bytes,
       ContentType: contentType,
@@ -116,7 +140,7 @@ export async function uploadBinaryToS3(payload: {
     })
   );
 
-  return buildPublicUrl(key);
+  return buildPublicUrl(config, key);
 }
 
 export async function uploadImageDataUrlToS3(dataUrl: string, prefix = 'contestant-media/gallery') {

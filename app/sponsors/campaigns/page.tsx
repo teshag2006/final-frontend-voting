@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, Suspense, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AlertTriangle, Clock3, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +34,7 @@ interface DeliverableRow {
   dueDate: string;
 }
 
-export default function SponsorCampaignTrackingPage() {
+function SponsorCampaignTrackingContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -515,6 +515,14 @@ export default function SponsorCampaignTrackingPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function SponsorCampaignTrackingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-100" />}>
+      <SponsorCampaignTrackingContent />
+    </Suspense>
   );
 }
 

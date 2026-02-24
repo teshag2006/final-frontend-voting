@@ -1,0 +1,18 @@
+
+> voting-platform@1.1.0 dev
+> next dev --port 4022
+
+   ▲ Next.js 15.5.12
+   - Local:        http://localhost:4022
+   - Network:      http://10.98.184.64:4022
+
+ ✓ Starting...
+ ✓ Ready in 5.4s
+ ✓ Compiled /middleware in 476ms (116 modules)
+ ○ Compiling /events ...
+ ✓ Compiled /events in 13.3s (1084 modules)
+ GET /events 200 in 15897ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 13.7s (760 modules)
+ GET /login 200 in 14444ms
+ ✓ Compiled in 3.4s (454 modules)

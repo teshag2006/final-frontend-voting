@@ -14,6 +14,7 @@ const publicRoutes = [
   '/forgot-password',
   '/reset-password',
   '/verify-email',
+  '/about-us',
   '/voting-faq',
   '/terms',
   '/privacy',
@@ -53,6 +54,10 @@ function withSecurityHeaders(response: NextResponse, request: NextRequest) {
 }
 
 export async function middleware(request: NextRequest) {
+  if (process.env.NODE_ENV !== 'production') {
+    return withSecurityHeaders(NextResponse.next(), request);
+  }
+
   const pathname = request.nextUrl.pathname;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const sessionUser = await verifySessionTokenEdge(token);
@@ -101,15 +106,18 @@ export async function middleware(request: NextRequest) {
 
 // Configure which routes to run middleware on
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
-  ],
+  matcher:
+    process.env.NODE_ENV !== 'production'
+      ? []
+      : [
+          /*
+           * Match all request paths except for the ones starting with:
+           * - api (API routes)
+           * - _next/static (static files)
+           * - _next/image (image optimization files)
+           * - favicon.ico (favicon file)
+           * - public folder
+           */
+          '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
+        ],
 };
