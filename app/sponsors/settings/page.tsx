@@ -213,14 +213,6 @@ export default function SponsorProfileSettingsPage() {
                     }
                   />
                   <Field
-                    label="Logo URL"
-                    value={draftSettings.general.logoUrl}
-                    onChange={(value) =>
-                      setDraftSettings((prev) => ({ ...prev, general: { ...prev.general, logoUrl: value } }))
-                    }
-                    placeholder="https://example.com/logo.png"
-                  />
-                  <Field
                     label="Industry"
                     value={draftSettings.general.industry}
                     onChange={(value) =>

@@ -81,6 +81,7 @@ export function VoteCard({ vote }: VoteCardProps) {
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-muted-foreground">
               <span>{formatDate(vote.votedAt)}</span>
+              {vote.paymentId && <span className="font-mono">TX: {vote.paymentId}</span>}
               {vote.receiptNumber && (
                 <Link
                   href={`/receipt/${vote.receiptNumber}`}

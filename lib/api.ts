@@ -596,7 +596,9 @@ export async function getContestantPriorityNotifications(): Promise<PriorityNoti
 // Voter API functions
 export async function getVoterPayments(): Promise<VoterPaymentsResponse | null> {
   try {
-    return await fetchFromAPI<VoterPaymentsResponse>("/voter/payments");
+    const response = await fetch(`${API_BASE_URL}/voter/payments`, { cache: 'no-store' });
+    if (!response.ok) return null;
+    return await response.json();
   } catch {
     return null;
   }
@@ -604,7 +606,9 @@ export async function getVoterPayments(): Promise<VoterPaymentsResponse | null> 
 
 export async function getVoterVotes(): Promise<VoterVotesResponse | null> {
   try {
-    return await fetchFromAPI<VoterVotesResponse>("/voter/my-votes");
+    const response = await fetch(`${API_BASE_URL}/voter/my-votes`, { cache: 'no-store' });
+    if (!response.ok) return null;
+    return await response.json();
   } catch {
     return null;
   }
@@ -612,7 +616,9 @@ export async function getVoterVotes(): Promise<VoterVotesResponse | null> {
 
 export async function getVoterProfile(): Promise<VoterProfile | null> {
   try {
-    return await fetchFromAPI<VoterProfile>("/voter/profile");
+    const response = await fetch(`${API_BASE_URL}/voter/profile`, { cache: 'no-store' });
+    if (!response.ok) return null;
+    return await response.json();
   } catch {
     return null;
   }
@@ -652,6 +658,56 @@ export async function deleteVoterAccount(): Promise<{ success: boolean } | null>
     const response = await fetch(`${API_BASE_URL}/voter/account`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function getVoterWallet(): Promise<any | null> {
+  try {
+    return await fetchFromAPI<any>('/voter/wallet');
+  } catch {
+    return null;
+  }
+}
+
+export async function submitVoterVote(payload: {
+  categoryId: string;
+  categoryName?: string;
+  contestantName?: string;
+  isPaid: boolean;
+  quantity?: number;
+}): Promise<any | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/voter/vote`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function registerVoterPayment(payload: {
+  paymentId: string;
+  votesPurchased: number;
+  amount: number;
+  currency?: string;
+  paymentMethod?: string;
+  eventName?: string;
+  status?: 'pending' | 'confirmed' | 'failed' | 'refunded';
+}): Promise<any | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/voter/payments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
     });
     if (!response.ok) return null;
     return await response.json();

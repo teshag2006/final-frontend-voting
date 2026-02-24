@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { VoterSidebarNav } from '@/components/voter/voter-sidebar-nav';
 import { DeleteAccount } from '@/components/voter/delete-account';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { mockVoterPayments } from '@/lib/voter-mock';
 import {
   Bell,
   Clock3,
@@ -24,10 +22,11 @@ import {
   UserRound,
   Wallet,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 type SectionId = 'profile' | 'security' | 'notifications' | 'voting' | 'payments' | 'privacy';
 
-const SECTION_ITEMS: Array<{ id: SectionId; label: string; icon: any }> = [
+const SECTION_ITEMS: Array<{ id: SectionId; label: string; icon: LucideIcon }> = [
   { id: 'profile', label: 'Profile', icon: UserRound },
   { id: 'security', label: 'Security', icon: Lock },
   { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -38,6 +37,13 @@ const SECTION_ITEMS: Array<{ id: SectionId; label: string; icon: any }> = [
 
 interface VoterSettingsPageProps {
   profile: any;
+  recentPayments: Array<{
+    receiptNumber: string;
+    eventName: string;
+    voteQuantity: number;
+    amount: number;
+    currency: string;
+  }>;
 }
 
 function SettingsSkeleton() {
@@ -56,7 +62,7 @@ function SettingsSkeleton() {
   );
 }
 
-export function VoterSettingsPage({ profile }: VoterSettingsPageProps) {
+export function VoterSettingsPage({ profile, recentPayments }: VoterSettingsPageProps) {
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<SectionId>('profile');
   const [isSaving, setIsSaving] = useState(false);
@@ -181,9 +187,9 @@ export function VoterSettingsPage({ profile }: VoterSettingsPageProps) {
   };
 
   return (
-    <main className="min-h-screen bg-background pb-24 md:pb-8">
-      <div className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+    <div className="pb-24 md:pb-8">
+      <div className="mb-6 border-b border-border bg-background/90 pb-4">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground md:text-3xl">Settings</h1>
             <p className="text-sm text-muted-foreground">Manage your account, security, and voting preferences.</p>
@@ -199,10 +205,7 @@ export function VoterSettingsPage({ profile }: VoterSettingsPageProps) {
         </div>
       </div>
 
-      <div className="mx-auto grid w-full max-w-[1440px] gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:px-8">
-        <VoterSidebarNav />
-
-        <div className="grid min-w-0 gap-8 lg:grid-cols-[240px_1fr]">
+      <div className="grid min-w-0 gap-8 lg:grid-cols-[240px_1fr]">
         <aside className="sticky top-24 hidden h-fit rounded-xl border border-border bg-card p-3 lg:block">
           {SECTION_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -472,7 +475,7 @@ export function VoterSettingsPage({ profile }: VoterSettingsPageProps) {
                   </div>
                   <div className="rounded-lg border border-border p-4">
                     <p className="text-xs text-muted-foreground">Default Method</p>
-                    <p className="mt-2 font-semibold">Visa •••• 4451</p>
+                    <p className="mt-2 font-semibold">Visa **** 4451</p>
                   </div>
                   <div className="rounded-lg border border-border p-4">
                     <p className="text-xs text-muted-foreground">Recent Spend</p>
@@ -480,7 +483,7 @@ export function VoterSettingsPage({ profile }: VoterSettingsPageProps) {
                   </div>
                 </div>
                 <div className="space-y-2 rounded-lg border border-border p-3">
-                  {mockVoterPayments.payments.slice(0, 3).map((payment) => (
+                  {recentPayments.slice(0, 3).map((payment) => (
                     <div key={payment.receiptNumber} className="flex items-center justify-between rounded bg-muted/30 px-3 py-2">
                       <div>
                         <p className="text-sm font-medium">{payment.eventName}</p>
@@ -527,7 +530,6 @@ export function VoterSettingsPage({ profile }: VoterSettingsPageProps) {
             </>
           )}
         </section>
-        </div>
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur md:hidden">
@@ -540,6 +542,7 @@ export function VoterSettingsPage({ profile }: VoterSettingsPageProps) {
           </Button>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
+

@@ -21,10 +21,25 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
         }
       }
 
+      // Enforce max Ethiopian length: country code (251) + 9 local digits
+      if (input.startsWith('251')) {
+        input = input.slice(0, 12);
+      } else {
+        input = input.slice(0, 9);
+      }
+
       // Format as +251 XXX XXX XXXX
       let formatted = '';
       if (input.startsWith('251')) {
-        formatted = '+' + input.substring(0, 3) + ' ' + input.substring(3, 6) + ' ' + input.substring(6, 9) + ' ' + input.substring(9, 13);
+        formatted =
+          '+' +
+          input.substring(0, 3) +
+          ' ' +
+          input.substring(3, 6) +
+          ' ' +
+          input.substring(6, 9) +
+          ' ' +
+          input.substring(9, 12);
       } else {
         formatted = input;
       }
@@ -37,9 +52,10 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
         <input
           ref={ref}
           type="tel"
-          placeholder="+251 XXX XXX XXXX"
+          placeholder="+251 9XX XXX XXX"
           value={value}
           onChange={handleChange}
+          maxLength={16}
           className={cn(
             'w-full px-4 py-3 border rounded-lg',
             'text-base font-medium',

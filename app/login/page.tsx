@@ -85,6 +85,12 @@ export default function LoginPage() {
                 <CardDescription className="text-slate-400">
                   Enter your credentials to access the platform
                 </CardDescription>
+                <p className="text-sm text-slate-400">
+                  New voter?{' '}
+                  <Link href="/signup" className="text-blue-400 hover:underline">
+                    Create an account
+                  </Link>
+                </p>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">

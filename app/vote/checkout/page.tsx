@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { CheckoutHeader } from '@/components/vote-checkout/checkout-header';
@@ -20,6 +21,7 @@ import {
 import type { PaymentMethod } from '@/types/vote';
 
 export default function VoteCheckoutPage() {
+  const router = useRouter();
   const [safeQuantity, setSafeQuantity] = useState(10);
 
   useEffect(() => {
@@ -78,7 +80,31 @@ export default function VoteCheckoutPage() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      setCheckoutInfo('Payment is being initialized. Redirect will begin shortly.');
+      const paymentId = `txn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const paymentResponse = await fetch('/api/voter/payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId,
+          votesPurchased: pricingQuote.quantity,
+          amount: pricingQuote.totalAmount,
+          currency: pricingQuote.currency,
+          paymentMethod: selectedPaymentMethod,
+          eventName: mockCheckoutContestant.event.name,
+          status: 'confirmed',
+        }),
+      });
+
+      const payload = await paymentResponse.json().catch(() => null);
+      if (!paymentResponse.ok) {
+        setCheckoutError(payload?.message || 'Payment registration failed. Please sign in as voter and try again.');
+        return;
+      }
+
+      setCheckoutInfo(`Payment confirmed. Transaction ID: ${paymentId}. Redirecting to your wallet...`);
+      setTimeout(() => {
+        router.push('/voter/dashboard');
+      }, 1200);
     } catch (error) {
       setCheckoutError('Payment initiation failed. Please try again.');
     } finally {

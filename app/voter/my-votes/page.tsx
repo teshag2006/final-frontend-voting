@@ -1,10 +1,9 @@
-// @ts-nocheck
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getVoterVotes } from '@/lib/api';
-import { mockVoterVotes } from '@/lib/voter-mock';
+import { reseedMockVoterData } from '@/lib/voter-mock';
 import { VoteCard } from '@/components/voter/vote-card';
-import { VoterSidebarNav } from '@/components/voter/voter-sidebar-nav';
+import { VoterUnifiedShell } from '@/components/voter/voter-unified-shell';
 import { Button } from '@/components/ui/button';
 import { Vote } from 'lucide-react';
 
@@ -14,20 +13,22 @@ export const metadata: Metadata = {
 };
 
 export default async function MyVotesPage() {
+  const fallback = reseedMockVoterData().votes;
   const apiData = await getVoterVotes();
-  const data = apiData || mockVoterVotes;
+  const data = apiData || fallback;
   const votes = data.votes;
+  type VoteItem = (typeof votes)[number];
 
   // Group votes by event
   const votesByEvent = votes.reduce(
-    (acc, vote) => {
+    (acc: Record<string, VoteItem[]>, vote: VoteItem) => {
       if (!acc[vote.eventName]) {
         acc[vote.eventName] = [];
       }
       acc[vote.eventName].push(vote);
       return acc;
     },
-    {} as Record<string, typeof votes>
+    {}
   );
 
   const totalVotes = votes.reduce((sum, v) => sum + v.totalVotes, 0);
@@ -35,10 +36,7 @@ export default async function MyVotesPage() {
   const totalPaidVotes = votes.reduce((sum, v) => sum + v.paidVotes, 0);
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="mx-auto grid w-full max-w-[1440px] gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:px-8">
-        <VoterSidebarNav />
-        <div className="min-w-0">
+    <VoterUnifiedShell>
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">My Votes</h1>
@@ -66,7 +64,7 @@ export default async function MyVotesPage() {
         {/* Votes */}
         {votes.length > 0 ? (
           <div className="space-y-6">
-            {Object.entries(votesByEvent).map(([eventName, eventVotes]) => (
+            {Object.entries(votesByEvent as Record<string, VoteItem[]>).map(([eventName, eventVotes]) => (
               <div key={eventName}>
                 <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
                   {eventName}
@@ -97,9 +95,7 @@ export default async function MyVotesPage() {
             </Link>
           </div>
         )}
-        </div>
-      </div>
-    </main>
+    </VoterUnifiedShell>
   );
 }
 

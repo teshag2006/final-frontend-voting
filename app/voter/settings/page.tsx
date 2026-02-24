@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getVoterProfile } from '@/lib/api';
-import { mockVoterProfile } from '@/lib/voter-mock';
+import { reseedMockVoterData } from '@/lib/voter-mock';
+import { VoterUnifiedShell } from '@/components/voter/voter-unified-shell';
 import { VoterSettingsPage } from '@/components/voter/voter-settings-page';
 
 export const metadata: Metadata = {
@@ -9,8 +10,13 @@ export const metadata: Metadata = {
 };
 
 export default async function SettingsPage() {
+  const fallback = reseedMockVoterData();
   const apiProfile = await getVoterProfile();
-  const profile = apiProfile || mockVoterProfile;
+  const profile = apiProfile || fallback.profile;
 
-  return <VoterSettingsPage profile={profile} />;
+  return (
+    <VoterUnifiedShell>
+      <VoterSettingsPage profile={profile} recentPayments={fallback.payments.payments} />
+    </VoterUnifiedShell>
+  );
 }

@@ -1,8 +1,6 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { createContext, useContext } from 'react';
-import { AuthProvider } from '@/context/AuthContext';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -14,14 +12,12 @@ interface ProtectedRouteWrapperProps {
   fallbackUrl?: string;
 }
 
-const ProtectedRouteNestingContext = createContext(false);
-
 function ProtectedRouteContent({
   children,
   requiredRole,
   fallbackUrl = '/login',
 }: Omit<ProtectedRouteWrapperProps, 'children'> & { children: ReactNode }) {
-  const { user, isLoading, isAuthenticated, hasRole } = useAuth();
+  const { isLoading, isAuthenticated, hasRole } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -81,23 +77,10 @@ export function ProtectedRouteWrapper({
   requiredRole,
   fallbackUrl,
 }: ProtectedRouteWrapperProps) {
-  const isNested = useContext(ProtectedRouteNestingContext);
-
-  if (isNested) {
-    return <>{children}</>;
-  }
-
   return (
-    <ProtectedRouteNestingContext.Provider value={true}>
-      <AuthProvider>
-        <ProtectedRouteContent
-          requiredRole={requiredRole}
-          fallbackUrl={fallbackUrl}
-        >
-          {children}
-        </ProtectedRouteContent>
-      </AuthProvider>
-    </ProtectedRouteNestingContext.Provider>
+    <ProtectedRouteContent requiredRole={requiredRole} fallbackUrl={fallbackUrl}>
+      {children}
+    </ProtectedRouteContent>
   );
 }
 

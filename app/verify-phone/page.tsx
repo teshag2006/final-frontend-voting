@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/auth/phone-input';
 import { OtpInput } from '@/components/auth/otp-input';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 type Stage = 'phone' | 'otp' | 'success' | 'error';
 type ErrorType = 'invalid_format' | 'rate_limit' | 'invalid_otp' | 'expired' | 'too_many' | 'server_error' | null;
 
 export default function VerifyPhonePage() {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const [stage, setStage] = useState<Stage>('phone');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
@@ -27,7 +29,7 @@ export default function VerifyPhonePage() {
   // Validate Ethiopian phone number format
   const validatePhone = (value: string): boolean => {
     const cleaned = value.replace(/\D/g, '');
-    return cleaned.length === 12 && cleaned.startsWith('251');
+    return /^251[97]\d{8}$/.test(cleaned);
   };
 
   const handleSendOtp = async (e: React.FormEvent) => {
@@ -45,7 +47,7 @@ export default function VerifyPhonePage() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Mock: Check for rate limit (for demo, always succeeds)
+      // Mock: Check for rate limit
       const random = Math.random();
       if (random < 0.05) {
         setError('rate_limit');
@@ -80,7 +82,17 @@ export default function VerifyPhonePage() {
 
       // Mock: Validate OTP
       if (otp === '123456') {
-        // Demo valid OTP
+        const verifyResponse = await fetch('/api/voter/verify-phone', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phoneNumber: phone, otp }),
+        });
+        if (!verifyResponse.ok) {
+          const payload = await verifyResponse.json().catch(() => null);
+          setError('server_error');
+          setOtpError(payload?.message || 'Verification failed. Please try again.');
+          return;
+        }
         setStage('success');
         setTimeout(() => {
           router.push('/voter/dashboard');
@@ -125,8 +137,15 @@ export default function VerifyPhonePage() {
     }
   };
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+  }, [isAuthenticated, router]);
+
   // Resend countdown timer effect
-  useState(() => {
+  useEffect(() => {
     if (resendCountdown <= 0) return;
 
     const interval = setInterval(() => {
@@ -140,10 +159,10 @@ export default function VerifyPhonePage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  });
+  }, [resendCountdown]);
 
   // Timer effect for OTP expiry
-  useState(() => {
+  useEffect(() => {
     if (stage !== 'otp') return;
 
     const interval = setInterval(() => {
@@ -160,7 +179,7 @@ export default function VerifyPhonePage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  });
+  }, [stage]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -234,7 +253,7 @@ export default function VerifyPhonePage() {
 
                   <Button
                     type="submit"
-                    disabled={isLoading || !phone}
+                    disabled={isLoading || !validatePhone(phone)}
                     className="w-full h-12 text-base font-semibold"
                   >
                     {isLoading ? 'Sending OTP...' : 'Send OTP'}

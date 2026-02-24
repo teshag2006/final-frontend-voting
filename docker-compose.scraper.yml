@@ -1,0 +1,80 @@
+version: "3.9"
+services:
+  scraper-postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: scraperdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "54329:5432"
+    volumes:
+      - scraper_pg_data:/var/lib/postgresql/data
+
+  scraper-redis:
+    image: redis:7
+    ports:
+      - "6389:6379"
+
+  scraper-api:
+    build:
+      context: ./scraper
+    command: npm run dev:api
+    working_dir: /app
+    volumes:
+      - ./scraper:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      API_PORT: 4301
+      DATABASE_URL: postgresql://postgres:postgres@scraper-postgres:5432/scraperdb?schema=public
+      REDIS_URL: redis://scraper-redis:6379
+      SCRAPE_CONCURRENCY: 4
+      SCRAPE_RATE_LIMIT_MAX: 20
+      SCRAPE_RATE_LIMIT_WINDOW_MS: 60000
+      REQUEST_TIMEOUT_MS: 15000
+      USER_AGENT: VotingPlatformBot/1.0 (+security@example.com)
+      ALLOWED_HOSTS: "*"
+      MIN_REQUEST_INTERVAL_MS: 2500
+      REQUEST_JITTER_MS: 800
+      COOLDOWN_BASE_MS: 30000
+      COOLDOWN_MAX_MS: 900000
+      CIRCUIT_BREAKER_THRESHOLD: 5
+      ROBOTS_CACHE_TTL_MS: 300000
+    depends_on:
+      - scraper-postgres
+      - scraper-redis
+    ports:
+      - "4301:4301"
+
+  scraper-worker:
+    build:
+      context: ./scraper
+    command: npm run dev:worker
+    working_dir: /app
+    volumes:
+      - ./scraper:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@scraper-postgres:5432/scraperdb?schema=public
+      REDIS_URL: redis://scraper-redis:6379
+      SCRAPE_CONCURRENCY: 4
+      SCRAPE_RATE_LIMIT_MAX: 20
+      SCRAPE_RATE_LIMIT_WINDOW_MS: 60000
+      REQUEST_TIMEOUT_MS: 15000
+      USER_AGENT: VotingPlatformBot/1.0 (+security@example.com)
+      ALLOWED_HOSTS: "*"
+      MIN_REQUEST_INTERVAL_MS: 2500
+      REQUEST_JITTER_MS: 800
+      COOLDOWN_BASE_MS: 30000
+      COOLDOWN_MAX_MS: 900000
+      CIRCUIT_BREAKER_THRESHOLD: 5
+      ROBOTS_CACHE_TTL_MS: 300000
+    depends_on:
+      - scraper-postgres
+      - scraper-redis
+      - scraper-api
+
+volumes:
+  scraper_pg_data:

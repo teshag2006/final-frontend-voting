@@ -70,8 +70,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const { password: _, ...userWithoutPassword } = retrievedUser as any;
             setUser(userWithoutPassword as AuthUser);
           } else {
-            localStorage.removeItem('auth_user_id');
-            localStorage.removeItem('auth_user_role');
+            const storedRole = localStorage.getItem('auth_user_role') as UserRole | null;
+            const cachedUserRaw = localStorage.getItem('auth_user_cache');
+            if (cachedUserRaw) {
+              const cachedUser = JSON.parse(cachedUserRaw) as Partial<AuthUser>;
+              if (cachedUser?.id && cachedUser?.role) {
+                setUser({
+                  id: String(cachedUser.id),
+                  email: String(cachedUser.email || ''),
+                  name: String(cachedUser.name || 'User'),
+                  role: cachedUser.role as UserRole,
+                  avatar: cachedUser.avatar ? String(cachedUser.avatar) : undefined,
+                });
+              } else {
+                if (storedRole) {
+                  setUser({
+                    id: storedUserId,
+                    email: '',
+                    name: 'User',
+                    role: storedRole,
+                  });
+                } else {
+                  localStorage.removeItem('auth_user_id');
+                  localStorage.removeItem('auth_user_role');
+                  localStorage.removeItem('auth_user_cache');
+                }
+              }
+            } else {
+              if (storedRole) {
+                setUser({
+                  id: storedUserId,
+                  email: '',
+                  name: 'User',
+                  role: storedRole,
+                });
+              } else {
+                localStorage.removeItem('auth_user_id');
+                localStorage.removeItem('auth_user_role');
+              }
+            }
           }
         }
       } catch (error) {
@@ -83,6 +120,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     checkExistingAuth();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) return;
+    const timeout = window.setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+    return () => window.clearTimeout(timeout);
+  }, [isLoading]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -120,6 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Store auth info in localStorage and cookies
       localStorage.setItem('auth_user_id', response.user.id);
       localStorage.setItem('auth_user_role', response.user.role);
+      localStorage.setItem('auth_user_cache', JSON.stringify(user));
       // Tokens are stored by authService
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';

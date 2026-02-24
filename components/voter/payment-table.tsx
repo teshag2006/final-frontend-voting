@@ -47,7 +47,10 @@ export function PaymentTable({ payments }: PaymentTableProps) {
           {payments.map((payment) => (
             <tr key={payment.receiptNumber} className="hover:bg-muted/30 transition-colors">
               <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                {payment.receiptNumber}
+                <div>{payment.receiptNumber}</div>
+                {payment.paymentId ? (
+                  <div className="mt-1 text-[11px] text-slate-500">TX: {payment.paymentId}</div>
+                ) : null}
               </td>
               <td className="px-4 py-3 text-foreground">{payment.eventName}</td>
               <td className="px-4 py-3 font-semibold">{payment.voteQuantity}</td>

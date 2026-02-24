@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getVoterPayments } from '@/lib/api';
-import { mockVoterPayments } from '@/lib/voter-mock';
+import { reseedMockVoterData } from '@/lib/voter-mock';
 import { PaymentTable } from '@/components/voter/payment-table';
-import { VoterSidebarNav } from '@/components/voter/voter-sidebar-nav';
+import { VoterUnifiedShell } from '@/components/voter/voter-unified-shell';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart } from 'lucide-react';
 
@@ -13,15 +13,13 @@ export const metadata: Metadata = {
 };
 
 export default async function PaymentHistoryPage() {
+  const fallback = reseedMockVoterData().payments;
   const apiData = await getVoterPayments();
-  const data = apiData || mockVoterPayments;
+  const data = apiData || fallback;
   const payments = data.payments;
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="mx-auto grid w-full max-w-[1440px] gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:px-8">
-        <VoterSidebarNav />
-        <div className="min-w-0">
+    <VoterUnifiedShell>
         {/* Header */}
         <div className="mb-8">
 
@@ -77,8 +75,6 @@ export default async function PaymentHistoryPage() {
             </Link>
           </div>
         )}
-        </div>
-      </div>
-    </main>
+    </VoterUnifiedShell>
   );
 }

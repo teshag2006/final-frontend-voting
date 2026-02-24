@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "scraper:api": "npm --prefix scraper run dev:api",
+    "scraper:worker": "npm --prefix scraper run dev:worker"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.0.4",

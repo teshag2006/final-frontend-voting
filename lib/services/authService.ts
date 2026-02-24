@@ -121,6 +121,7 @@ class AuthService {
     // Clear user session
     localStorage.removeItem('auth_user_id');
     localStorage.removeItem('auth_user_role');
+    localStorage.removeItem('auth_user_cache');
     localStorage.removeItem('auth_impersonation_user');
 
     // Invalidate server session cookie (best effort). Guard against

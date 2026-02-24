@@ -58,12 +58,43 @@ const SERVER_USERS: ServerUserRecord[] = [
   },
 ];
 
+const RUNTIME_USERS: ServerUserRecord[] = [];
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 export function verifyServerUser(email: string, password: string): ServerAuthUser | null {
-  const user = SERVER_USERS.find(
-    (candidate) => candidate.email.toLowerCase() === email.toLowerCase() && candidate.password === password
+  const normalizedEmail = normalizeEmail(email);
+  const allUsers = [...SERVER_USERS, ...RUNTIME_USERS];
+  const user = allUsers.find(
+    (candidate) => candidate.email.toLowerCase() === normalizedEmail && candidate.password === password
   );
 
   if (!user) return null;
+  const { password: _password, ...safeUser } = user;
+  return safeUser;
+}
+
+export function registerServerVoter(name: string, email: string, password: string): ServerAuthUser | null {
+  const normalizedEmail = normalizeEmail(email);
+  const exists = [...SERVER_USERS, ...RUNTIME_USERS].some(
+    (candidate) => candidate.email.toLowerCase() === normalizedEmail
+  );
+
+  if (exists) return null;
+
+  const safeName = name.trim();
+  const user: ServerUserRecord = {
+    id: `voter-runtime-${Date.now()}`,
+    email: normalizedEmail,
+    password,
+    name: safeName || 'New Voter',
+    role: 'voter',
+    avatar: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${encodeURIComponent(safeName || normalizedEmail)}`,
+  };
+
+  RUNTIME_USERS.push(user);
   const { password: _password, ...safeUser } = user;
   return safeUser;
 }

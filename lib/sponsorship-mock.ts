@@ -791,7 +791,7 @@ export const mockSponsorDashboardOverview: SponsorDashboardOverview = {
 export const mockSponsorProfileSettings: SponsorProfileSettings = {
   general: {
     companyName: 'Zenith Bank',
-    logoUrl: 'https://picsum.photos/seed/sponsor-zenith/1200/800',
+    logoUrl: '',
     description: 'Pan-African banking brand supporting youth and creator economy initiatives.',
     industry: 'Finance',
   },
