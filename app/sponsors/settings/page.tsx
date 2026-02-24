@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { getSponsorAuditTrail, getSponsorProfileSettings, saveSponsorProfileSettings } from '@/lib/api';
 import type { SponsorAuditEntry } from '@/lib/sponsor-runtime-store';
 import { mockSponsorProfileSettings, type SponsorProfileSettings } from '@/lib/sponsorship-mock';
+import { uploadMediaFile } from '@/lib/client/upload-media';
 
 type SettingsTab = 'general' | 'contact' | 'legal' | 'security';
 
@@ -19,6 +20,7 @@ export default function SponsorProfileSettingsPage() {
   const [auditTrail, setAuditTrail] = useState<SponsorAuditEntry[]>([]);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
   const [logoError, setLogoError] = useState<string | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export default function SponsorProfileSettingsPage() {
     logoInputRef.current?.click();
   };
 
-  const handleLogoFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleLogoFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -85,18 +87,16 @@ export default function SponsorProfileSettingsPage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result !== 'string') {
-        setLogoError('Could not read logo file.');
-        return;
-      }
+    try {
+      setIsUploadingLogo(true);
+      const uploadedUrl = await uploadMediaFile(file, 'sponsor-media/logo');
       setLogoError(null);
-      setDraftSettings((prev) => ({ ...prev, general: { ...prev.general, logoUrl: result } }));
-    };
-    reader.onerror = () => setLogoError('Could not read logo file.');
-    reader.readAsDataURL(file);
+      setDraftSettings((prev) => ({ ...prev, general: { ...prev.general, logoUrl: uploadedUrl } }));
+    } catch (error) {
+      setLogoError(error instanceof Error ? error.message : 'Could not upload logo file.');
+    } finally {
+      setIsUploadingLogo(false);
+    }
   };
 
   return (
@@ -196,10 +196,10 @@ export default function SponsorProfileSettingsPage() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={handleLogoFileChange}
+                    onChange={(event) => void handleLogoFileChange(event)}
                   />
-                  <Button type="button" variant="outline" className="w-full" onClick={handleLogoButtonClick}>
-                    Change Logo
+                  <Button type="button" variant="outline" className="w-full" onClick={handleLogoButtonClick} disabled={isUploadingLogo}>
+                    {isUploadingLogo ? 'Uploading...' : 'Change Logo'}
                   </Button>
                   {logoError && <p className="text-xs text-red-700">{logoError}</p>}
                 </div>

@@ -43,6 +43,7 @@ export default function SettingsPage() {
           allowScheduleEditsAfterLaunch: false,
           defaultVotingDurationHours: 72,
           maxContestantsPerCategory: 100,
+          maxGalleryPhotosPerContestant: 10,
         },
         payment: {
           primaryProvider: 'stripe',
@@ -257,6 +258,18 @@ export default function SettingsPage() {
                   value={settings.event.maxContestantsPerCategory}
                   onChange={(e) =>
                     setSettings((prev) => prev ? ({ ...prev, event: { ...prev.event, maxContestantsPerCategory: Number(e.target.value || 0) } }) : prev)
+                  }
+                />
+              </label>
+              <label className="rounded-lg border p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Max Gallery Photos Per Contestant</p>
+                <input
+                  type="number"
+                  min={1}
+                  className="mt-2 h-9 w-full rounded-md border border-slate-300 px-2"
+                  value={settings.event.maxGalleryPhotosPerContestant}
+                  onChange={(e) =>
+                    setSettings((prev) => prev ? ({ ...prev, event: { ...prev.event, maxGalleryPhotosPerContestant: Number(e.target.value || 0) } }) : prev)
                   }
                 />
               </label>

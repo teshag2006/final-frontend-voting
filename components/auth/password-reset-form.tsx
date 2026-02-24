@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 interface PasswordResetFormProps {
   onSubmit?: (email: string, token?: string, newPassword?: string) => Promise<void>;
   token?: string;
+  initialEmail?: string;
   isLoading?: boolean;
   className?: string;
 }
@@ -22,11 +23,12 @@ type Step = 'request' | 'verify' | 'reset';
 export function PasswordResetForm({
   onSubmit,
   token,
+  initialEmail = '',
   isLoading: externalIsLoading = false,
   className,
 }: PasswordResetFormProps) {
   const [step, setStep] = useState<Step>(token ? 'reset' : 'request');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(initialEmail);
   const [verificationCode, setVerificationCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -151,7 +153,7 @@ export function PasswordResetForm({
 
       setSuccess('Password reset successfully! Redirecting to sign in...');
       setTimeout(() => {
-        window.location.href = '/signin';
+        window.location.href = '/login';
       }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -165,7 +167,7 @@ export function PasswordResetForm({
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-2">
           <Link
-            href="/signin"
+            href="/login"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />

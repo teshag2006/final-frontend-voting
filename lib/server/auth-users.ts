@@ -76,7 +76,12 @@ export function verifyServerUser(email: string, password: string): ServerAuthUse
   return safeUser;
 }
 
-export function registerServerVoter(name: string, email: string, password: string): ServerAuthUser | null {
+function registerServerUser(
+  role: Extract<UserRole, 'voter' | 'sponsor' | 'contestant'>,
+  name: string,
+  email: string,
+  password: string
+): ServerAuthUser | null {
   const normalizedEmail = normalizeEmail(email);
   const exists = [...SERVER_USERS, ...RUNTIME_USERS].some(
     (candidate) => candidate.email.toLowerCase() === normalizedEmail
@@ -86,17 +91,29 @@ export function registerServerVoter(name: string, email: string, password: strin
 
   const safeName = name.trim();
   const user: ServerUserRecord = {
-    id: `voter-runtime-${Date.now()}`,
+    id: `${role}-runtime-${Date.now()}`,
     email: normalizedEmail,
     password,
     name: safeName || 'New Voter',
-    role: 'voter',
+    role,
     avatar: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${encodeURIComponent(safeName || normalizedEmail)}`,
   };
 
   RUNTIME_USERS.push(user);
   const { password: _password, ...safeUser } = user;
   return safeUser;
+}
+
+export function registerServerVoter(name: string, email: string, password: string): ServerAuthUser | null {
+  return registerServerUser('voter', name, email, password);
+}
+
+export function registerServerSponsor(name: string, email: string, password: string): ServerAuthUser | null {
+  return registerServerUser('sponsor', name, email, password);
+}
+
+export function registerServerContestant(name: string, email: string, password: string): ServerAuthUser | null {
+  return registerServerUser('contestant', name, email, password);
 }
 
 

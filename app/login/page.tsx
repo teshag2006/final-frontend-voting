@@ -86,7 +86,7 @@ export default function LoginPage() {
                   Enter your credentials to access the platform
                 </CardDescription>
                 <p className="text-sm text-slate-400">
-                  New voter?{' '}
+                  New here?{' '}
                   <Link href="/signup" className="text-blue-400 hover:underline">
                     Create an account
                   </Link>
@@ -120,9 +120,14 @@ export default function LoginPage() {
 
                   {/* Password Field */}
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-slate-200">
-                      Password
-                    </Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password" className="text-slate-200">
+                        Password
+                      </Label>
+                      <Link href="/forgot-password" className="text-sm text-blue-400 hover:underline">
+                        Forgot password?
+                      </Link>
+                    </div>
                     <div className="relative">
                       <Input
                         id="password"

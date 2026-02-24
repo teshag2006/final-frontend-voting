@@ -218,10 +218,10 @@ export function PublicEventsHomepage() {
     ? `/events/${primaryEventSlug}/leaderboard`
     : '/events';
   const navMenuItems: Array<[string, string]> = [
-    ['Events', '#live-events'],
+    ['Events', '/events'],
     ['Live Leaderboard', primaryLeaderboardHref],
-    ['Sponsors', '#sponsors'],
-    ['How It Works', '#how-it-works'],
+    ['Sponsors', '/sponsors'],
+    ['How It Works', '/how-it-works'],
     ['Archive', '/events/archive'],
     ['About', '/how-it-works'],
   ];
@@ -291,7 +291,7 @@ export function PublicEventsHomepage() {
             <Link href="/login" className="hidden text-sm text-slate-200 hover:text-white sm:inline-block">
               Login
             </Link>
-            <Link href="/register" className="hidden text-sm text-slate-200 hover:text-white sm:inline-block">
+            <Link href="/signup" className="hidden text-sm text-slate-200 hover:text-white sm:inline-block">
               Register
             </Link>
             <Button asChild className="bg-amber-400 text-slate-950 hover:bg-amber-300">
@@ -664,7 +664,7 @@ export function PublicEventsHomepage() {
                 className="w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400"
               />
               <Button asChild className="bg-amber-400 text-slate-950 hover:bg-amber-300">
-                <Link href="/register">Join</Link>
+                <Link href="/signup">Join</Link>
               </Button>
             </div>
           </div>

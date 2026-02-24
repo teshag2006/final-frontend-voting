@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { SettingsFormField } from './settings-form-field';
 import { validateImageFile } from '@/lib/security/frontend-security';
+import { uploadMediaFile } from '@/lib/client/upload-media';
 
 interface SettingsGeneralTabProps {
   initialData: GeneralSettings;
@@ -19,6 +20,8 @@ export function SettingsGeneralTab({ initialData, onSave, isLoading }: SettingsG
   const [formData, setFormData] = useState(initialData);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
   const [assetError, setAssetError] = useState('');
 
   useEffect(() => {
@@ -41,17 +44,6 @@ export function SettingsGeneralTab({ initialData, onSave, isLoading }: SettingsG
     }
   };
 
-  const toDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') resolve(reader.result);
-        else reject(new Error('Invalid file payload'));
-      };
-      reader.onerror = () => reject(new Error('Could not read file'));
-      reader.readAsDataURL(file);
-    });
-
   const handleLogoUpload = async (file?: File) => {
     if (!file) return;
     const validation = validateImageFile(file);
@@ -60,12 +52,15 @@ export function SettingsGeneralTab({ initialData, onSave, isLoading }: SettingsG
       return;
     }
     try {
-      const dataUrl = await toDataUrl(file);
-      setFormData((prev) => ({ ...prev, logoUrl: dataUrl }));
+      setIsUploadingLogo(true);
+      const uploadedUrl = await uploadMediaFile(file, 'admin-assets/logo');
+      setFormData((prev) => ({ ...prev, logoUrl: uploadedUrl }));
       setAssetError('');
       setIsDirty(true);
-    } catch {
-      setAssetError('Could not process logo file.');
+    } catch (error) {
+      setAssetError(error instanceof Error ? error.message : 'Could not process logo file.');
+    } finally {
+      setIsUploadingLogo(false);
     }
   };
 
@@ -82,12 +77,15 @@ export function SettingsGeneralTab({ initialData, onSave, isLoading }: SettingsG
       return;
     }
     try {
-      const dataUrl = await toDataUrl(file);
-      setFormData((prev) => ({ ...prev, faviconUrl: dataUrl }));
+      setIsUploadingFavicon(true);
+      const uploadedUrl = await uploadMediaFile(file, 'admin-assets/favicon');
+      setFormData((prev) => ({ ...prev, faviconUrl: uploadedUrl }));
       setAssetError('');
       setIsDirty(true);
-    } catch {
-      setAssetError('Could not process favicon file.');
+    } catch (error) {
+      setAssetError(error instanceof Error ? error.message : 'Could not process favicon file.');
+    } finally {
+      setIsUploadingFavicon(false);
     }
   };
 
@@ -189,9 +187,11 @@ export function SettingsGeneralTab({ initialData, onSave, isLoading }: SettingsG
                       type="file"
                       accept="image/png,image/jpeg,image/webp"
                       className="hidden"
+                      disabled={isUploadingLogo}
                       onChange={(e) => void handleLogoUpload(e.target.files?.[0])}
                     />
                   </label>
+                  {isUploadingLogo ? <span className="text-xs text-slate-500">Uploading...</span> : null}
                 </div>
               </div>
 
@@ -225,9 +225,11 @@ export function SettingsGeneralTab({ initialData, onSave, isLoading }: SettingsG
                       type="file"
                       accept="image/png,image/x-icon,image/vnd.microsoft.icon,image/svg+xml"
                       className="hidden"
+                      disabled={isUploadingFavicon}
                       onChange={(e) => void handleFaviconUpload(e.target.files?.[0])}
                     />
                   </label>
+                  {isUploadingFavicon ? <span className="text-xs text-slate-500">Uploading...</span> : null}
                 </div>
               </div>
             </div>

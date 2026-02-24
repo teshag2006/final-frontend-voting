@@ -1,5 +1,8 @@
+import { makeUniqueSlug, slugify } from '@/lib/slug';
+
 export interface AdminContestantRecord {
   id: string;
+  slug?: string;
   name: string;
   bio?: string;
   category: string;
@@ -16,9 +19,22 @@ export interface AdminContestantRecord {
 
 let contestantsStore: AdminContestantRecord[] = [];
 
+function getUsedSlugSet(excludeId?: string) {
+  const used = new Set<string>();
+  contestantsStore.forEach((item) => {
+    if (excludeId && item.id === excludeId) return;
+    if (item.slug) used.add(item.slug);
+  });
+  return used;
+}
+
 export function seedAdminContestants(records: AdminContestantRecord[]) {
   if (contestantsStore.length > 0) return;
-  contestantsStore = records.map((item) => ({ ...item }));
+  const used = new Set<string>();
+  contestantsStore = records.map((item) => {
+    const slug = makeUniqueSlug(item.slug || item.name || item.id, used, 'contestant');
+    return { ...item, slug };
+  });
 }
 
 export function getAdminContestants() {
@@ -26,8 +42,11 @@ export function getAdminContestants() {
 }
 
 export function createAdminContestant(payload: AdminContestantRecord) {
-  contestantsStore = [{ ...payload }, ...contestantsStore];
-  return { ...payload };
+  const used = getUsedSlugSet();
+  const slug = makeUniqueSlug(payload.slug || payload.name || payload.id, used, 'contestant');
+  const next = { ...payload, slug };
+  contestantsStore = [next, ...contestantsStore];
+  return { ...next };
 }
 
 export function updateAdminContestant(
@@ -37,10 +56,19 @@ export function updateAdminContestant(
   const index = contestantsStore.findIndex((item) => item.id === id);
   if (index === -1) return null;
 
-  const updated: AdminContestantRecord = {
-    ...contestantsStore[index],
-    ...patch,
-  };
+  const current = contestantsStore[index];
+  const merged: AdminContestantRecord = { ...current, ...patch };
+
+  if (patch.slug !== undefined || patch.name !== undefined) {
+    const used = getUsedSlugSet(id);
+    const requestedSlug = patch.slug || slugify(merged.name || current.name || id);
+    merged.slug = makeUniqueSlug(requestedSlug, used, 'contestant');
+  } else if (!merged.slug) {
+    const used = getUsedSlugSet(id);
+    merged.slug = makeUniqueSlug(merged.name || id, used, 'contestant');
+  }
+
+  const updated: AdminContestantRecord = merged;
   contestantsStore = [
     ...contestantsStore.slice(0, index),
     updated,

@@ -85,11 +85,8 @@ function ensureVoterState(user: SessionUser): VoterRuntimeState {
       googleLinked: false,
       createdAt: nowIso(),
     },
-    freeVotes: (mockWalletData.freeVotes || []).map((item: any) => ({
-      categoryId: String(item.categoryId),
-      categoryName: String(item.categoryName),
-      used: false,
-    })),
+    // Free vote slots are allocated only after successful phone OTP verification.
+    freeVotes: [],
     paidVotesRemaining: 0,
     totalPaidVotesPurchased: 0,
     totalVotesUsed: 0,
@@ -127,6 +124,13 @@ export function verifyVoterPhone(user: SessionUser, phoneNumber: string) {
   const state = ensureVoterState(user);
   state.profile.phoneVerified = true;
   state.profile.phoneNumber = phoneNumber;
+  if (state.freeVotes.length === 0) {
+    state.freeVotes = (mockWalletData.freeVotes || []).map((item: any) => ({
+      categoryId: String(item.categoryId),
+      categoryName: String(item.categoryName),
+      used: false,
+    }));
+  }
   return {
     success: true,
     wallet: toWalletResponse(state),
@@ -218,9 +222,6 @@ export function castVoterVote(
   const categoryId = String(payload.categoryId || '').trim();
   if (!categoryId) throw new Error('categoryId is required');
 
-  const category = state.freeVotes.find((item) => item.categoryId === categoryId);
-  if (!category) throw new Error('Unknown category');
-
   const quantity = Math.max(1, Number(payload.quantity || 1));
 
   if (payload.isPaid) {
@@ -250,8 +251,8 @@ export function castVoterVote(
     const vote: VoteLedger = {
       id: mkId('vote'),
       eventName: 'Campus Star 2026',
-      categoryId: category.categoryId,
-      categoryName: payload.categoryName || category.categoryName,
+      categoryId,
+      categoryName: payload.categoryName || 'Paid Vote Category',
       contestantName: payload.contestantName || 'Contestant',
       isPaid: true,
       paidVotes: quantity,
@@ -267,9 +268,10 @@ export function castVoterVote(
     };
   }
 
-  if (!state.profile.phoneVerified) {
-    throw new Error('Phone verification required for free vote');
-  }
+  if (!state.profile.phoneVerified) throw new Error('Phone verification required for free vote');
+
+  const category = state.freeVotes.find((item) => item.categoryId === categoryId);
+  if (!category) throw new Error('Unknown category');
   if (category.used) {
     throw new Error('Free vote already used for this category');
   }

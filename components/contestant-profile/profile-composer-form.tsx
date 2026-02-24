@@ -5,6 +5,7 @@ import { Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ContestantProfileComposerData } from '@/lib/contestant-runtime-store';
 import { sanitizePlainText } from '@/lib/security/frontend-security';
+import { uploadMediaFile } from '@/lib/client/upload-media';
 
 export function ProfileComposerForm({
   value,
@@ -20,6 +21,7 @@ export function ProfileComposerForm({
   onSave: () => Promise<void>;
 }) {
   const [localError, setLocalError] = useState('');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const normalizeHandle = (raw: string) => {
     let next = raw.trim();
@@ -30,7 +32,7 @@ export function ProfileComposerForm({
   };
   const isSafeHandle = (raw: string) => /^[A-Za-z0-9._]{1,50}$/.test(raw);
 
-  const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -47,18 +49,16 @@ export function ProfileComposerForm({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result !== 'string') {
-        setLocalError('Could not read selected photo.');
-        return;
-      }
+    try {
+      setIsUploadingPhoto(true);
+      const uploadedUrl = await uploadMediaFile(file, 'contestant-media/profile');
       setLocalError('');
-      onChange({ ...value, photoUrl: result });
-    };
-    reader.onerror = () => setLocalError('Could not read selected photo.');
-    reader.readAsDataURL(file);
+      onChange({ ...value, photoUrl: uploadedUrl });
+    } catch (error) {
+      setLocalError(error instanceof Error ? error.message : 'Could not upload selected photo.');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
   const handleSaveClick = async () => {
@@ -118,10 +118,10 @@ export function ProfileComposerForm({
               No photo
             </div>
           )}
-          <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-          <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()}>
+          <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => void handlePhotoChange(event)} />
+          <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
             <Upload className="mr-2 h-4 w-4" />
-            Upload Photo
+            {isUploadingPhoto ? 'Uploading...' : 'Upload Photo'}
           </Button>
         </div>
       </div>

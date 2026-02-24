@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { sanitizePlainText } from '@/lib/security/frontend-security';
+import { uploadMediaFile } from '@/lib/client/upload-media';
 
 export interface ContestantFormData {
   id?: string;
@@ -66,6 +67,8 @@ export function CreateEditContestantModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [mediaUploadMessage, setMediaUploadMessage] = useState('');
   const [adminIntroVideoUrl, setAdminIntroVideoUrl] = useState('');
   const [introVideoMessage, setIntroVideoMessage] = useState('');
   const isApprovedForIntroVideo = formData.status === 'APPROVED' || formData.status === 'ACTIVE';
@@ -90,6 +93,7 @@ export function CreateEditContestantModal({
       setGalleryPreviews([]);
     }
     setErrors({});
+    setMediaUploadMessage('');
   }, [initialData, isOpen]);
 
   useEffect(() => {
@@ -152,36 +156,49 @@ export function CreateEditContestantModal({
     }
   };
 
-  const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // In real app, would upload to server
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-        setFormData((prev) => ({ ...prev, avatar: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    try {
+      setIsUploadingMedia(true);
+      setMediaUploadMessage('');
+      const uploadedUrl = await uploadMediaFile(file, 'admin-assets/contestants/avatar');
+      setAvatarPreview(uploadedUrl);
+      setFormData((prev) => ({ ...prev, avatar: uploadedUrl }));
+    } catch (error) {
+      setMediaUploadMessage(error instanceof Error ? error.message : 'Could not upload avatar image.');
+    } finally {
+      setIsUploadingMedia(false);
     }
   };
 
-  const handleGalleryChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleGalleryChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    files.forEach((file) => {
-      if (!file.type.startsWith('image/')) return;
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setGalleryPreviews((prev) => {
-          const next = [...prev, result].slice(0, 8);
-          setFormData((current) => ({ ...current, galleryImages: next }));
-          return next;
-        });
-      };
-      reader.readAsDataURL(file);
-    });
+    const slotsRemaining = Math.max(0, 8 - galleryPreviews.length);
+    if (slotsRemaining === 0) return;
+
+    const uploadableFiles = files.filter((file) => file.type.startsWith('image/')).slice(0, slotsRemaining);
+    if (uploadableFiles.length === 0) return;
+
+    try {
+      setIsUploadingMedia(true);
+      setMediaUploadMessage('');
+      const uploadedUrls = await Promise.all(
+        uploadableFiles.map((file) => uploadMediaFile(file, 'admin-assets/contestants/gallery'))
+      );
+      setGalleryPreviews((prev) => {
+        const next = [...prev, ...uploadedUrls].slice(0, 8);
+        setFormData((current) => ({ ...current, galleryImages: next }));
+        return next;
+      });
+    } catch (error) {
+      setMediaUploadMessage(error instanceof Error ? error.message : 'Could not upload gallery images.');
+    } finally {
+      setIsUploadingMedia(false);
+    }
   };
 
   const handleAdminIntroVideoSave = async () => {
@@ -260,12 +277,14 @@ export function CreateEditContestantModal({
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={handleAvatarChange}
+                  onChange={(event) => void handleAvatarChange(event)}
                   className="hidden"
-                  disabled={isLoading}
+                  disabled={isLoading || isUploadingMedia}
                 />
               </label>
             </div>
+            {isUploadingMedia ? <p className="text-xs text-muted-foreground mt-1">Uploading media...</p> : null}
+            {mediaUploadMessage ? <p className="text-xs text-red-600 mt-1">{mediaUploadMessage}</p> : null}
           </div>
 
           {/* Gallery Photos */}
@@ -279,9 +298,9 @@ export function CreateEditContestantModal({
                   type="file"
                   accept="image/*"
                   multiple
-                  onChange={handleGalleryChange}
+                  onChange={(event) => void handleGalleryChange(event)}
                   className="hidden"
-                  disabled={isLoading}
+                  disabled={isLoading || isUploadingMedia}
                 />
               </label>
               {galleryPreviews.length > 0 ? (

@@ -3,6 +3,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { uploadMediaFile } from '@/lib/client/upload-media';
 import type {
   ContestantChangeRequest,
   ContestantMediaItem,
@@ -12,6 +13,7 @@ import type {
 export default function ContestantGalleryPage() {
   const [media, setMedia] = useState<ContestantMediaItem[]>([]);
   const [publishing, setPublishing] = useState<ContestantPublishingState | null>(null);
+  const [maxGalleryPhotos, setMaxGalleryPhotos] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -20,6 +22,7 @@ export default function ContestantGalleryPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const galleryItems = media.filter((item) => item.kind === 'gallery_image');
+  const isGalleryLimitReached = galleryItems.length >= maxGalleryPhotos;
 
   const loadData = async () => {
     setIsLoading(true);
@@ -29,7 +32,16 @@ export default function ContestantGalleryPage() {
         fetch('/api/contestant/publishing-state'),
       ]);
       if (mediaRes.ok) setMedia((await mediaRes.json()) as ContestantMediaItem[]);
-      if (publishingRes.ok) setPublishing((await publishingRes.json()) as ContestantPublishingState);
+      if (publishingRes.ok) {
+        const publishingPayload = (await publishingRes.json()) as ContestantPublishingState & {
+          maxGalleryPhotosPerContestant?: number;
+        };
+        setPublishing(publishingPayload);
+        const configuredLimit = Number(publishingPayload.maxGalleryPhotosPerContestant);
+        if (Number.isFinite(configuredLimit) && configuredLimit > 0) {
+          setMaxGalleryPhotos(configuredLimit);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +73,11 @@ export default function ContestantGalleryPage() {
     event.target.value = '';
     if (!file) return;
 
+    if (isGalleryLimitReached) {
+      setMessage(`Gallery limit reached (${maxGalleryPhotos} photos). Remove one before uploading a new image.`);
+      return;
+    }
+
     if (!file.type.startsWith('image/')) {
       setMessage('Please choose an image file.');
       return;
@@ -72,58 +89,52 @@ export default function ContestantGalleryPage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const result = reader.result;
-      if (typeof result !== 'string') {
-        setMessage('Could not read the selected image.');
+    const previewUrl = URL.createObjectURL(file);
+    setUploadingPreview(previewUrl);
+    setIsSaving(true);
+    try {
+      const uploadedUrl = await uploadMediaFile(file, 'contestant-media/gallery');
+      const response = await fetch('/api/contestant/media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'gallery_image',
+          label: `Gallery Photo ${new Date().toLocaleString()}`,
+          url: uploadedUrl,
+        }),
+      });
+
+      if (response.status === 423) {
+        const reason = window.prompt('Gallery is locked. Enter reason for admin review request:');
+        if (reason) {
+          const ok = await submitLockedChangeRequest(
+            { kind: 'gallery_image', label: 'Gallery Photo', url: uploadedUrl },
+            reason
+          );
+          setMessage(ok ? 'Gallery change request submitted for admin review.' : 'Could not submit change request.');
+        }
         return;
       }
 
-      setUploadingPreview(result);
-      setIsSaving(true);
-      try {
-        const response = await fetch('/api/contestant/media', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            kind: 'gallery_image',
-            label: `Gallery Photo ${new Date().toLocaleString()}`,
-            url: result,
-          }),
-        });
-
-        if (response.status === 423) {
-          const reason = window.prompt('Gallery is locked. Enter reason for admin review request:');
-          if (reason) {
-            const ok = await submitLockedChangeRequest(
-              { kind: 'gallery_image', label: 'Gallery Photo', url: result },
-              reason
-            );
-            setMessage(ok ? 'Gallery change request submitted for admin review.' : 'Could not submit change request.');
-          }
-          return;
-        }
-
-        if (!response.ok) {
-          const errorBody = (await response.json().catch(() => ({}))) as { message?: string };
-          setMessage(errorBody.message || 'Gallery upload failed.');
-          return;
-        }
-
-        const created = (await response.json()) as ContestantMediaItem;
-        if (created?.id) {
-          setRecentlyUploadedIds((prev) => [created.id, ...prev].slice(0, 10));
-        }
-        setMessage('Gallery photo uploaded.');
-        await loadData();
-      } finally {
-        setUploadingPreview(null);
-        setIsSaving(false);
+      if (!response.ok) {
+        const errorBody = (await response.json().catch(() => ({}))) as { message?: string };
+        setMessage(errorBody.message || 'Gallery upload failed.');
+        return;
       }
-    };
-    reader.onerror = () => setMessage('Could not read the selected image.');
-    reader.readAsDataURL(file);
+
+      const created = (await response.json()) as ContestantMediaItem;
+      if (created?.id) {
+        setRecentlyUploadedIds((prev) => [created.id, ...prev].slice(0, 10));
+      }
+      setMessage('Gallery photo uploaded.');
+      await loadData();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Gallery upload failed.');
+    } finally {
+      URL.revokeObjectURL(previewUrl);
+      setUploadingPreview(null);
+      setIsSaving(false);
+    }
   };
 
   const handleRemove = async (item: ContestantMediaItem) => {
@@ -176,17 +187,26 @@ export default function ContestantGalleryPage() {
               {message}
             </div>
           ) : null}
+          <p className="mt-2 text-sm text-slate-600">
+            Gallery photos: {galleryItems.length}/{maxGalleryPhotos}
+          </p>
+          {isGalleryLimitReached ? (
+            <p className="mt-1 text-sm text-amber-700">
+              Upload locked: maximum gallery photo limit reached.
+            </p>
+          ) : null}
           <div className="mt-4">
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
               className="hidden"
+              disabled={isSaving || isGalleryLimitReached}
               onChange={(event) => void handleUpload(event)}
             />
             <Button
               onClick={() => fileInputRef.current?.click()}
-              disabled={isSaving}
+              disabled={isSaving || isGalleryLimitReached}
               className="gap-2"
             >
               <ImagePlus className="h-4 w-4" />

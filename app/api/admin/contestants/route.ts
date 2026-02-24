@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
   }
   const created = createAdminContestant({
     id: String(payload.id),
+    slug: payload.slug ? String(payload.slug) : undefined,
     name: String(payload.name),
     bio: payload.bio ? String(payload.bio) : '',
     category: String(payload.category),
@@ -52,7 +53,12 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ message: 'id is required' }, { status: 400 });
   }
   const patch = payload.patch || {};
-  const updated = updateAdminContestant(id, patch);
+  const normalizedPatch: Partial<AdminContestantRecord> = {
+    ...patch,
+    ...(patch.slug !== undefined ? { slug: String(patch.slug) } : {}),
+    ...(patch.name !== undefined ? { name: String(patch.name) } : {}),
+  };
+  const updated = updateAdminContestant(id, normalizedPatch);
   if (!updated) {
     return NextResponse.json({ message: 'Contestant not found' }, { status: 404 });
   }

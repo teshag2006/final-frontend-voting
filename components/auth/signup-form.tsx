@@ -118,7 +118,7 @@ export function SignUpForm({
           return;
         }
 
-        router.push('/signin?registered=true');
+        router.push('/login?registered=true');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during sign up');
@@ -346,7 +346,7 @@ export function SignUpForm({
           {/* Sign In Link */}
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link href="/signin" className="text-primary hover:underline font-medium">
+            <Link href="/login" className="text-primary hover:underline font-medium">
               Sign in
             </Link>
           </p>

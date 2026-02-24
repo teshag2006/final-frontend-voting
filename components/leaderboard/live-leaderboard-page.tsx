@@ -63,12 +63,12 @@ export function LiveLeaderboardPage({ event, initialData }: LiveLeaderboardPageP
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
+      <header className="sticky top-0 z-40 border-b border-blue-900 bg-gradient-to-r from-slate-900 to-blue-900">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">{event.name}</h1>
-              <p className="mt-1 text-slate-600">Live Leaderboard</p>
+              <h1 className="text-3xl font-bold text-white">{event.name}</h1>
+              <p className="mt-1 text-slate-200">Live Leaderboard</p>
             </div>
             <LiveStatusBadge
               status={statusToBadge(data?.event?.status || event.status)}

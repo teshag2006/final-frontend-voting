@@ -54,7 +54,7 @@ export function Navbar() {
             Login
           </Link>
           <Link
-            href="/register"
+            href="/signup"
             className="rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             Register
@@ -98,7 +98,7 @@ export function Navbar() {
               Login
             </Link>
             <Link
-              href="/register"
+              href="/signup"
               className="flex-1 rounded-lg bg-foreground px-4 py-2 text-center text-sm font-medium text-card transition-colors hover:bg-foreground/90"
             >
               Register

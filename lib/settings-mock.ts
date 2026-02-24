@@ -17,6 +17,7 @@ export function getDefaultEventSettings() {
     allowScheduleEditsAfterLaunch: false,
     defaultVotingDurationHours: 72,
     maxContestantsPerCategory: 100,
+    maxGalleryPhotosPerContestant: 10,
   };
 }
 

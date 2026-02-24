@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { type ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { DeleteAccount } from '@/components/voter/delete-account';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { uploadMediaFile } from '@/lib/client/upload-media';
 
 type SectionId = 'profile' | 'security' | 'notifications' | 'voting' | 'payments' | 'privacy';
 
@@ -67,6 +68,9 @@ export function VoterSettingsPage({ profile, recentPayments }: VoterSettingsPage
   const [activeSection, setActiveSection] = useState<SectionId>('profile');
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(profile?.photoUrl ?? '');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     fullName: profile?.fullName ?? '',
@@ -177,6 +181,34 @@ export function VoterSettingsPage({ profile, recentPayments }: VoterSettingsPage
       personalizedRecommendations: true,
     });
     setSaveMessage('Changes discarded.');
+    setProfilePhotoUrl(profile?.photoUrl ?? '');
+    setPhotoUploadError(null);
+  };
+
+  const handleProfilePhotoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setPhotoUploadError('Please select an image file.');
+      return;
+    }
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setPhotoUploadError('Profile photo must be 5MB or less.');
+      return;
+    }
+    try {
+      setIsUploadingPhoto(true);
+      setPhotoUploadError(null);
+      const uploadedUrl = await uploadMediaFile(file, 'voter-media/profile');
+      setProfilePhotoUrl(uploadedUrl);
+      setSaveMessage('Profile photo uploaded.');
+    } catch (error) {
+      setPhotoUploadError(error instanceof Error ? error.message : 'Profile photo upload failed.');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
   const scrollToSection = (id: SectionId) => {
@@ -287,7 +319,12 @@ export function VoterSettingsPage({ profile, recentPayments }: VoterSettingsPage
                   </div>
                   <div>
                     <Label htmlFor="photo">Profile Photo</Label>
-                    <Input id="photo" type="file" />
+                    <Input id="photo" type="file" accept="image/*" onChange={(e) => void handleProfilePhotoUpload(e)} disabled={isUploadingPhoto} />
+                    {isUploadingPhoto ? <p className="mt-1 text-xs text-muted-foreground">Uploading photo...</p> : null}
+                    {photoUploadError ? <p className="mt-1 text-xs text-red-600">{photoUploadError}</p> : null}
+                    {profilePhotoUrl ? (
+                      <img src={profilePhotoUrl} alt="Profile photo" className="mt-2 h-14 w-14 rounded-md object-cover border border-border" />
+                    ) : null}
                   </div>
                 </div>
               </article>
