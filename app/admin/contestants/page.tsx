@@ -315,6 +315,8 @@ export default function AdminContestantsPage() {
         // Edit existing contestant
         const patch: Partial<ContestantData> = {
           name: data.name,
+          age: data.age,
+          gender: data.gender,
           bio: data.bio,
           category: categories.find((cat) => cat.id === data.category)?.name || selectedContestant.category,
           categoryId: data.category,
@@ -593,6 +595,8 @@ export default function AdminContestantsPage() {
                     <p className="text-xl font-semibold text-slate-900">{viewContestant.name}</p>
                     <p className="text-slate-600">ID: {viewContestant.id}</p>
                     <p className="text-slate-600">Category: {viewContestant.category}</p>
+                    <p className="text-slate-600">Age: {viewContestant.age}</p>
+                    <p className="text-slate-600">Gender: {viewContestant.gender.replace(/_/g, ' ')}</p>
                     <p className="text-slate-600">Status: {viewContestant.status}</p>
                     <p className="text-slate-600">Votes: {viewContestant.totalVotes.toLocaleString()}</p>
                     <p className="text-slate-600">

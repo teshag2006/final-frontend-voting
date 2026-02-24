@@ -86,7 +86,7 @@ export default function ReportsPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 mb-6">
+        <TabsList className="mb-6 flex w-full flex-nowrap gap-1 overflow-x-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="voting">Voting</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>

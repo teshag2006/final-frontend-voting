@@ -1,5 +1,6 @@
 import type { Sponsor } from '@/types/contestant';
 import type { SponsorVisibility } from '@/types/dashboard';
+import type { ContestantGender } from '@/lib/contestant-gender';
 
 export interface SponsorCampaign {
   id: string;
@@ -32,11 +33,21 @@ export interface MarketplaceContestant {
   slug: string;
   name: string;
   category: string;
+  age: number;
+  gender: ContestantGender;
+  location: {
+    country: string;
+    city: string;
+    region: string;
+  };
+  expectedSponsorshipUsd: number;
   profileImage: string;
   rank: number;
   votes: number;
   followers: number;
   engagementRate: number;
+  engagementQualityScore: number;
+  fraudRiskScore: number;
   sds: number;
   tier: SponsorshipTier;
   integrityStatus: IntegrityStatus;
@@ -45,6 +56,11 @@ export interface MarketplaceContestant {
   votes7dGrowth: number;
   followers7dGrowth: number;
   sponsored: boolean;
+  profileCompletion: number;
+  responseRatePct: number;
+  deliverableCompletionPct: number;
+  readyNow: boolean;
+  availableFrom: string;
   socialPlatforms: SocialPlatformMetric[];
   voteTrend7d: InfluencePoint[];
   engagementTrend7d: InfluencePoint[];
@@ -297,11 +313,17 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     slug: 'selam-m',
     name: 'Selam M',
     category: 'Singing',
+    age: 24,
+    gender: 'female',
+    location: { country: 'Ethiopia', city: 'Addis Ababa', region: 'East Africa' },
+    expectedSponsorshipUsd: 4500,
     profileImage: 'https://randomuser.me/api/portraits/women/44.jpg',
     rank: 1,
     votes: 560000,
     followers: 920000,
     engagementRate: 8.2,
+    engagementQualityScore: 92,
+    fraudRiskScore: 12,
     sds: 94.8,
     tier: 'A',
     integrityStatus: 'verified',
@@ -310,6 +332,11 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     votes7dGrowth: 13.4,
     followers7dGrowth: 6.8,
     sponsored: true,
+    profileCompletion: 96,
+    responseRatePct: 94,
+    deliverableCompletionPct: 91,
+    readyNow: true,
+    availableFrom: '2026-03-01',
     socialPlatforms: [
       {
         platform: 'Instagram',
@@ -363,11 +390,17 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     slug: 'dawit-k',
     name: 'Dawit K',
     category: 'Sports',
+    age: 27,
+    gender: 'male',
+    location: { country: 'Kenya', city: 'Nairobi', region: 'East Africa' },
+    expectedSponsorshipUsd: 3800,
     profileImage: 'https://randomuser.me/api/portraits/women/68.jpg',
     rank: 2,
     votes: 435000,
     followers: 680000,
     engagementRate: 7.6,
+    engagementQualityScore: 88,
+    fraudRiskScore: 16,
     sds: 88.2,
     tier: 'A',
     integrityStatus: 'verified',
@@ -376,6 +409,11 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     votes7dGrowth: 9.5,
     followers7dGrowth: 5.4,
     sponsored: true,
+    profileCompletion: 90,
+    responseRatePct: 89,
+    deliverableCompletionPct: 87,
+    readyNow: true,
+    availableFrom: '2026-03-04',
     socialPlatforms: [
       {
         platform: 'Instagram',
@@ -436,11 +474,17 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     slug: 'abeba-t',
     name: 'Abeba T',
     category: 'Acting',
+    age: 23,
+    gender: 'female',
+    location: { country: 'Ghana', city: 'Accra', region: 'West Africa' },
+    expectedSponsorshipUsd: 2200,
     profileImage: 'https://randomuser.me/api/portraits/women/32.jpg',
     rank: 3,
     votes: 312000,
     followers: 410000,
     engagementRate: 6.2,
+    engagementQualityScore: 71,
+    fraudRiskScore: 39,
     sds: 74.1,
     tier: 'B',
     integrityStatus: 'under_review',
@@ -449,6 +493,11 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     votes7dGrowth: 2.2,
     followers7dGrowth: 1.6,
     sponsored: false,
+    profileCompletion: 78,
+    responseRatePct: 74,
+    deliverableCompletionPct: 69,
+    readyNow: false,
+    availableFrom: '2026-03-15',
     socialPlatforms: [
       {
         platform: 'Instagram',
@@ -509,11 +558,17 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     slug: 'yonas-h',
     name: 'Yonas H',
     category: 'Dancing',
+    age: 29,
+    gender: 'male',
+    location: { country: 'Nigeria', city: 'Lagos', region: 'West Africa' },
+    expectedSponsorshipUsd: 2000,
     profileImage: 'https://randomuser.me/api/portraits/women/79.jpg',
     rank: 4,
     votes: 268000,
     followers: 290000,
     engagementRate: 5.4,
+    engagementQualityScore: 52,
+    fraudRiskScore: 67,
     sds: 63.9,
     tier: 'C',
     integrityStatus: 'flagged',
@@ -522,6 +577,11 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     votes7dGrowth: -1.2,
     followers7dGrowth: -0.4,
     sponsored: false,
+    profileCompletion: 66,
+    responseRatePct: 58,
+    deliverableCompletionPct: 61,
+    readyNow: false,
+    availableFrom: '2026-04-05',
     socialPlatforms: [
       {
         platform: 'TikTok',
@@ -575,11 +635,17 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     slug: 'mimi-a',
     name: 'Mimi A',
     category: 'Fashion',
+    age: 22,
+    gender: 'female',
+    location: { country: 'South Africa', city: 'Cape Town', region: 'Southern Africa' },
+    expectedSponsorshipUsd: 1800,
     profileImage: 'https://randomuser.me/api/portraits/women/24.jpg',
     rank: 5,
     votes: 198000,
     followers: 260000,
     engagementRate: 5.1,
+    engagementQualityScore: 84,
+    fraudRiskScore: 21,
     sds: 61.3,
     tier: 'C',
     integrityStatus: 'verified',
@@ -588,6 +654,11 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     votes7dGrowth: 3.1,
     followers7dGrowth: 2.4,
     sponsored: false,
+    profileCompletion: 83,
+    responseRatePct: 80,
+    deliverableCompletionPct: 77,
+    readyNow: true,
+    availableFrom: '2026-03-07',
     socialPlatforms: [
       {
         platform: 'Instagram',
@@ -634,11 +705,17 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     slug: 'hana-l',
     name: 'Hana L',
     category: 'Modeling',
+    age: 26,
+    gender: 'female',
+    location: { country: 'Tanzania', city: 'Dar es Salaam', region: 'East Africa' },
+    expectedSponsorshipUsd: 1700,
     profileImage: 'https://randomuser.me/api/portraits/women/56.jpg',
     rank: 6,
     votes: 172000,
     followers: 225000,
     engagementRate: 4.8,
+    engagementQualityScore: 68,
+    fraudRiskScore: 43,
     sds: 57.6,
     tier: 'C',
     integrityStatus: 'under_review',
@@ -647,6 +724,11 @@ export const mockMarketplaceContestants: MarketplaceContestant[] = [
     votes7dGrowth: 1.3,
     followers7dGrowth: 0.9,
     sponsored: false,
+    profileCompletion: 72,
+    responseRatePct: 70,
+    deliverableCompletionPct: 63,
+    readyNow: true,
+    availableFrom: '2026-03-12',
     socialPlatforms: [
       {
         platform: 'Instagram',

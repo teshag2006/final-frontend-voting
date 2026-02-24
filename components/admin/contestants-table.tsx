@@ -10,10 +10,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import type { ContestantGender } from '@/lib/contestant-gender';
 
 export interface ContestantData {
   id: string;
   name: string;
+  age: number;
   bio?: string;
   category: string;
   categoryId: string;
@@ -24,6 +26,7 @@ export interface ContestantData {
   avatar?: string;
   galleryImages?: string[];
   email?: string;
+  gender: ContestantGender;
 }
 
 interface ContestantsTableProps {

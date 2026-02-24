@@ -1,9 +1,11 @@
 import { makeUniqueSlug, slugify } from '@/lib/slug';
+import type { ContestantGender } from '@/lib/contestant-gender';
 
 export interface AdminContestantRecord {
   id: string;
   slug?: string;
   name: string;
+  age: number;
   bio?: string;
   category: string;
   categoryId: string;
@@ -15,6 +17,7 @@ export interface AdminContestantRecord {
   galleryImages?: string[];
   email?: string;
   introVideoUrl?: string;
+  gender: ContestantGender;
 }
 
 let contestantsStore: AdminContestantRecord[] = [];

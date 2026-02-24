@@ -1,12 +1,14 @@
 import 'server-only';
 
 import type { UserRole } from '@/lib/mock-users';
+import type { ContestantGender } from '@/lib/contestant-gender';
 
 export interface ServerAuthUser {
   id: string;
   email: string;
   name: string;
   role: UserRole;
+  gender?: ContestantGender;
   avatar?: string;
   emailVerified?: boolean;
 }
@@ -104,7 +106,8 @@ function registerServerUser(
   role: Extract<UserRole, 'voter' | 'sponsor' | 'contestant'>,
   name: string,
   email: string,
-  password: string
+  password: string,
+  gender?: ContestantGender
 ): ServerAuthUser | null {
   const normalizedEmail = normalizeEmail(email);
   const exists = [...SERVER_USERS, ...RUNTIME_USERS].some(
@@ -120,6 +123,7 @@ function registerServerUser(
     password,
     name: safeName || 'New Voter',
     role,
+    ...(role === 'contestant' && gender ? { gender } : {}),
     avatar: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${encodeURIComponent(safeName || normalizedEmail)}`,
     emailVerified: false,
   };
@@ -136,8 +140,13 @@ export function registerServerSponsor(name: string, email: string, password: str
   return registerServerUser('sponsor', name, email, password);
 }
 
-export function registerServerContestant(name: string, email: string, password: string): ServerAuthUser | null {
-  return registerServerUser('contestant', name, email, password);
+export function registerServerContestant(
+  name: string,
+  email: string,
+  password: string,
+  gender?: ContestantGender
+): ServerAuthUser | null {
+  return registerServerUser('contestant', name, email, password, gender);
 }
 
 export function getServerUserByEmail(email: string): ServerAuthUser | null {

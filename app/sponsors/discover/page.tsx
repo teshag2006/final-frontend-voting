@@ -14,6 +14,31 @@ const PAGE_SIZE = 4;
 export default function SponsorsDiscoverPage() {
   const [query, setQuery] = useState('');
   const [tier, setTier] = useState<'ALL' | 'A' | 'B' | 'C'>('ALL');
+  const [gender, setGender] = useState<'ALL' | 'female' | 'male' | 'non_binary' | 'prefer_not_to_say'>('ALL');
+  const [ageMin, setAgeMin] = useState('');
+  const [ageMax, setAgeMax] = useState('');
+  const [categories, setCategories] = useState<string[]>([]);
+  const [country, setCountry] = useState('');
+  const [city, setCity] = useState('');
+  const [region, setRegion] = useState('');
+  const [budgetMin, setBudgetMin] = useState('');
+  const [budgetMax, setBudgetMax] = useState('');
+  const [sponsoredStatus, setSponsoredStatus] = useState<'ALL' | 'SPONSORED' | 'UNSPONSORED'>('ALL');
+  const [votesGrowthMin, setVotesGrowthMin] = useState('');
+  const [followersGrowthMin, setFollowersGrowthMin] = useState('');
+  const [integrityScoreMin, setIntegrityScoreMin] = useState('0');
+  const [integrityScoreMax, setIntegrityScoreMax] = useState('100');
+  const [instagramFollowersMin, setInstagramFollowersMin] = useState('');
+  const [tiktokFollowersMin, setTiktokFollowersMin] = useState('');
+  const [youtubeFollowersMin, setYoutubeFollowersMin] = useState('');
+  const [engagementQualityMin, setEngagementQualityMin] = useState('0');
+  const [fraudRiskMax, setFraudRiskMax] = useState('100');
+  const [profileCompletionMin, setProfileCompletionMin] = useState('0');
+  const [responseRateMin, setResponseRateMin] = useState('0');
+  const [deliverableCompletionMin, setDeliverableCompletionMin] = useState('0');
+  const [readyNowOnly, setReadyNowOnly] = useState(false);
+  const [availableFrom, setAvailableFrom] = useState('');
+  const [availableTo, setAvailableTo] = useState('');
   const [trendingOnly, setTrendingOnly] = useState(false);
   const [highIntegrityOnly, setHighIntegrityOnly] = useState(false);
   const [votesMin, setVotesMin] = useState('');
@@ -29,6 +54,31 @@ export default function SponsorsDiscoverPage() {
     getSponsorDiscoverContestants({
       query,
       tier,
+      gender,
+      ageMin: ageMin ? Number(ageMin) : undefined,
+      ageMax: ageMax ? Number(ageMax) : undefined,
+      categories,
+      country,
+      city,
+      region,
+      budgetMin: budgetMin ? Number(budgetMin) : undefined,
+      budgetMax: budgetMax ? Number(budgetMax) : undefined,
+      sponsoredStatus,
+      votesGrowthMin: votesGrowthMin ? Number(votesGrowthMin) : undefined,
+      followersGrowthMin: followersGrowthMin ? Number(followersGrowthMin) : undefined,
+      integrityScoreMin: integrityScoreMin ? Number(integrityScoreMin) : undefined,
+      integrityScoreMax: integrityScoreMax ? Number(integrityScoreMax) : undefined,
+      instagramFollowersMin: instagramFollowersMin ? Number(instagramFollowersMin) : undefined,
+      tiktokFollowersMin: tiktokFollowersMin ? Number(tiktokFollowersMin) : undefined,
+      youtubeFollowersMin: youtubeFollowersMin ? Number(youtubeFollowersMin) : undefined,
+      engagementQualityMin: engagementQualityMin ? Number(engagementQualityMin) : undefined,
+      fraudRiskMax: fraudRiskMax ? Number(fraudRiskMax) : undefined,
+      profileCompletionMin: profileCompletionMin ? Number(profileCompletionMin) : undefined,
+      responseRateMin: responseRateMin ? Number(responseRateMin) : undefined,
+      deliverableCompletionMin: deliverableCompletionMin ? Number(deliverableCompletionMin) : undefined,
+      readyNowOnly,
+      availableFrom: availableFrom || undefined,
+      availableTo: availableTo || undefined,
       trendingOnly,
       highIntegrityOnly,
       votesMin: votesMin ? Number(votesMin) : undefined,
@@ -43,13 +93,80 @@ export default function SponsorsDiscoverPage() {
     return () => {
       mounted = false;
     };
-  }, [query, tier, trendingOnly, highIntegrityOnly, votesMin, followersMin, engagementMin, industryCategory]);
+  }, [
+    query,
+    tier,
+    gender,
+    ageMin,
+    ageMax,
+    categories,
+    country,
+    city,
+    region,
+    budgetMin,
+    budgetMax,
+    sponsoredStatus,
+    votesGrowthMin,
+    followersGrowthMin,
+    integrityScoreMin,
+    integrityScoreMax,
+    instagramFollowersMin,
+    tiktokFollowersMin,
+    youtubeFollowersMin,
+    engagementQualityMin,
+    fraudRiskMax,
+    profileCompletionMin,
+    responseRateMin,
+    deliverableCompletionMin,
+    readyNowOnly,
+    availableFrom,
+    availableTo,
+    trendingOnly,
+    highIntegrityOnly,
+    votesMin,
+    followersMin,
+    engagementMin,
+    industryCategory,
+  ]);
 
   const contestants = useMemo(() => {
     const filtered = apiContestants
       .filter((contestant) => {
+        const instagramFollowers = contestant.socialPlatforms.find((item) => item.platform === 'Instagram')?.followers || 0;
+        const tiktokFollowers = contestant.socialPlatforms.find((item) => item.platform === 'TikTok')?.followers || 0;
+        const youtubeFollowers = contestant.socialPlatforms.find((item) => item.platform === 'YouTube')?.followers || 0;
+        const availableDate = new Date(contestant.availableFrom).getTime();
+        const availableFromTime = availableFrom ? new Date(availableFrom).getTime() : Number.NaN;
+        const availableToTime = availableTo ? new Date(availableTo).getTime() : Number.NaN;
+
         if (query.trim() && !contestant.name.toLowerCase().includes(query.trim().toLowerCase())) return false;
         if (tier !== 'ALL' && contestant.tier !== tier) return false;
+        if (gender !== 'ALL' && contestant.gender !== gender) return false;
+        if (ageMin && contestant.age < Number(ageMin)) return false;
+        if (ageMax && contestant.age > Number(ageMax)) return false;
+        if (categories.length > 0 && !categories.includes(contestant.category)) return false;
+        if (country.trim() && contestant.location.country.toLowerCase() !== country.trim().toLowerCase()) return false;
+        if (city.trim() && contestant.location.city.toLowerCase() !== city.trim().toLowerCase()) return false;
+        if (region.trim() && contestant.location.region.toLowerCase() !== region.trim().toLowerCase()) return false;
+        if (budgetMin && contestant.expectedSponsorshipUsd < Number(budgetMin)) return false;
+        if (budgetMax && contestant.expectedSponsorshipUsd > Number(budgetMax)) return false;
+        if (sponsoredStatus === 'SPONSORED' && !contestant.sponsored) return false;
+        if (sponsoredStatus === 'UNSPONSORED' && contestant.sponsored) return false;
+        if (votesGrowthMin && contestant.votes7dGrowth < Number(votesGrowthMin)) return false;
+        if (followersGrowthMin && contestant.followers7dGrowth < Number(followersGrowthMin)) return false;
+        if (contestant.integrityScore < Number(integrityScoreMin)) return false;
+        if (contestant.integrityScore > Number(integrityScoreMax)) return false;
+        if (instagramFollowersMin && instagramFollowers < Number(instagramFollowersMin)) return false;
+        if (tiktokFollowersMin && tiktokFollowers < Number(tiktokFollowersMin)) return false;
+        if (youtubeFollowersMin && youtubeFollowers < Number(youtubeFollowersMin)) return false;
+        if (contestant.engagementQualityScore < Number(engagementQualityMin)) return false;
+        if (contestant.fraudRiskScore > Number(fraudRiskMax)) return false;
+        if (contestant.profileCompletion < Number(profileCompletionMin)) return false;
+        if (contestant.responseRatePct < Number(responseRateMin)) return false;
+        if (contestant.deliverableCompletionPct < Number(deliverableCompletionMin)) return false;
+        if (readyNowOnly && !contestant.readyNow) return false;
+        if (!Number.isNaN(availableFromTime) && availableDate < availableFromTime) return false;
+        if (!Number.isNaN(availableToTime) && availableDate > availableToTime) return false;
         if (trendingOnly && contestant.trendingScore < 80) return false;
         if (highIntegrityOnly && contestant.integrityStatus !== 'verified') return false;
         if (votesMin && contestant.votes < Number(votesMin)) return false;
@@ -64,7 +181,42 @@ export default function SponsorsDiscoverPage() {
       .sort((a, b) => b.sds - a.sds);
 
     return filtered;
-  }, [apiContestants, query, tier, trendingOnly, highIntegrityOnly, votesMin, followersMin, engagementMin, industryCategory]);
+  }, [
+    apiContestants,
+    query,
+    tier,
+    gender,
+    ageMin,
+    ageMax,
+    categories,
+    country,
+    city,
+    region,
+    budgetMin,
+    budgetMax,
+    sponsoredStatus,
+    votesGrowthMin,
+    followersGrowthMin,
+    integrityScoreMin,
+    integrityScoreMax,
+    instagramFollowersMin,
+    tiktokFollowersMin,
+    youtubeFollowersMin,
+    engagementQualityMin,
+    fraudRiskMax,
+    profileCompletionMin,
+    responseRateMin,
+    deliverableCompletionMin,
+    readyNowOnly,
+    availableFrom,
+    availableTo,
+    trendingOnly,
+    highIntegrityOnly,
+    votesMin,
+    followersMin,
+    engagementMin,
+    industryCategory,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(contestants.length / PAGE_SIZE));
   const activePage = Math.min(page, totalPages);
@@ -73,6 +225,20 @@ export default function SponsorsDiscoverPage() {
   const maxVotes = Math.max(...apiContestants.map((item) => item.votes), 1000);
   const maxFollowers = Math.max(...apiContestants.map((item) => item.followers), 1000);
   const maxEngagement = Math.max(...apiContestants.map((item) => item.engagementRate), 10);
+  const maxBudget = Math.max(...apiContestants.map((item) => item.expectedSponsorshipUsd), 1000);
+  const maxInstagramFollowers = Math.max(
+    ...apiContestants.map((item) => item.socialPlatforms.find((platform) => platform.platform === 'Instagram')?.followers || 0),
+    1000
+  );
+  const maxTikTokFollowers = Math.max(
+    ...apiContestants.map((item) => item.socialPlatforms.find((platform) => platform.platform === 'TikTok')?.followers || 0),
+    1000
+  );
+  const maxYouTubeFollowers = Math.max(
+    ...apiContestants.map((item) => item.socialPlatforms.find((platform) => platform.platform === 'YouTube')?.followers || 0),
+    1000
+  );
+  const categoryOptions = Array.from(new Set(apiContestants.map((item) => item.category))).sort();
 
   return (
     <div className="min-h-screen bg-slate-100/80">
@@ -117,8 +283,106 @@ export default function SponsorsDiscoverPage() {
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="mb-2 text-sm font-semibold text-slate-900">Category (Exact)</p>
+              <div className="grid grid-cols-1 gap-1">
+                {categoryOptions.map((item) => (
+                  <label key={item} className="inline-flex items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={categories.includes(item)}
+                      onChange={(e) => {
+                        setCategories((prev) =>
+                          e.target.checked ? [...prev, item] : prev.filter((entry) => entry !== item)
+                        );
+                        setPage(1);
+                      }}
+                      className="h-4 w-4 rounded border-slate-300"
+                    />
+                    {item}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="mb-2 text-sm font-semibold text-slate-900">Location</p>
+              <div className="grid grid-cols-1 gap-2">
+                <Input
+                  value={country}
+                  onChange={(e) => {
+                    setCountry(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Country"
+                />
+                <Input
+                  value={city}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="City"
+                />
+                <Input
+                  value={region}
+                  onChange={(e) => {
+                    setRegion(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Region"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="mb-2 text-sm font-semibold text-slate-900">Gender</p>
+              <select
+                value={gender}
+                onChange={(e) => {
+                  setGender(e.target.value as typeof gender);
+                  setPage(1);
+                }}
+                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-800"
+              >
+                <option value="ALL">All</option>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+                <option value="non_binary">Non-binary</option>
+                <option value="prefer_not_to_say">Prefer not to say</option>
+              </select>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="mb-2 text-sm font-semibold text-slate-900">Age Range</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="number"
+                  min={13}
+                  max={120}
+                  value={ageMin}
+                  onChange={(e) => {
+                    setAgeMin(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Min"
+                />
+                <Input
+                  type="number"
+                  min={13}
+                  max={120}
+                  value={ageMax}
+                  onChange={(e) => {
+                    setAgeMax(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Max"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
               <p className="mb-2 text-sm font-semibold text-slate-900">Tier</p>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {(['ALL', 'A', 'B', 'C'] as const).map((item) => (
                   <button
                     key={item}
@@ -138,6 +402,41 @@ export default function SponsorsDiscoverPage() {
                 ))}
               </div>
             </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="mb-2 text-sm font-semibold text-slate-900">Sponsored Status</p>
+              <select
+                value={sponsoredStatus}
+                onChange={(e) => {
+                  setSponsoredStatus(e.target.value as typeof sponsoredStatus);
+                  setPage(1);
+                }}
+                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-800"
+              >
+                <option value="ALL">All</option>
+                <option value="SPONSORED">Already Sponsored</option>
+                <option value="UNSPONSORED">Not Sponsored Yet</option>
+              </select>
+            </div>
+
+            <FilterSlider
+              label="Budget Min (USD)"
+              value={budgetMin ? Number(budgetMin) : 0}
+              max={maxBudget}
+              onChange={(value) => {
+                setBudgetMin(value > 0 ? String(value) : '');
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Budget Max (USD)"
+              value={budgetMax ? Number(budgetMax) : maxBudget}
+              max={maxBudget}
+              onChange={(value) => {
+                setBudgetMax(value > 0 ? String(value) : '');
+                setPage(1);
+              }}
+            />
 
             <FilterSlider
               label="Votes"
@@ -166,6 +465,136 @@ export default function SponsorsDiscoverPage() {
                 setPage(1);
               }}
             />
+            <FilterSlider
+              label="Votes 7d Growth Min %"
+              value={votesGrowthMin ? Number(votesGrowthMin) : 0}
+              max={30}
+              onChange={(value) => {
+                setVotesGrowthMin(value > 0 ? String(value) : '');
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Followers 7d Growth Min %"
+              value={followersGrowthMin ? Number(followersGrowthMin) : 0}
+              max={20}
+              onChange={(value) => {
+                setFollowersGrowthMin(value > 0 ? String(value) : '');
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Integrity Score Min"
+              value={Number(integrityScoreMin)}
+              max={100}
+              onChange={(value) => {
+                setIntegrityScoreMin(String(value));
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Integrity Score Max"
+              value={Number(integrityScoreMax)}
+              max={100}
+              onChange={(value) => {
+                setIntegrityScoreMax(String(value));
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Instagram Followers Min"
+              value={instagramFollowersMin ? Number(instagramFollowersMin) : 0}
+              max={maxInstagramFollowers}
+              onChange={(value) => {
+                setInstagramFollowersMin(value > 0 ? String(value) : '');
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="TikTok Followers Min"
+              value={tiktokFollowersMin ? Number(tiktokFollowersMin) : 0}
+              max={maxTikTokFollowers}
+              onChange={(value) => {
+                setTiktokFollowersMin(value > 0 ? String(value) : '');
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="YouTube Followers Min"
+              value={youtubeFollowersMin ? Number(youtubeFollowersMin) : 0}
+              max={maxYouTubeFollowers}
+              onChange={(value) => {
+                setYoutubeFollowersMin(value > 0 ? String(value) : '');
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Engagement Quality Min"
+              value={Number(engagementQualityMin)}
+              max={100}
+              onChange={(value) => {
+                setEngagementQualityMin(String(value));
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Fraud Risk Max"
+              value={Number(fraudRiskMax)}
+              max={100}
+              onChange={(value) => {
+                setFraudRiskMax(String(value));
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Profile Completion Min"
+              value={Number(profileCompletionMin)}
+              max={100}
+              onChange={(value) => {
+                setProfileCompletionMin(String(value));
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Response Rate Min"
+              value={Number(responseRateMin)}
+              max={100}
+              onChange={(value) => {
+                setResponseRateMin(String(value));
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Deliverable Completion Min"
+              value={Number(deliverableCompletionMin)}
+              max={100}
+              onChange={(value) => {
+                setDeliverableCompletionMin(String(value));
+                setPage(1);
+              }}
+            />
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="mb-2 text-sm font-semibold text-slate-900">Availability Window</p>
+              <div className="grid grid-cols-1 gap-2">
+                <Input
+                  type="date"
+                  value={availableFrom}
+                  onChange={(e) => {
+                    setAvailableFrom(e.target.value);
+                    setPage(1);
+                  }}
+                />
+                <Input
+                  type="date"
+                  value={availableTo}
+                  onChange={(e) => {
+                    setAvailableTo(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+            </div>
 
             <label className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
               <span className="inline-flex items-center gap-2">
@@ -192,6 +621,21 @@ export default function SponsorsDiscoverPage() {
                 checked={highIntegrityOnly}
                 onChange={(e) => {
                   setHighIntegrityOnly(e.target.checked);
+                  setPage(1);
+                }}
+                className="h-4 w-4 rounded border-slate-300"
+              />
+            </label>
+            <label className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <span className="inline-flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-blue-700" />
+                Ready now only
+              </span>
+              <input
+                type="checkbox"
+                checked={readyNowOnly}
+                onChange={(e) => {
+                  setReadyNowOnly(e.target.checked);
                   setPage(1);
                 }}
                 className="h-4 w-4 rounded border-slate-300"
@@ -249,7 +693,9 @@ export default function SponsorsDiscoverPage() {
                     </div>
                     <div className="absolute bottom-3 left-3 right-3">
                       <h2 className="text-3xl font-semibold text-white">{contestant.name}</h2>
-                      <p className="text-sm text-slate-100">{contestant.category}</p>
+                      <p className="text-sm text-slate-100">
+                        {contestant.category} | {contestant.age} yrs | {contestant.gender.replace(/_/g, ' ')}
+                      </p>
                     </div>
                   </div>
 
@@ -260,6 +706,9 @@ export default function SponsorsDiscoverPage() {
                       <Stat label="Engagement" value={`${contestant.engagementRate.toFixed(1)}%`} />
                       <Stat label="SDS" value={contestant.sds.toFixed(1)} />
                     </div>
+                    <p className="mb-3 text-xs text-slate-600">
+                      {contestant.location.city}, {contestant.location.country} | Budget from ${contestant.expectedSponsorshipUsd.toLocaleString()} | Available {contestant.availableFrom}
+                    </p>
 
                     <div className="mb-3 flex flex-wrap gap-2">
                       {contestant.sponsored && <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Sponsored</Badge>}

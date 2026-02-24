@@ -1,3 +1,6 @@
+import type { ContestantGender } from '@/lib/contestant-gender';
+import { isContestantGender } from '@/lib/contestant-gender';
+
 export type ContestantSubmissionStatus =
   | 'draft'
   | 'submitted'
@@ -15,8 +18,10 @@ export interface ContestantMediaItem {
 
 export interface ContestantComplianceData {
   legalName: string;
+  age: number;
   birthDate: string;
   country: string;
+  gender: ContestantGender;
   idDocumentName: string;
   termsAccepted: boolean;
   consentAccepted: boolean;
@@ -187,8 +192,10 @@ let profileStore: ContestantProfileComposerData = {
 
 let complianceStore: ContestantComplianceData = {
   legalName: 'Amina Tesfaye',
+  age: 25,
   birthDate: '2000-05-12',
   country: 'Ethiopia',
+  gender: 'female',
   idDocumentName: 'ID-Front.pdf',
   termsAccepted: true,
   consentAccepted: true,
@@ -457,9 +464,18 @@ function getPublishingStateInternal(): ContestantPublishingState {
 function calculateReadiness(): ContestantReadiness {
   const checks = [
     { id: 'basic', label: 'Basic registration completed', done: Boolean(onboardingStore.fullName && onboardingStore.email) },
-    { id: 'photo', label: 'Profile photo uploaded', done: mediaStore.some((m) => m.kind === 'profile_photo') },
-    { id: 'video', label: 'Intro video submitted', done: mediaStore.some((m) => m.kind === 'intro_video_embed') },
-    { id: 'compliance', label: 'Compliance details complete', done: Boolean(complianceStore.termsAccepted && complianceStore.consentAccepted && complianceStore.idDocumentName) },
+    {
+      id: 'compliance',
+      label: 'Compliance details complete',
+      done: Boolean(
+        complianceStore.termsAccepted &&
+          complianceStore.consentAccepted &&
+          complianceStore.idDocumentName &&
+          complianceStore.gender &&
+          Number.isFinite(complianceStore.age) &&
+          complianceStore.age >= 13
+      ),
+    },
     { id: 'profile', label: 'Public profile ready', done: Boolean(profileStore.displayName && profileStore.bio && profileStore.category) },
   ];
 
@@ -513,6 +529,14 @@ export function removeContestantMedia(mediaId: string) {
 }
 
 export function updateContestantCompliance(payload: Partial<ContestantComplianceData>) {
+  if (payload.gender !== undefined && !isContestantGender(payload.gender)) {
+    throw new Error('Valid contestant gender is required');
+  }
+  if (payload.age !== undefined) {
+    if (!Number.isFinite(payload.age) || payload.age < 13 || payload.age > 120) {
+      throw new Error('Valid contestant age is required');
+    }
+  }
   complianceStore = { ...complianceStore, ...payload };
   pushAudit('compliance_updated', 'Compliance details updated');
   return structuredClone(complianceStore);

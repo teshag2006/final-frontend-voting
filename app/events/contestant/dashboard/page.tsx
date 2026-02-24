@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 import { CheckCircle2 } from 'lucide-react';
 import { VotingReadinessCard } from '@/components/dashboard/voting-readiness-card';
-import type { ContestantReadiness } from '@/lib/contestant-runtime-store';
+import type { ContestantProfileComposerData, ContestantReadiness } from '@/lib/contestant-runtime-store';
 
 export default function DashboardPage() {
   const { metrics, vote_snapshots, top_countries, integrity_status } = mockDashboardOverview;
@@ -22,12 +22,22 @@ export default function DashboardPage() {
     score: 0,
     checks: [],
   });
+  const [profile, setProfile] = useState<ContestantProfileComposerData | null>(null);
 
   useEffect(() => {
     fetch('/api/contestant/readiness')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data) setReadiness(data as ContestantReadiness);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/contestant/profile')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setProfile(data as ContestantProfileComposerData);
       })
       .catch(() => undefined);
   }, []);
@@ -83,6 +93,27 @@ export default function DashboardPage() {
               <StatusItem active={!integrity_status.under_review} label="No Active Review" />
             </div>
           </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 className="mb-3 text-base font-semibold text-slate-800">Social Accounts</h3>
+            <div className="space-y-2 text-sm">
+              <SocialItem
+                label="Facebook"
+                href={profile?.facebook ? `https://facebook.com/${String(profile.facebook).replace(/^@/, '')}` : ''}
+                value={profile?.facebook}
+              />
+              <SocialItem
+                label="Snapchat"
+                href={profile?.snapchat ? `https://snapchat.com/add/${String(profile.snapchat).replace(/^@/, '')}` : ''}
+                value={profile?.snapchat}
+              />
+              <SocialItem
+                label="X"
+                href={profile?.x ? `https://x.com/${String(profile.x).replace(/^@/, '')}` : ''}
+                value={profile?.x}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -111,6 +142,26 @@ function StatusItem({ active, label }: { active: boolean; label: string }) {
     <div className="flex items-center gap-2">
       <CheckCircle2 className={`h-4 w-4 ${active ? 'text-emerald-600' : 'text-slate-400'}`} />
       <span className={active ? 'text-slate-800' : 'text-slate-500'}>{label}</span>
+    </div>
+  );
+}
+
+function SocialItem({ label, href, value }: { label: string; href: string; value?: string }) {
+  if (!value) {
+    return (
+      <div className="flex items-center justify-between">
+        <span className="text-slate-600">{label}</span>
+        <span className="text-slate-400">Not set</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-slate-700">{label}</span>
+      <a href={href} target="_blank" rel="noreferrer" className="text-blue-700 hover:underline">
+        {value}
+      </a>
     </div>
   );
 }

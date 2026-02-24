@@ -98,7 +98,7 @@ export default function BlockchainMonitorPage() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="anchors" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-4">
+          <TabsList className="flex w-full flex-nowrap gap-1 overflow-x-auto">
             <TabsTrigger value="anchors">Anchors</TabsTrigger>
             <TabsTrigger value="filters">Filters</TabsTrigger>
             <TabsTrigger value="verify">Verify Hash</TabsTrigger>

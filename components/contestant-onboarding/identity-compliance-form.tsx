@@ -23,6 +23,15 @@ export function IdentityComplianceForm({
           className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
         />
         <input
+          type="number"
+          min={13}
+          max={120}
+          value={value.age}
+          onChange={(e) => onChange({ ...value, age: Number(e.target.value || 0) })}
+          placeholder="Age"
+          className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
+        />
+        <input
           type="date"
           value={value.birthDate}
           onChange={(e) => onChange({ ...value, birthDate: e.target.value })}
@@ -34,6 +43,21 @@ export function IdentityComplianceForm({
           placeholder="Country"
           className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
         />
+        <select
+          value={value.gender}
+          onChange={(e) =>
+            onChange({
+              ...value,
+              gender: e.target.value as ContestantComplianceData['gender'],
+            })
+          }
+          className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
+        >
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="non_binary">Non-binary</option>
+          <option value="prefer_not_to_say">Prefer not to say</option>
+        </select>
         <input
           value={value.idDocumentName}
           onChange={(e) => onChange({ ...value, idDocumentName: e.target.value })}

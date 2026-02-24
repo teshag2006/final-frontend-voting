@@ -154,7 +154,7 @@ export default function JobsPage() {
 
           {/* Tabs */}
           <Tabs defaultValue="active" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="flex w-full flex-nowrap gap-1 overflow-x-auto">
               <TabsTrigger value="active">
                 Active
                 <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">

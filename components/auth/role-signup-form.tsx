@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import type { ContestantGender } from '@/lib/contestant-gender';
 
 type SignupRole = 'voter' | 'sponsor' | 'contestant';
 
@@ -45,6 +46,7 @@ export function RoleSignupForm({ role }: { role: SignupRole }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [gender, setGender] = useState<ContestantGender | ''>('');
   const [error, setError] = useState<string | null>(null);
 
   const copy = roleCopy[role];
@@ -55,6 +57,11 @@ export function RoleSignupForm({ role }: { role: SignupRole }) {
 
     if (!name || !email || !password || !confirmPassword) {
       setError('All fields are required');
+      return;
+    }
+
+    if (role === 'contestant' && !gender) {
+      setError('Gender is required for contestant accounts');
       return;
     }
 
@@ -73,7 +80,13 @@ export function RoleSignupForm({ role }: { role: SignupRole }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role,
+          ...(role === 'contestant' ? { gender } : {}),
+        }),
       });
 
       const payload = await response.json().catch(() => null);
@@ -159,6 +172,25 @@ export function RoleSignupForm({ role }: { role: SignupRole }) {
                 />
               </div>
 
+              {role === 'contestant' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="gender" className="text-slate-200">Gender</Label>
+                  <select
+                    id="gender"
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value as ContestantGender | '')}
+                    disabled={isLoading}
+                    className="flex h-10 w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-sm text-white"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="non_binary">Non-binary</option>
+                    <option value="prefer_not_to_say">Prefer not to say</option>
+                  </select>
+                </div>
+              ) : null}
+
               <Button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                 {isLoading ? 'Creating account...' : 'Create Account'}
               </Button>
@@ -176,4 +208,3 @@ export function RoleSignupForm({ role }: { role: SignupRole }) {
     </div>
   );
 }
-

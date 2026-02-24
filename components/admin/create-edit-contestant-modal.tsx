@@ -22,10 +22,13 @@ import {
 } from '@/components/ui/select';
 import { sanitizePlainText } from '@/lib/security/frontend-security';
 import { uploadMediaFile } from '@/lib/client/upload-media';
+import type { ContestantGender } from '@/lib/contestant-gender';
 
 export interface ContestantFormData {
   id?: string;
   name: string;
+  age: number;
+  gender: ContestantGender;
   bio?: string;
   category: string;
   status?: 'PENDING' | 'APPROVED' | 'ACTIVE' | 'REJECTED' | 'DISABLED';
@@ -57,6 +60,8 @@ export function CreateEditContestantModal({
 }: CreateEditContestantModalProps) {
   const [formData, setFormData] = useState<ContestantFormData>({
     name: '',
+    age: 18,
+    gender: 'prefer_not_to_say',
     bio: '',
     category: '',
     status: 'PENDING',
@@ -83,6 +88,8 @@ export function CreateEditContestantModal({
     } else {
       setFormData({
         name: '',
+        age: 18,
+        gender: 'prefer_not_to_say',
         bio: '',
         category: '',
         status: 'PENDING',
@@ -123,9 +130,15 @@ export function CreateEditContestantModal({
     if (!safeName.trim()) {
       newErrors.name = 'Name is required';
     }
+    if (!Number.isFinite(formData.age) || formData.age < 13 || formData.age > 120) {
+      newErrors.age = 'Age must be between 13 and 120';
+    }
 
     if (!formData.category) {
       newErrors.category = 'Category is required';
+    }
+    if (!formData.gender) {
+      newErrors.gender = 'Gender is required';
     }
 
     if (safeBio.length > 1000) {
@@ -354,6 +367,43 @@ export function CreateEditContestantModal({
               placeholder="Enter contestant bio..."
             />
             {errors.bio && <p className="text-xs text-red-500 mt-1">{errors.bio}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="age">Age *</Label>
+            <Input
+              id="age"
+              type="number"
+              min={13}
+              max={120}
+              value={formData.age}
+              onChange={(e) => setFormData((prev) => ({ ...prev, age: Number(e.target.value || 0) }))}
+              disabled={isLoading}
+              className={errors.age ? 'border-red-500' : ''}
+            />
+            {errors.age && <p className="text-xs text-red-500 mt-1">{errors.age}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="gender">Gender *</Label>
+            <Select
+              value={formData.gender}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, gender: value as ContestantFormData['gender'] }))
+              }
+              disabled={isLoading}
+            >
+              <SelectTrigger id="gender" className={errors.gender ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="non_binary">Non-binary</SelectItem>
+                <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.gender && <p className="text-xs text-red-500 mt-1">{errors.gender}</p>}
           </div>
 
           {initialData ? (

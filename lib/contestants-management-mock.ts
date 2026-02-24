@@ -1,5 +1,6 @@
 import type { ContestantData } from '@/components/admin/contestants-table';
 import type { ContestantStatus } from '@/components/admin/contestant-status-badge';
+import type { ContestantGender } from '@/lib/contestant-gender';
 
 // Mock category data
 export interface CategoryOption {
@@ -50,6 +51,8 @@ const statuses: ContestantStatus[] = [
   'DISABLED',
 ];
 
+const genders: ContestantGender[] = ['female', 'male', 'non_binary', 'prefer_not_to_say'];
+
 function getRandomElement<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -67,6 +70,7 @@ export function generateMockContestants(count: number = 120): ContestantData[] {
     const id = `#${String(5000 + i).padStart(4, '0')}`;
     const category = getRandomElement(mockCategories);
     const status = getRandomElement(statuses);
+    const gender = getRandomElement(genders);
 
     // Higher votes for ACTIVE/APPROVED contestants
     let votesMultiplier = 1;
@@ -76,6 +80,7 @@ export function generateMockContestants(count: number = 120): ContestantData[] {
 
     const totalVotes = Math.floor(getRandomInt(100, 2000) * votesMultiplier);
     const revenue = totalVotes * getRandomInt(0.3, 0.8);
+    const age = getRandomInt(18, 40);
 
     const createdDaysAgo = getRandomInt(0, 30);
     const createdAt = new Date();
@@ -84,6 +89,7 @@ export function generateMockContestants(count: number = 120): ContestantData[] {
     contestants.push({
       id,
       name: `${firstName} ${lastName}`,
+      age,
       bio: `Talented performer from the ${category.name} category.`,
       category: category.name,
       categoryId: category.id,
@@ -93,6 +99,7 @@ export function generateMockContestants(count: number = 120): ContestantData[] {
       createdAt: createdAt.toISOString(),
       avatar: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${firstName}%20${lastName}`,
       email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+      gender,
     });
   }
 

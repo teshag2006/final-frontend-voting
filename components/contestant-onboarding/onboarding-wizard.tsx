@@ -3,46 +3,49 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { OnboardingStepper } from '@/components/contestant-onboarding/stepper';
-import { MediaUploadForm } from '@/components/contestant-onboarding/media-upload-form';
 import { IdentityComplianceForm } from '@/components/contestant-onboarding/identity-compliance-form';
 import { SubmissionStatusBadge } from '@/components/contestant-onboarding/submission-status-badge';
 import type {
   ContestantComplianceData,
-  ContestantMediaItem,
   ContestantOnboardingData,
   ContestantReadiness,
   ContestantSubmissionStatus,
 } from '@/lib/contestant-runtime-store';
 
-const STEPS = ['Basic Info', 'Media', 'Compliance', 'Review'];
+const STEPS = ['Basic Info', 'Compliance', 'Review'];
 
 export function OnboardingWizard({
   onboarding,
-  media,
   compliance,
   status,
   readiness,
   onOnboardingChange,
   onOnboardingSave,
-  onMediaSubmit,
   onComplianceChange,
   onComplianceSave,
   onStatusChange,
 }: {
   onboarding: ContestantOnboardingData;
-  media: ContestantMediaItem[];
   compliance: ContestantComplianceData;
   status: ContestantSubmissionStatus;
   readiness: ContestantReadiness;
   onOnboardingChange: (next: ContestantOnboardingData) => void;
   onOnboardingSave: () => Promise<void>;
-  onMediaSubmit: (payload: { kind: ContestantMediaItem['kind']; label: string; url: string }) => Promise<void>;
   onComplianceChange: (next: ContestantComplianceData) => void;
   onComplianceSave: () => Promise<void>;
   onStatusChange: (next: ContestantSubmissionStatus) => Promise<void>;
 }) {
   const [step, setStep] = useState(0);
-  const canSubmit = useMemo(() => readiness.score >= 80, [readiness.score]);
+  const visibleChecks = useMemo(
+    () => readiness.checks.filter((item) => item.id !== 'photo' && item.id !== 'video'),
+    [readiness.checks]
+  );
+  const canSubmit = useMemo(() => {
+    const total = visibleChecks.length;
+    if (total === 0) return false;
+    const done = visibleChecks.filter((item) => item.done).length;
+    return Math.round((done / total) * 100) >= 80;
+  }, [visibleChecks]);
 
   return (
     <div className="space-y-4">
@@ -76,9 +79,7 @@ export function OnboardingWizard({
         </section>
       )}
 
-      {step === 1 && <MediaUploadForm items={media} onSubmit={onMediaSubmit} />}
-
-      {step === 2 && (
+      {step === 1 && (
         <IdentityComplianceForm
           value={compliance}
           onChange={onComplianceChange}
@@ -86,11 +87,11 @@ export function OnboardingWizard({
         />
       )}
 
-      {step === 3 && (
+      {step === 2 && (
         <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">Review & Submit</h3>
           <ul className="mt-3 space-y-2 text-sm text-slate-700">
-            {readiness.checks.map((check) => (
+            {visibleChecks.map((check) => (
               <li key={check.id}>
                 {check.done ? 'OK' : 'Missing'}: {check.label}
               </li>

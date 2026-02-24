@@ -8,31 +8,38 @@ import {
 } from '@/lib/server/auth-users';
 import type { UserRole } from '@/lib/mock-users';
 import { sendTransactionalEmail } from '@/lib/server/email-service';
+import { isContestantGender, type ContestantGender } from '@/lib/contestant-gender';
 
 function parseSignupPayload(payload: unknown): {
   name: string;
   email: string;
   password: string;
   role: Extract<UserRole, 'voter' | 'sponsor' | 'contestant'>;
+  gender?: ContestantGender;
 } {
-  const body = payload as { name?: unknown; email?: unknown; password?: unknown; role?: unknown };
+  const body = payload as { name?: unknown; email?: unknown; password?: unknown; role?: unknown; gender?: unknown };
   const roleRaw = String(body?.role || 'voter').trim().toLowerCase();
   const role = (roleRaw === 'sponsor' || roleRaw === 'contestant' || roleRaw === 'voter'
     ? roleRaw
     : 'voter') as Extract<UserRole, 'voter' | 'sponsor' | 'contestant'>;
+  const normalizedGender = String(body?.gender || '').trim().toLowerCase();
   return {
     name: String(body?.name || '').trim(),
     email: String(body?.email || '').trim().toLowerCase(),
     password: String(body?.password || '').trim(),
     role,
+    ...(isContestantGender(normalizedGender) ? { gender: normalizedGender } : {}),
   };
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password, role } = parseSignupPayload(await request.json());
+    const { name, email, password, role, gender } = parseSignupPayload(await request.json());
     if (!name || !email || !password) {
       return jsonError('Name, email, and password are required', 400);
+    }
+    if (role === 'contestant' && !gender) {
+      return jsonError('Gender is required for contestant signup', 400);
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,7 +55,7 @@ export async function POST(request: NextRequest) {
       role === 'sponsor'
         ? registerServerSponsor(name, email, password)
         : role === 'contestant'
-          ? registerServerContestant(name, email, password)
+          ? registerServerContestant(name, email, password, gender)
           : registerServerVoter(name, email, password);
 
     if (!user) {

@@ -314,7 +314,7 @@ export function PublicEventsHomepage() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(37,99,235,0.38),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(217,119,6,0.28),transparent_38%),linear-gradient(to_bottom,rgba(5,10,28,0.35),rgba(5,10,28,0.95))]" />
           </div>
 
-          <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-16 sm:px-6 lg:px-8 lg:pt-24">
+          <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-14 sm:px-6 lg:px-8 lg:pt-20">
             <div className="max-w-3xl animate-[fade-in_600ms_ease-out]">
               <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-400/10 px-3 py-1 text-xs uppercase tracking-[0.14em] text-emerald-200">
                 Trusted Public Voting Platform

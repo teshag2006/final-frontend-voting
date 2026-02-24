@@ -177,7 +177,7 @@ export default function SettingsPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1 mb-6 p-1 bg-slate-100">
+        <TabsList className="mb-6 flex w-full flex-nowrap gap-1 overflow-x-auto p-1 bg-slate-100">
           <TabsTrigger value="general" className="text-xs sm:text-sm">
             General
           </TabsTrigger>

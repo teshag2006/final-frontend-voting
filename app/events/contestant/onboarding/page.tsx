@@ -91,7 +91,6 @@ export default function ContestantOnboardingPage() {
 
       <OnboardingWizard
         onboarding={bundle.onboarding}
-        media={bundle.media}
         compliance={bundle.compliance}
         status={bundle.submissionStatus}
         readiness={bundle.readiness}
@@ -108,22 +107,6 @@ export default function ContestantOnboardingPage() {
               bundle.onboarding as unknown as Record<string, unknown>,
               'Profile is locked. Enter reason for this onboarding update request:',
               'Onboarding change request submitted for admin review.'
-            );
-          }
-          await loadBundle();
-        }}
-        onMediaSubmit={async (payload) => {
-          const res = await fetch('/api/contestant/media', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-          if (res.status === 423) {
-            await submitLockedChangeRequest(
-              'media',
-              payload as unknown as Record<string, unknown>,
-              'Media is locked. Enter reason for this media update request:',
-              'Media change request submitted for admin review.'
             );
           }
           await loadBundle();

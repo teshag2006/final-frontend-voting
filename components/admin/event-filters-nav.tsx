@@ -12,7 +12,7 @@ interface EventFiltersNavProps {
 export function EventFiltersNav({ activeTab, onTabChange }: EventFiltersNavProps) {
   return (
     <Tabs value={activeTab} onValueChange={(v) => onTabChange(v as FilterTab)}>
-      <TabsList className="grid w-full grid-cols-4 max-w-md">
+      <TabsList className="flex w-full max-w-md flex-nowrap gap-1 overflow-x-auto">
         <TabsTrigger value="all" className="text-sm">
           All
         </TabsTrigger>
