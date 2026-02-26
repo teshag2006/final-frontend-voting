@@ -71,3 +71,22 @@ export function getDefaultNotificationSettings() {
     criticalAlertsOnly: false,
   };
 }
+
+export function getDefaultSystemSocialSettings() {
+  return {
+    instagramUrl: 'https://instagram.com',
+    tiktokUrl: 'https://tiktok.com',
+    youtubeUrl: 'https://youtube.com',
+    xUrl: 'https://x.com',
+    facebookUrl: 'https://facebook.com',
+    linkedinUrl: '',
+    telegramUrl: '',
+    showInstagram: true,
+    showTikTok: true,
+    showYouTube: true,
+    showX: true,
+    showFacebook: true,
+    showLinkedIn: false,
+    showTelegram: false,
+  };
+}

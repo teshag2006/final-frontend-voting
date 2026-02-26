@@ -17,11 +17,11 @@ import { EventStatusGuard } from "@/components/event-status-guard";
 
 import {
   mockContestantProfile,
-  mockVotePackages,
   mockGeographicSupport,
 } from "@/lib/contestant-profile-mock";
 import { getEventBySlug, getContestantsForEvent } from "@/lib/mock-data-generator";
 import { getContestantSponsors, getEventSponsors } from "@/lib/sponsorship-mock";
+import { getAdminContentState } from "@/lib/admin-content-runtime-store";
 import {
   getContestantPublicVerification,
   isContestantPublicProfileVisible,
@@ -156,11 +156,14 @@ export default async function ContestantProfilePage({
   const isPubliclyVisible = isContestantPublicProfileVisible(contestantSlug);
 
   const stats = normalizeStats(contestant);
-  const packages = mockVotePackages;
   const geoSupport = mockGeographicSupport;
   const sponsors = getContestantSponsors(eventSlug, contestantSlug);
   const eventSponsors = getEventSponsors(eventSlug);
   const verification = getContestantPublicVerification();
+  const cmsContent = getAdminContentState();
+  const contestantProfileBanners = cmsContent.sponsorBanners.filter(
+    (item) => item.active && item.placement === "contestant_profile"
+  );
 
   if (!event) {
     return (
@@ -217,6 +220,28 @@ export default async function ContestantProfilePage({
             </section>
 
             <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
+              {contestantProfileBanners.length > 0 ? (
+                <section className="overflow-hidden rounded-[22px] border border-white/80 bg-white/90 shadow-[0_18px_38px_-24px_rgba(33,46,105,0.55)] backdrop-blur">
+                  <div className="border-b border-slate-200 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Sponsor Banner</p>
+                  </div>
+                  <div className="space-y-3 p-3">
+                    {contestantProfileBanners.slice(0, 2).map((banner) => (
+                      <a
+                        key={banner.id}
+                        href={banner.targetUrl}
+                        className="block overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:border-slate-300"
+                      >
+                        <img src={banner.imageUrl} alt={banner.title} className="h-32 w-full object-cover" />
+                        <div className="px-3 py-2">
+                          <p className="text-sm font-semibold text-slate-900">{banner.title}</p>
+                          <p className="mt-1 text-xs text-slate-500">{banner.targetUrl}</p>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
               <EventStatusGuard
                 status={event.status}
                 eventSlug={eventSlug}
@@ -225,7 +250,8 @@ export default async function ContestantProfilePage({
                 <VotePanel
                   contestantName={contestant.name}
                   eventName={event.name}
-                  packages={packages}
+                  eventSlug={eventSlug}
+                  contestantSlug={contestantSlug}
                   isActive={isActive}
                 />
               </EventStatusGuard>

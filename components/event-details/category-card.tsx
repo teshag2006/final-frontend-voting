@@ -25,9 +25,11 @@ export function CategoryCard({
   className,
 }: CategoryCardProps) {
   const categorySlug = (category as any).slug || category.id;
+  const categoryHref = `/events/${eventSlug}/categories/${categorySlug}`;
 
   return (
-    <div
+    <Link
+      href={categoryHref}
       className={cn(
         "group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5",
         className
@@ -64,13 +66,10 @@ export function CategoryCard({
           <h3 className="text-lg font-bold text-primary-foreground">
             {category.name}
           </h3>
-          <Link
-            href={`/events/${eventSlug}/categories/${categorySlug}`}
-            className="inline-flex items-center gap-0.5 text-xs font-medium text-primary-foreground/80 transition-colors hover:text-primary-foreground"
-          >
+          <span className="inline-flex items-center gap-0.5 text-xs font-medium text-primary-foreground/80 transition-colors group-hover:text-primary-foreground">
             {category.contestant_count} contestants
             <ChevronRight className="h-3 w-3" />
-          </Link>
+          </span>
         </div>
       </div>
 
@@ -105,6 +104,6 @@ export function CategoryCard({
           </div>
         </div>
       )}
-    </div>
+    </Link>
   );
 }

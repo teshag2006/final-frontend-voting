@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight, Star, ShieldCheck, Shield } from "lucide-react";
+import { ChevronRight, Star, Check } from "lucide-react";
 import type { Contestant } from "@/types/contestant";
 import { cn } from "@/lib/utils";
 
@@ -54,30 +54,32 @@ export function EventContestantCard({
         {/* Rank badge */}
         <div
           className={cn(
-            "absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold",
-            rankBadgeColors[contestant.rank] ?? "bg-muted text-muted-foreground"
+            "absolute left-3 top-3 z-20 inline-flex h-7 min-w-7 items-center justify-center rounded-full border border-slate-900/20 px-2 text-xs font-bold shadow-md",
+            rankBadgeColors[contestant.rank] ?? "bg-slate-700 text-white"
           )}
         >
           {contestant.rank}
         </div>
 
         {/* Verification icon */}
-        <div className="absolute right-3 top-3">
+        <div className="absolute right-3 top-3 z-20">
           {contestant.is_verified ? (
-            <ShieldCheck className="h-5 w-5 text-accent" />
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-900/20 bg-[#1d9bf0] text-white shadow-md">
+              <Check className="h-3.5 w-3.5 stroke-[3]" />
+            </span>
           ) : (
-            <Shield className="h-5 w-5 text-muted-foreground/40" />
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-900/20 bg-slate-500 text-white shadow-md" />
           )}
         </div>
 
         {/* Avatar */}
-        <div className="relative h-20 w-20 overflow-hidden rounded-full ring-2 ring-border">
+        <div className="relative h-24 w-24 overflow-hidden rounded-full ring-2 ring-border">
           <Image
             src={imageSrc}
             alt={contestant.name}
             fill
             className="object-cover"
-            sizes="80px"
+            sizes="96px"
           />
         </div>
 

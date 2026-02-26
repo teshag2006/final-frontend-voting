@@ -7,6 +7,7 @@ interface EventCountdownProps {
   startDate: string;
   endDate?: string;
   eventStatus: string;
+  compact?: boolean;
 }
 
 interface TimeRemaining {
@@ -45,6 +46,7 @@ export function EventCountdown({
   startDate,
   endDate,
   eventStatus,
+  compact = false,
 }: EventCountdownProps) {
   const [timeRemaining, setTimeRemaining] = useState<TimeRemaining | null>(null);
 
@@ -70,24 +72,24 @@ export function EventCountdown({
   const timeUnitColor = eventStatus === 'UPCOMING' ? 'text-blue-600' : 'text-red-600';
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
+    <div className={`rounded-lg border border-slate-200 bg-slate-50 ${compact ? 'p-2.5' : 'p-3 sm:p-4'}`}>
       <div className="flex items-center gap-2">
-        <Clock className={`h-5 w-5 ${timeUnitColor}`} />
-        <span className="whitespace-nowrap font-medium text-slate-900">
+        <Clock className={`${compact ? 'h-4 w-4' : 'h-5 w-5'} ${timeUnitColor}`} />
+        <span className={`whitespace-nowrap ${compact ? 'text-sm' : ''} font-medium text-slate-900`}>
           {countdownLabel}:
         </span>
       </div>
-      <div className="mt-2 flex gap-2 font-mono font-bold">
-        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
+      <div className={`mt-2 flex gap-2 font-mono font-bold ${compact ? 'text-sm' : ''}`}>
+        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded ${compact ? 'min-w-10' : 'min-w-12'} text-center`}>
           {String(timeRemaining.days).padStart(2, '0')}d
         </span>
-        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
+        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded ${compact ? 'min-w-10' : 'min-w-12'} text-center`}>
           {String(timeRemaining.hours).padStart(2, '0')}h
         </span>
-        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
+        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded ${compact ? 'min-w-10' : 'min-w-12'} text-center`}>
           {String(timeRemaining.minutes).padStart(2, '0')}m
         </span>
-        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded min-w-12 text-center`}>
+        <span className={`${timeUnitColor} bg-white px-2 py-1 rounded ${compact ? 'min-w-10' : 'min-w-12'} text-center`}>
           {String(timeRemaining.seconds).padStart(2, '0')}s
         </span>
       </div>

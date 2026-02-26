@@ -7,11 +7,13 @@ import { Footer } from '@/components/footer';
 import { EventCountdown } from '@/components/events/event-countdown';
 import { CategoriesControls } from '@/components/category/categories-controls';
 import { getEventBySlug, getCategoriesForEvent, getContestantsForEvent } from '@/lib/mock-data-generator';
+import { getEventSponsors } from '@/lib/sponsorship-mock';
 
 export const dynamic = 'force-dynamic';
 
 type SortKey = 'votes_desc' | 'votes_asc';
 const ALLOWED_SORTS: SortKey[] = ['votes_desc', 'votes_asc'];
+const CONTESTANTS_PER_PAGE = 8;
 
 export async function generateMetadata({
   params,
@@ -46,6 +48,7 @@ export default async function CategoriesPage({
   const event = getEventBySlug(eventSlug);
   const categories = getCategoriesForEvent(eventSlug);
   const contestants = getContestantsForEvent(eventSlug);
+  const eventSponsors = getEventSponsors(eventSlug);
 
   if (!event) {
     return (
@@ -68,6 +71,7 @@ export default async function CategoriesPage({
     : 'votes_desc';
   const currentCountry = readParam(rawSearch.country, 'all');
   const currentSearch = readParam(rawSearch.q, '').trim();
+  const requestedPage = Number(readParam(rawSearch.page, '1'));
   const selectedCategory =
     currentCategorySlug === 'all'
       ? null
@@ -117,16 +121,38 @@ export default async function CategoriesPage({
     if (currentSort === 'votes_asc') return a.votesNumber - b.votesNumber;
     return b.votesNumber - a.votesNumber;
   });
+  const totalPages = Math.max(1, Math.ceil(rankedContestants.length / CONTESTANTS_PER_PAGE));
+  const currentPage = Number.isFinite(requestedPage)
+    ? Math.min(totalPages, Math.max(1, Math.floor(requestedPage)))
+    : 1;
+  const startIndex = (currentPage - 1) * CONTESTANTS_PER_PAGE;
+  const paginatedContestants = rankedContestants.slice(
+    startIndex,
+    startIndex + CONTESTANTS_PER_PAGE
+  );
+  const buildPageHref = (page: number) => {
+    const params = new URLSearchParams();
+    if (currentCategorySlug !== 'all') params.set('category', currentCategorySlug);
+    if (currentSort !== 'votes_desc') params.set('sort', currentSort);
+    if (currentCountry !== 'all') params.set('country', currentCountry);
+    if (currentSearch) params.set('q', currentSearch);
+    params.set('page', String(page));
+    return `/events/${eventSlug}/categories?${params.toString()}`;
+  };
 
   const leader = rankedContestants[0] || null;
   const totalVotes = rankedContestants.reduce((sum, item) => sum + item.votesNumber, 0);
   const activeCountries = new Set(
     rankedContestants.map((item) => String(item.country || 'N/A')).filter((country) => country !== 'N/A')
   ).size;
+  const sidebarSponsor = eventSponsors[0];
+  const mockSidebarBannerImage =
+    'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&h=1200&fit=crop';
+  const sidebarSponsorBannerImage = mockSidebarBannerImage || sidebarSponsor?.logo_url || sidebarSponsor?.logoUrl || '/favicon.ico';
   const isLive = event.status === 'LIVE' || event.status === 'active';
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_10%_0%,#f4f2ff_0%,#f8f8fc_35%,#f4f5fb_100%)]">
-      <Navbar />
+      <Navbar variant="topbar-dark" />
 
       <main className="mx-auto max-w-[1500px] px-4 pb-14 pt-8 sm:px-6 lg:px-8">
         <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white/80 shadow-[0_30px_80px_-45px_rgba(35,42,92,0.45)] backdrop-blur">
@@ -205,7 +231,7 @@ export default async function CategoriesPage({
               ) : null}
 
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-                {rankedContestants.map((contestant) => (
+                {paginatedContestants.map((contestant) => (
                   <article
                     key={contestant.id}
                     className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
@@ -248,6 +274,43 @@ export default async function CategoriesPage({
                   </article>
                 ))}
               </div>
+              {totalPages > 1 ? (
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                  <Link
+                    href={buildPageHref(Math.max(1, currentPage - 1))}
+                    className={`rounded-md border px-3 py-2 text-sm ${
+                      currentPage === 1
+                        ? 'pointer-events-none border-slate-200 text-slate-400'
+                        : 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+                    }`}
+                  >
+                    Previous
+                  </Link>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Link
+                      key={page}
+                      href={buildPageHref(page)}
+                      className={`rounded-md border px-3 py-2 text-sm ${
+                        page === currentPage
+                          ? 'border-slate-900 bg-slate-900 text-white'
+                          : 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+                      }`}
+                    >
+                      {page}
+                    </Link>
+                  ))}
+                  <Link
+                    href={buildPageHref(Math.min(totalPages, currentPage + 1))}
+                    className={`rounded-md border px-3 py-2 text-sm ${
+                      currentPage === totalPages
+                        ? 'pointer-events-none border-slate-200 text-slate-400'
+                        : 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+                    }`}
+                  >
+                    Next
+                  </Link>
+                </div>
+              ) : null}
             </section>
 
             <aside className="space-y-4">
@@ -293,6 +356,20 @@ export default async function CategoriesPage({
                     Status: {isLive ? 'Live Voting' : event.status}
                   </p>
                 </div>
+                {sidebarSponsor ? (
+                  <Link
+                    href="/sponsors"
+                    className="mt-4 block overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition hover:border-slate-300"
+                  >
+                    <div className="relative h-56 w-full bg-white">
+                      <Image src={sidebarSponsorBannerImage} alt={sidebarSponsor.name} fill className="object-cover" />
+                    </div>
+                    <div className="border-t border-slate-200 px-3 py-2">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Sponsored</p>
+                      <p className="text-sm font-semibold text-slate-900">{sidebarSponsor.name}</p>
+                    </div>
+                  </Link>
+                ) : null}
               </section>
             </aside>
           </div>

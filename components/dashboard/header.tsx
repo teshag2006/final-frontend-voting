@@ -16,11 +16,11 @@ export function DashboardHeader() {
   };
 
   return (
-    <header className="bg-gradient-to-r from-slate-900 to-blue-900 border-b border-blue-900 px-6 py-4">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#050a1c]/95 px-6 py-3 backdrop-blur-xl">
       <div className="flex items-center justify-between">
         {/* Left Section */}
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-300/20 text-amber-300">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-amber-500 text-slate-900">
             <Crown className="h-5 w-5" />
           </div>
           <h1 className="text-xl font-semibold text-white">Miss & Mister Continental 2026</h1>
@@ -30,7 +30,7 @@ export function DashboardHeader() {
         <div className="flex items-center gap-5">
           {/* Notifications */}
           <button
-            className="p-2 text-slate-100 hover:bg-white/10 rounded-lg transition-colors"
+            className="rounded-lg border border-white/15 p-2 text-slate-100 transition-colors hover:bg-white/10"
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5" />
@@ -40,7 +40,7 @@ export function DashboardHeader() {
           <div className="relative">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-white/10"
               aria-expanded={isOpen}
               aria-haspopup="menu"
             >

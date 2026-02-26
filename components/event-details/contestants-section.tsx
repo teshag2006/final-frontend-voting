@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Contestant } from "@/types/contestant";
 import { EventContestantCard } from "./event-contestant-card";
 import { useState } from "react";
@@ -8,11 +10,13 @@ import { useState } from "react";
 interface ContestantsSectionProps {
   contestants?: Contestant[];
   isActive: boolean;
+  eventSlug: string;
 }
 
 export function ContestantsSection({
   contestants = [],
   isActive,
+  eventSlug,
 }: ContestantsSectionProps) {
   const [filterCategory, setFilterCategory] = useState<string>("all");
 
@@ -27,6 +31,9 @@ export function ContestantsSection({
     filterCategory === "all"
       ? contestants
       : contestants.filter((c) => c.category_name === filterCategory);
+  const visibleContestants = [...filtered]
+    .sort((a, b) => Number((b as any).votes ?? 0) - Number((a as any).votes ?? 0))
+    .slice(0, 8);
 
   return (
     <section>
@@ -35,8 +42,17 @@ export function ContestantsSection({
           Contestants
         </h2>
 
-        {/* Filter */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <Link
+            href={`/events/${eventSlug}/categories?category=all`}
+            className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Browse All
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+
+          {/* Filter */}
+          <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
           <span className="text-xs text-muted-foreground">Filter Cad $</span>
           <select
@@ -52,11 +68,12 @@ export function ContestantsSection({
               </option>
             ))}
           </select>
+          </div>
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {filtered.map((contestant) => (
+        {visibleContestants.map((contestant) => (
           <EventContestantCard
             key={contestant.id}
             contestant={contestant}

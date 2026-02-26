@@ -6,12 +6,9 @@ import { EventOverview } from "@/components/event-details/event-overview";
 import { CategoriesSection } from "@/components/event-details/categories-section";
 import { ContestantsSection } from "@/components/event-details/contestants-section";
 import { LiveEventStats } from "@/components/event-details/live-event-stats";
-import { LeaderboardPreview } from "@/components/event-details/leaderboard-preview";
-import { EventTimelineCard } from "@/components/event-details/event-timeline-card";
 import { FAQSection } from "@/components/event-details/faq-section";
 import { EventSponsorsSection } from "@/components/event-details/event-sponsors-section";
 import { Footer } from "@/components/footer";
-import { EventCountdown } from "@/components/events/event-countdown";
 import { getEventSponsors } from "@/lib/sponsorship-mock";
 
 // Mock data
@@ -64,7 +61,6 @@ export default async function EventDetailsPage({
   
   // Use fallback data for other sections
   const stats = mockEventStats;
-  const leaderboard = mockLeaderboard;
   const faq = mockFAQ;
   const eventSponsors = getEventSponsors(eventSlug);
 
@@ -97,19 +93,6 @@ export default async function EventDetailsPage({
         {/* Event Hero */}
         <EventHero event={event} isLive={isActive} />
 
-        {/* Countdown Timer for upcoming and live events */}
-        {(event.status === "UPCOMING" || event.status === "LIVE" || event.status === "active") && (
-          <div className="bg-white border-b border-slate-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <EventCountdown
-                startDate={event.start_date}
-                endDate={event.end_date}
-                eventStatus={event.status}
-              />
-            </div>
-          </div>
-        )}
-
         {/* Event Stats */}
         {isActive && (
           <div className="bg-slate-50 border-b border-slate-200 py-8">
@@ -136,22 +119,7 @@ export default async function EventDetailsPage({
         <ContestantsSection
           contestants={contestants}
           isActive={isActive}
-        />
-
-        {/* Leaderboard Preview */}
-        {isActive && (
-          <LeaderboardPreview
-            leaderboard={leaderboard}
-            eventSlug={eventSlug}
-          />
-        )}
-
-        {/* Timeline */}
-        <EventTimelineCard
-          stats={stats}
           eventSlug={eventSlug}
-          bannerUrl={event.banner_url}
-          eventName={event.name}
         />
 
         {/* FAQ Section */}

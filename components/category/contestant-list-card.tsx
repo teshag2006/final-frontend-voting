@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 interface ContestantListCardProps {
   contestant: CategoryContestant;
+  eventSlug: string;
   className?: string;
 }
 
@@ -21,8 +22,12 @@ function formatVotes(votes: number): string {
 
 export function ContestantListCard({
   contestant,
+  eventSlug,
   className,
 }: ContestantListCardProps) {
+  const profileHref = `/events/${eventSlug}/contestant/${contestant.id}`;
+  const voteHref = `${profileHref}/vote`;
+
   return (
     <div
       className={cn(
@@ -31,7 +36,7 @@ export function ContestantListCard({
       )}
     >
       {/* Image Container */}
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-secondary">
+      <Link href={profileHref} className="relative block aspect-[3/4] w-full overflow-hidden bg-secondary">
         {contestant.profile_image_url ? (
           <Image
             src={contestant.profile_image_url}
@@ -75,7 +80,7 @@ export function ContestantListCard({
             </span>
           )}
         </div>
-      </div>
+      </Link>
 
       {/* Vote Section */}
       <div className="flex items-center justify-between gap-2 border-t border-border bg-secondary/50 px-3 py-2.5">
@@ -88,7 +93,7 @@ export function ContestantListCard({
           </span>
         </div>
         <Link
-          href={`/vote/${contestant.id}`}
+          href={voteHref}
           className="inline-flex items-center justify-center rounded-lg bg-foreground px-3 py-1.5 text-xs font-semibold text-card transition-all hover:bg-foreground/85 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
         >
           Vote Now

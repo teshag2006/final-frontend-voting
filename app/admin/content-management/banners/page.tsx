@@ -29,6 +29,11 @@ export default function ContentCmsBannersPage() {
       .catch(() => null);
   }, []);
 
+  const placementSections: Array<{ key: AdminSponsorBanner['placement']; label: string }> = [
+    { key: 'homepage_top', label: 'Homepage Top' },
+    { key: 'contestant_profile', label: 'Contestant Profile' },
+  ];
+
   const patch = async (next: AdminSponsorBanner[], success: string) => {
     const res = await fetch('/api/admin/content', {
       method: 'PATCH',
@@ -107,6 +112,27 @@ export default function ContentCmsBannersPage() {
     }
   };
 
+  const moveWithinPlacement = (
+    list: AdminSponsorBanner[],
+    placement: AdminSponsorBanner['placement'],
+    itemId: string,
+    direction: 'up' | 'down'
+  ) => {
+    const placementItems = list.filter((item) => item.placement === placement);
+    const idx = placementItems.findIndex((item) => item.id === itemId);
+    if (idx < 0) return list;
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= placementItems.length) return list;
+
+    const swapped = [...placementItems];
+    [swapped[idx], swapped[targetIdx]] = [swapped[targetIdx], swapped[idx]];
+    const byId = new Map(swapped.map((item) => [item.id, item]));
+
+    return list.map((item) =>
+      item.placement === placement ? (byId.get(item.id) ?? item) : item
+    );
+  };
+
   if (!state) return <div className="rounded-xl border border-slate-200 bg-white p-4">Loading...</div>;
 
   return (
@@ -121,10 +147,12 @@ export default function ContentCmsBannersPage() {
           className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
         >
           <option value="homepage_top">Homepage Top</option>
-          <option value="homepage_sidebar">Homepage Sidebar</option>
           <option value="contestant_profile">Contestant Profile</option>
         </select>
       </div>
+      <p className="mt-1 text-xs text-slate-500">
+        Events homepage uses only the Sponsor Showcase block (`homepage_top`).
+      </p>
       <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-3">
         <p className="text-xs text-slate-600">Banner Image</p>
         <p className="mt-1 text-xs text-slate-500">Recommended: 1400x500 px (ratio ~2.8:1), JPG/WebP.</p>
@@ -181,96 +209,109 @@ export default function ContentCmsBannersPage() {
       ) : null}
       {uploadError ? <p className="mt-1 text-sm text-red-600">{uploadError}</p> : null}
 
-      <div className="mt-4 space-y-2">
-        {state.sponsorBanners.map((item, idx) => (
-          <div key={item.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
-            <div className="flex items-center justify-between">
-              <p className="font-medium text-slate-900">{item.title}</p>
-              <Badge className={item.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}>
-                {item.active ? 'Active' : 'Inactive'}
-              </Badge>
+      <div className="mt-4 space-y-4">
+        {placementSections.map((section) => {
+          const items = state.sponsorBanners.filter((item) => item.placement === section.key);
+          return (
+            <div key={section.key} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-sm font-semibold text-slate-900">{section.label}</p>
+              <p className="text-xs text-slate-500">Placement: {section.key}</p>
+              {items.length === 0 ? (
+                <p className="mt-2 text-xs text-slate-500">No banners in this placement yet.</p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {items.map((item, idx) => (
+                    <div key={item.id} className="rounded-lg border border-slate-200 bg-white p-3 text-sm">
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium text-slate-900">{item.title}</p>
+                        <Badge className={item.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}>
+                          {item.active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-slate-500">{item.targetUrl}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const title = window.prompt('Banner title', item.title);
+                            if (title === null) return;
+                            const targetUrl = window.prompt('Target URL', item.targetUrl);
+                            if (targetUrl === null) return;
+                            const next = state.sponsorBanners.map((b) =>
+                              b.id === item.id ? { ...b, title, targetUrl } : b
+                            );
+                            void patch(next, 'Banner updated.');
+                          }}
+                        >
+                          <Pencil className="mr-1 h-3.5 w-3.5" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={idx === 0}
+                          onClick={() => {
+                            const next = moveWithinPlacement(state.sponsorBanners, section.key, item.id, 'up');
+                            void patch(next, 'Banner order updated.');
+                          }}
+                        >
+                          <ArrowUp className="mr-1 h-3.5 w-3.5" />
+                          Up
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={idx === items.length - 1}
+                          onClick={() => {
+                            const next = moveWithinPlacement(state.sponsorBanners, section.key, item.id, 'down');
+                            void patch(next, 'Banner order updated.');
+                          }}
+                        >
+                          <ArrowDown className="mr-1 h-3.5 w-3.5" />
+                          Down
+                        </Button>
+                        <label className="inline-flex cursor-pointer items-center rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-100">
+                          <Upload className="mr-1 h-3.5 w-3.5" />
+                          Upload
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                            className="hidden"
+                            disabled={isUploadingImage}
+                            onChange={(e) => void replaceItemImage(item.id, e.target.files?.[0])}
+                          />
+                        </label>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!item.imageUrl}
+                          onClick={() => {
+                            const next = state.sponsorBanners.map((b) =>
+                              b.id === item.id ? { ...b, imageUrl: '' } : b
+                            );
+                            void patch(next, 'Banner image removed.');
+                          }}
+                        >
+                          <X className="mr-1 h-3.5 w-3.5" />
+                          Clear Image
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => void patch(state.sponsorBanners.filter((b) => b.id !== item.id), 'Banner removed.')}
+                        >
+                          <Trash2 className="mr-1 h-3.5 w-3.5" />
+                          Delete Banner
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <p className="text-xs text-slate-500">{item.targetUrl}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  const title = window.prompt('Banner title', item.title);
-                  if (title === null) return;
-                  const targetUrl = window.prompt('Target URL', item.targetUrl);
-                  if (targetUrl === null) return;
-                  const next = state.sponsorBanners.map((b) =>
-                    b.id === item.id ? { ...b, title, targetUrl } : b
-                  );
-                  void patch(next, 'Banner updated.');
-                }}
-              >
-                <Pencil className="mr-1 h-3.5 w-3.5" />
-                Edit
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={idx === 0}
-                onClick={() => {
-                  const next = [...state.sponsorBanners];
-                  [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
-                  void patch(next, 'Banner order updated.');
-                }}
-              >
-                <ArrowUp className="mr-1 h-3.5 w-3.5" />
-                Up
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={idx === state.sponsorBanners.length - 1}
-                onClick={() => {
-                  const next = [...state.sponsorBanners];
-                  [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
-                  void patch(next, 'Banner order updated.');
-                }}
-              >
-                <ArrowDown className="mr-1 h-3.5 w-3.5" />
-                Down
-              </Button>
-              <label className="inline-flex cursor-pointer items-center rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-100">
-                <Upload className="mr-1 h-3.5 w-3.5" />
-                Upload
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-                  className="hidden"
-                  disabled={isUploadingImage}
-                  onChange={(e) => void replaceItemImage(item.id, e.target.files?.[0])}
-                />
-              </label>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!item.imageUrl}
-                onClick={() => {
-                  const next = state.sponsorBanners.map((b) =>
-                    b.id === item.id ? { ...b, imageUrl: '' } : b
-                  );
-                  void patch(next, 'Banner image removed.');
-                }}
-              >
-                <X className="mr-1 h-3.5 w-3.5" />
-                Clear Image
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => void patch(state.sponsorBanners.filter((b) => b.id !== item.id), 'Banner removed.')}
-              >
-                <Trash2 className="mr-1 h-3.5 w-3.5" />
-                Delete Banner
-              </Button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
