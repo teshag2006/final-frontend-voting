@@ -40,6 +40,23 @@ export interface ContestantProfileComposerData {
   facebook: string;
   snapchat: string;
   youtube: string;
+  socialStats?: ContestantSocialStatsByPlatform;
+}
+
+export interface ContestantSocialStats {
+  followers?: number;
+  views?: number;
+  likes?: number;
+  subscribers?: number;
+}
+
+export interface ContestantSocialStatsByPlatform {
+  instagram?: ContestantSocialStats;
+  tiktok?: ContestantSocialStats;
+  youtube?: ContestantSocialStats;
+  x?: ContestantSocialStats;
+  facebook?: ContestantSocialStats;
+  snapchat?: ContestantSocialStats;
 }
 
 export interface ContestantOnboardingData {
@@ -188,6 +205,14 @@ let profileStore: ContestantProfileComposerData = {
   facebook: 'amina',
   snapchat: 'amina',
   youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  socialStats: {
+    instagram: { followers: 14800, views: 96200, likes: 4200 },
+    tiktok: { followers: 21400, views: 143000, likes: 9800 },
+    youtube: { subscribers: 5200, views: 48800, likes: 2500 },
+    x: { followers: 3700, likes: 1200 },
+    facebook: { followers: 6900, views: 38100, likes: 3400 },
+    snapchat: { subscribers: 1800, views: 21700 },
+  },
 };
 
 let complianceStore: ContestantComplianceData = {

@@ -20,6 +20,7 @@ import {
   DollarSign,
   BarChart3,
   Activity,
+  PanelsTopLeft,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -293,6 +294,12 @@ function AdminDashboardContent() {
                 <Link href="/admin/settings">
                   <Button className="w-full bg-slate-700 hover:bg-slate-600 text-white justify-start gap-2">
                     System Settings
+                  </Button>
+                </Link>
+                <Link href="/admin/content-management">
+                  <Button className="w-full bg-cyan-700 hover:bg-cyan-600 text-white justify-start gap-2">
+                    <PanelsTopLeft className="w-4 h-4" />
+                    Edit Homepage & Menus
                   </Button>
                 </Link>
               </CardContent>

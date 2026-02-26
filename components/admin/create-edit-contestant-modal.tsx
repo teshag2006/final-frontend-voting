@@ -265,6 +265,7 @@ export function CreateEditContestantModal({
           {/* Profile Image */}
           <div>
             <Label>Profile Image</Label>
+            <p className="mt-1 text-xs text-muted-foreground">Recommended: 1200x1600 px (3:4 portrait), JPG/WebP.</p>
             <div className="mt-2 flex items-center gap-4">
               {avatarPreview && (
                 <div className="relative">
@@ -303,6 +304,7 @@ export function CreateEditContestantModal({
           {/* Gallery Photos */}
           <div>
             <Label>Contestant Photos</Label>
+            <p className="mt-1 text-xs text-muted-foreground">Recommended: 1200x1500 px (4:5 portrait), up to 8 photos.</p>
             <div className="mt-2 space-y-3">
               <label className="inline-flex cursor-pointer items-center rounded-md border border-dashed border-border px-3 py-2 text-sm hover:bg-muted">
                 <Upload className="mr-2 h-4 w-4 text-muted-foreground" />

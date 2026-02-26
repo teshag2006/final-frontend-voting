@@ -31,6 +31,116 @@ export function ProfileComposerForm({
     return next;
   };
   const isSafeHandle = (raw: string) => /^[A-Za-z0-9._]{1,50}$/.test(raw);
+  const parseLocation = (raw: string) => {
+    const parts = raw
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    if (parts.length === 0) return { country: '', region: '', city: '' };
+    if (parts.length === 1) return { country: '', region: '', city: parts[0] };
+    if (parts.length === 2) return { country: parts[1], region: '', city: parts[0] };
+    return { country: parts[0], region: parts[1], city: parts.slice(2).join(', ') };
+  };
+  const composeLocation = (location: { country: string; region: string; city: string }) =>
+    [location.country, location.region, location.city].filter(Boolean).join(', ');
+  const updateLocationField = (field: 'country' | 'region' | 'city', fieldValue: string) => {
+    const current = parseLocation(value.location);
+    const next = { ...current, [field]: fieldValue };
+    onChange({ ...value, location: composeLocation(next) });
+  };
+  const locationParts = parseLocation(value.location);
+  type SocialPlatformKey = 'instagram' | 'youtube' | 'tiktok' | 'x' | 'facebook' | 'snapchat';
+  type SocialMetricKey = 'followers' | 'views' | 'likes' | 'subscribers';
+  const parseMetricValue = (raw: string) => {
+    const trimmed = raw.trim();
+    if (!trimmed) return undefined;
+    const numeric = Number(trimmed);
+    if (!Number.isFinite(numeric) || numeric < 0) return undefined;
+    return Math.floor(numeric);
+  };
+  const sanitizeMetricValue = (value: unknown) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric) || numeric < 0) return undefined;
+    return Math.floor(numeric);
+  };
+  const updateSocialMetric = (platform: SocialPlatformKey, metric: SocialMetricKey, rawValue: string) => {
+    const currentStats = value.socialStats || {};
+    const platformStats = currentStats[platform] || {};
+    onChange({
+      ...value,
+      socialStats: {
+        ...currentStats,
+        [platform]: {
+          ...platformStats,
+          [metric]: parseMetricValue(rawValue),
+        },
+      },
+    });
+  };
+  const socialSections: Array<{
+    key: SocialPlatformKey;
+    label: string;
+    prefix: string;
+    username: string;
+    onUsernameChange: (raw: string) => void;
+    metrics: SocialMetricKey[];
+  }> = [
+    {
+      key: 'instagram',
+      label: 'Instagram',
+      prefix: 'https://instagram.com/',
+      username: normalizeHandle(value.instagram),
+      onUsernameChange: (raw) => {
+        const handle = normalizeHandle(raw);
+        onChange({ ...value, instagram: handle ? `@${handle}` : '' });
+      },
+      metrics: ['followers', 'views', 'likes'],
+    },
+    {
+      key: 'youtube',
+      label: 'YouTube',
+      prefix: 'https://youtube.com/@',
+      username: normalizeHandle(value.youtubeHandle),
+      onUsernameChange: (raw) => onChange({ ...value, youtubeHandle: normalizeHandle(raw) }),
+      metrics: ['subscribers', 'views', 'likes'],
+    },
+    {
+      key: 'tiktok',
+      label: 'TikTok',
+      prefix: 'https://tiktok.com/@',
+      username: normalizeHandle(value.tiktok),
+      onUsernameChange: (raw) => {
+        const handle = normalizeHandle(raw);
+        onChange({ ...value, tiktok: handle ? `@${handle}` : '' });
+      },
+      metrics: ['followers', 'views', 'likes'],
+    },
+    {
+      key: 'x',
+      label: 'X',
+      prefix: 'https://x.com/',
+      username: normalizeHandle(value.x),
+      onUsernameChange: (raw) => onChange({ ...value, x: normalizeHandle(raw) }),
+      metrics: ['followers', 'likes'],
+    },
+    {
+      key: 'facebook',
+      label: 'Facebook',
+      prefix: 'https://facebook.com/',
+      username: normalizeHandle(value.facebook),
+      onUsernameChange: (raw) => onChange({ ...value, facebook: normalizeHandle(raw) }),
+      metrics: ['followers', 'views', 'likes'],
+    },
+    {
+      key: 'snapchat',
+      label: 'Snapchat',
+      prefix: 'https://snapchat.com/add/',
+      username: normalizeHandle(value.snapchat),
+      onUsernameChange: (raw) => onChange({ ...value, snapchat: normalizeHandle(raw) }),
+      metrics: ['subscribers', 'views'],
+    },
+  ];
 
   const handlePhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -75,6 +185,36 @@ export function ProfileComposerForm({
       x: normalizeHandle(value.x),
       facebook: normalizeHandle(value.facebook),
       snapchat: normalizeHandle(value.snapchat),
+      socialStats: {
+        instagram: {
+          followers: sanitizeMetricValue(value.socialStats?.instagram?.followers),
+          views: sanitizeMetricValue(value.socialStats?.instagram?.views),
+          likes: sanitizeMetricValue(value.socialStats?.instagram?.likes),
+        },
+        youtube: {
+          subscribers: sanitizeMetricValue(value.socialStats?.youtube?.subscribers),
+          views: sanitizeMetricValue(value.socialStats?.youtube?.views),
+          likes: sanitizeMetricValue(value.socialStats?.youtube?.likes),
+        },
+        tiktok: {
+          followers: sanitizeMetricValue(value.socialStats?.tiktok?.followers),
+          views: sanitizeMetricValue(value.socialStats?.tiktok?.views),
+          likes: sanitizeMetricValue(value.socialStats?.tiktok?.likes),
+        },
+        x: {
+          followers: sanitizeMetricValue(value.socialStats?.x?.followers),
+          likes: sanitizeMetricValue(value.socialStats?.x?.likes),
+        },
+        facebook: {
+          followers: sanitizeMetricValue(value.socialStats?.facebook?.followers),
+          views: sanitizeMetricValue(value.socialStats?.facebook?.views),
+          likes: sanitizeMetricValue(value.socialStats?.facebook?.likes),
+        },
+        snapchat: {
+          subscribers: sanitizeMetricValue(value.socialStats?.snapchat?.subscribers),
+          views: sanitizeMetricValue(value.socialStats?.snapchat?.views),
+        },
+      },
     };
 
     const handlesToCheck = [
@@ -100,6 +240,7 @@ export function ProfileComposerForm({
       <h2 className="text-xl font-semibold text-slate-900">Profile Composer</h2>
       <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
         <p className="text-sm font-medium text-slate-900">Profile Photo</p>
+        <p className="mt-1 text-xs text-slate-500">Recommended: 1200x1600 px (3:4 portrait), JPG/WebP.</p>
         <div className="mt-2 flex items-center gap-3">
           {value.photoUrl ? (
             <div className="relative">
@@ -150,96 +291,76 @@ export function ProfileComposerForm({
         <p className="mt-3 text-xs text-slate-500">
           Upload new gallery photos from the dedicated Gallery menu.
         </p>
+        <p className="mt-1 text-xs text-slate-500">
+          Recommended gallery size: 1200x1500 px (4:5 portrait).
+        </p>
       </div>
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         <input value={value.displayName} onChange={(e) => onChange({ ...value, displayName: e.target.value })} className="h-10 rounded-md border border-slate-300 px-3 text-sm" placeholder="Display name" />
         <input value={value.category} onChange={(e) => onChange({ ...value, category: e.target.value })} className="h-10 rounded-md border border-slate-300 px-3 text-sm" placeholder="Category" />
-        <input value={value.location} onChange={(e) => onChange({ ...value, location: e.target.value })} className="h-10 rounded-md border border-slate-300 px-3 text-sm md:col-span-2" placeholder="Location" />
+        <div className="space-y-2 md:col-span-2">
+          <p className="text-xs font-medium text-slate-700">Location</p>
+          <div className="grid gap-2 md:grid-cols-3">
+            <input
+              value={locationParts.country}
+              onChange={(e) => updateLocationField('country', e.target.value)}
+              className="h-10 rounded-md border border-slate-300 px-3 text-sm"
+              placeholder="Country"
+            />
+            <input
+              value={locationParts.region}
+              onChange={(e) => updateLocationField('region', e.target.value)}
+              className="h-10 rounded-md border border-slate-300 px-3 text-sm"
+              placeholder="Region"
+            />
+            <input
+              value={locationParts.city}
+              onChange={(e) => updateLocationField('city', e.target.value)}
+              className="h-10 rounded-md border border-slate-300 px-3 text-sm"
+              placeholder="City"
+            />
+          </div>
+        </div>
         <textarea value={value.bio} onChange={(e) => onChange({ ...value, bio: e.target.value })} className="min-h-24 rounded-md border border-slate-300 px-3 py-2 text-sm md:col-span-2" placeholder="Bio" />
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 md:col-span-2">
           <p className="text-sm font-medium text-slate-900">Social Media Usernames</p>
           <p className="mt-1 text-xs text-slate-500">
-            Enter only username. Domain is fixed to prevent scam links.
+            Enter only username. Domain is fixed to prevent scam links. Add only metrics that apply to each platform.
           </p>
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <label className="space-y-1">
-              <span className="text-xs text-slate-600">Instagram</span>
-              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
-                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://instagram.com/</span>
-                <input
-                  value={normalizeHandle(value.instagram)}
-                  onChange={(e) => {
-                    const handle = normalizeHandle(e.target.value);
-                    onChange({ ...value, instagram: handle ? `@${handle}` : '' });
-                  }}
-                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
-                  placeholder="username"
-                />
+          <div className="mt-3 space-y-3">
+            {socialSections.map((section) => (
+              <div key={section.key} className="rounded-lg border border-slate-200 bg-white p-3">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-slate-700">{section.label}</span>
+                  <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
+                    <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">{section.prefix}</span>
+                    <input
+                      value={section.username}
+                      onChange={(e) => section.onUsernameChange(e.target.value)}
+                      className="h-full w-full rounded-r-md px-3 text-sm outline-none"
+                      placeholder="username"
+                    />
+                  </div>
+                </label>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                  {section.metrics.map((metric) => (
+                    <label key={`${section.key}-${metric}`} className="space-y-1">
+                      <span className="text-xs text-slate-600">
+                        {metric.charAt(0).toUpperCase() + metric.slice(1)}
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={value.socialStats?.[section.key]?.[metric] ?? ''}
+                        onChange={(e) => updateSocialMetric(section.key, metric, e.target.value)}
+                        className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                        placeholder={`e.g. ${metric === 'views' ? '12000' : '3400'}`}
+                      />
+                    </label>
+                  ))}
+                </div>
               </div>
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs text-slate-600">YouTube</span>
-              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
-                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://youtube.com/@</span>
-                <input
-                  value={normalizeHandle(value.youtubeHandle)}
-                  onChange={(e) => onChange({ ...value, youtubeHandle: normalizeHandle(e.target.value) })}
-                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
-                  placeholder="username"
-                />
-              </div>
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs text-slate-600">TikTok</span>
-              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
-                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://tiktok.com/@</span>
-                <input
-                  value={normalizeHandle(value.tiktok)}
-                  onChange={(e) => {
-                    const handle = normalizeHandle(e.target.value);
-                    onChange({ ...value, tiktok: handle ? `@${handle}` : '' });
-                  }}
-                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
-                  placeholder="username"
-                />
-              </div>
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs text-slate-600">X</span>
-              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
-                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://x.com/</span>
-                <input
-                  value={normalizeHandle(value.x)}
-                  onChange={(e) => onChange({ ...value, x: normalizeHandle(e.target.value) })}
-                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
-                  placeholder="username"
-                />
-              </div>
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs text-slate-600">Facebook</span>
-              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
-                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://facebook.com/</span>
-                <input
-                  value={normalizeHandle(value.facebook)}
-                  onChange={(e) => onChange({ ...value, facebook: normalizeHandle(e.target.value) })}
-                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
-                  placeholder="username"
-                />
-              </div>
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs text-slate-600">Snapchat</span>
-              <div className="flex h-10 items-center rounded-md border border-slate-300 bg-white">
-                <span className="shrink-0 border-r border-slate-200 px-3 text-xs text-slate-500">https://snapchat.com/add/</span>
-                <input
-                  value={normalizeHandle(value.snapchat)}
-                  onChange={(e) => onChange({ ...value, snapchat: normalizeHandle(e.target.value) })}
-                  className="h-full w-full rounded-r-md px-3 text-sm outline-none"
-                  placeholder="username"
-                />
-              </div>
-            </label>
+            ))}
           </div>
         </div>
       </div>

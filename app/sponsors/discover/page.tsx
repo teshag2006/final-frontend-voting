@@ -31,6 +31,9 @@ export default function SponsorsDiscoverPage() {
   const [instagramFollowersMin, setInstagramFollowersMin] = useState('');
   const [tiktokFollowersMin, setTiktokFollowersMin] = useState('');
   const [youtubeFollowersMin, setYoutubeFollowersMin] = useState('');
+  const [xFollowersMin, setXFollowersMin] = useState('');
+  const [facebookFollowersMin, setFacebookFollowersMin] = useState('');
+  const [snapchatFollowersMin, setSnapchatFollowersMin] = useState('');
   const [engagementQualityMin, setEngagementQualityMin] = useState('0');
   const [fraudRiskMax, setFraudRiskMax] = useState('100');
   const [profileCompletionMin, setProfileCompletionMin] = useState('0');
@@ -71,6 +74,9 @@ export default function SponsorsDiscoverPage() {
       instagramFollowersMin: instagramFollowersMin ? Number(instagramFollowersMin) : undefined,
       tiktokFollowersMin: tiktokFollowersMin ? Number(tiktokFollowersMin) : undefined,
       youtubeFollowersMin: youtubeFollowersMin ? Number(youtubeFollowersMin) : undefined,
+      xFollowersMin: xFollowersMin ? Number(xFollowersMin) : undefined,
+      facebookFollowersMin: facebookFollowersMin ? Number(facebookFollowersMin) : undefined,
+      snapchatFollowersMin: snapchatFollowersMin ? Number(snapchatFollowersMin) : undefined,
       engagementQualityMin: engagementQualityMin ? Number(engagementQualityMin) : undefined,
       fraudRiskMax: fraudRiskMax ? Number(fraudRiskMax) : undefined,
       profileCompletionMin: profileCompletionMin ? Number(profileCompletionMin) : undefined,
@@ -113,6 +119,9 @@ export default function SponsorsDiscoverPage() {
     instagramFollowersMin,
     tiktokFollowersMin,
     youtubeFollowersMin,
+    xFollowersMin,
+    facebookFollowersMin,
+    snapchatFollowersMin,
     engagementQualityMin,
     fraudRiskMax,
     profileCompletionMin,
@@ -135,6 +144,9 @@ export default function SponsorsDiscoverPage() {
         const instagramFollowers = contestant.socialPlatforms.find((item) => item.platform === 'Instagram')?.followers || 0;
         const tiktokFollowers = contestant.socialPlatforms.find((item) => item.platform === 'TikTok')?.followers || 0;
         const youtubeFollowers = contestant.socialPlatforms.find((item) => item.platform === 'YouTube')?.followers || 0;
+        const xFollowers = contestant.socialPlatforms.find((item) => item.platform === 'X')?.followers || 0;
+        const facebookFollowers = contestant.socialPlatforms.find((item) => item.platform === 'Facebook')?.followers || 0;
+        const snapchatFollowers = contestant.socialPlatforms.find((item) => item.platform === 'Snapchat')?.followers || 0;
         const availableDate = new Date(contestant.availableFrom).getTime();
         const availableFromTime = availableFrom ? new Date(availableFrom).getTime() : Number.NaN;
         const availableToTime = availableTo ? new Date(availableTo).getTime() : Number.NaN;
@@ -159,6 +171,9 @@ export default function SponsorsDiscoverPage() {
         if (instagramFollowersMin && instagramFollowers < Number(instagramFollowersMin)) return false;
         if (tiktokFollowersMin && tiktokFollowers < Number(tiktokFollowersMin)) return false;
         if (youtubeFollowersMin && youtubeFollowers < Number(youtubeFollowersMin)) return false;
+        if (xFollowersMin && xFollowers < Number(xFollowersMin)) return false;
+        if (facebookFollowersMin && facebookFollowers < Number(facebookFollowersMin)) return false;
+        if (snapchatFollowersMin && snapchatFollowers < Number(snapchatFollowersMin)) return false;
         if (contestant.engagementQualityScore < Number(engagementQualityMin)) return false;
         if (contestant.fraudRiskScore > Number(fraudRiskMax)) return false;
         if (contestant.profileCompletion < Number(profileCompletionMin)) return false;
@@ -202,6 +217,9 @@ export default function SponsorsDiscoverPage() {
     instagramFollowersMin,
     tiktokFollowersMin,
     youtubeFollowersMin,
+    xFollowersMin,
+    facebookFollowersMin,
+    snapchatFollowersMin,
     engagementQualityMin,
     fraudRiskMax,
     profileCompletionMin,
@@ -236,6 +254,18 @@ export default function SponsorsDiscoverPage() {
   );
   const maxYouTubeFollowers = Math.max(
     ...apiContestants.map((item) => item.socialPlatforms.find((platform) => platform.platform === 'YouTube')?.followers || 0),
+    1000
+  );
+  const maxXFollowers = Math.max(
+    ...apiContestants.map((item) => item.socialPlatforms.find((platform) => platform.platform === 'X')?.followers || 0),
+    1000
+  );
+  const maxFacebookFollowers = Math.max(
+    ...apiContestants.map((item) => item.socialPlatforms.find((platform) => platform.platform === 'Facebook')?.followers || 0),
+    1000
+  );
+  const maxSnapchatFollowers = Math.max(
+    ...apiContestants.map((item) => item.socialPlatforms.find((platform) => platform.platform === 'Snapchat')?.followers || 0),
     1000
   );
   const categoryOptions = Array.from(new Set(apiContestants.map((item) => item.category))).sort();
@@ -316,20 +346,20 @@ export default function SponsorsDiscoverPage() {
                   placeholder="Country"
                 />
                 <Input
-                  value={city}
-                  onChange={(e) => {
-                    setCity(e.target.value);
-                    setPage(1);
-                  }}
-                  placeholder="City"
-                />
-                <Input
                   value={region}
                   onChange={(e) => {
                     setRegion(e.target.value);
                     setPage(1);
                   }}
                   placeholder="Region"
+                />
+                <Input
+                  value={city}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="City"
                 />
               </div>
             </div>
@@ -525,6 +555,33 @@ export default function SponsorsDiscoverPage() {
               max={maxYouTubeFollowers}
               onChange={(value) => {
                 setYoutubeFollowersMin(value > 0 ? String(value) : '');
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="X Followers Min"
+              value={xFollowersMin ? Number(xFollowersMin) : 0}
+              max={maxXFollowers}
+              onChange={(value) => {
+                setXFollowersMin(value > 0 ? String(value) : '');
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Facebook Followers Min"
+              value={facebookFollowersMin ? Number(facebookFollowersMin) : 0}
+              max={maxFacebookFollowers}
+              onChange={(value) => {
+                setFacebookFollowersMin(value > 0 ? String(value) : '');
+                setPage(1);
+              }}
+            />
+            <FilterSlider
+              label="Snapchat Followers Min"
+              value={snapchatFollowersMin ? Number(snapchatFollowersMin) : 0}
+              max={maxSnapchatFollowers}
+              onChange={(value) => {
+                setSnapchatFollowersMin(value > 0 ? String(value) : '');
                 setPage(1);
               }}
             />

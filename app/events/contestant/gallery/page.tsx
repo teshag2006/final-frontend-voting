@@ -212,6 +212,7 @@ export default function ContestantGalleryPage() {
               <ImagePlus className="h-4 w-4" />
               Upload Gallery Photo
             </Button>
+            <p className="mt-2 text-xs text-slate-500">Recommended: 1200x1500 px (4:5 portrait) for profile/gallery cards.</p>
           </div>
         </section>
 

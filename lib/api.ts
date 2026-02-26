@@ -431,6 +431,9 @@ export async function getSponsorDiscoverContestants(options?: {
   instagramFollowersMin?: number;
   tiktokFollowersMin?: number;
   youtubeFollowersMin?: number;
+  xFollowersMin?: number;
+  facebookFollowersMin?: number;
+  snapchatFollowersMin?: number;
   engagementQualityMin?: number;
   fraudRiskMax?: number;
   profileCompletionMin?: number;
@@ -467,6 +470,9 @@ export async function getSponsorDiscoverContestants(options?: {
     if (typeof options?.instagramFollowersMin === "number" && options.instagramFollowersMin > 0) params.set("instagramFollowersMin", String(options.instagramFollowersMin));
     if (typeof options?.tiktokFollowersMin === "number" && options.tiktokFollowersMin > 0) params.set("tiktokFollowersMin", String(options.tiktokFollowersMin));
     if (typeof options?.youtubeFollowersMin === "number" && options.youtubeFollowersMin > 0) params.set("youtubeFollowersMin", String(options.youtubeFollowersMin));
+    if (typeof options?.xFollowersMin === "number" && options.xFollowersMin > 0) params.set("xFollowersMin", String(options.xFollowersMin));
+    if (typeof options?.facebookFollowersMin === "number" && options.facebookFollowersMin > 0) params.set("facebookFollowersMin", String(options.facebookFollowersMin));
+    if (typeof options?.snapchatFollowersMin === "number" && options.snapchatFollowersMin > 0) params.set("snapchatFollowersMin", String(options.snapchatFollowersMin));
     if (typeof options?.engagementQualityMin === "number") params.set("engagementQualityMin", String(options.engagementQualityMin));
     if (typeof options?.fraudRiskMax === "number") params.set("fraudRiskMax", String(options.fraudRiskMax));
     if (typeof options?.profileCompletionMin === "number") params.set("profileCompletionMin", String(options.profileCompletionMin));

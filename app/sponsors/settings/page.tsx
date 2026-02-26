@@ -201,6 +201,7 @@ export default function SponsorProfileSettingsPage() {
                   <Button type="button" variant="outline" className="w-full" onClick={handleLogoButtonClick} disabled={isUploadingLogo}>
                     {isUploadingLogo ? 'Uploading...' : 'Change Logo'}
                   </Button>
+                  <p className="text-[11px] text-slate-500">Recommended: 512x512 px square (PNG/WebP).</p>
                   {logoError && <p className="text-xs text-red-700">{logoError}</p>}
                 </div>
 

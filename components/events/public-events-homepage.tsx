@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { mockArchivedEvents, mockEvents } from '@/lib/events-mock';
 import { Button } from '@/components/ui/button';
+import type { AdminContentState } from '@/lib/admin-content-runtime-store';
 
 type CounterMetric = {
   label: string;
@@ -82,7 +83,7 @@ const trendingContestants = [
   },
 ];
 
-const sponsorBanners = [
+const defaultSponsorBanners = [
   {
     id: 'sp-1',
     title: 'Castaway Collective',
@@ -183,6 +184,7 @@ function EventMetric({ label, value, suffix }: CounterMetric) {
 export function PublicEventsHomepage() {
   const [navCollapsed, setNavCollapsed] = useState(false);
   const [bannerIndex, setBannerIndex] = useState(0);
+  const [cmsContent, setCmsContent] = useState<AdminContentState | null>(null);
 
   useEffect(() => {
     const onScroll = () => setNavCollapsed(window.scrollY > 18);
@@ -192,11 +194,24 @@ export function PublicEventsHomepage() {
   }, []);
 
   useEffect(() => {
+    fetch('/api/admin/content')
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (!payload) return;
+        setCmsContent(payload as AdminContentState);
+      })
+      .catch(() => null);
+  }, []);
+
+  useEffect(() => {
     const timer = setInterval(() => {
-      setBannerIndex((prev) => (prev + 1) % sponsorBanners.length);
+      const activeBannerCount =
+        (cmsContent?.sponsorBanners || []).filter((item) => item.active && item.placement === 'homepage_top').length ||
+        defaultSponsorBanners.length;
+      setBannerIndex((prev) => (prev + 1) % Math.max(1, activeBannerCount));
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [cmsContent]);
 
   const liveEvents = useMemo(
     () => mockEvents.filter((event) => event.status === 'LIVE' || event.status === 'active'),
@@ -217,7 +232,7 @@ export function PublicEventsHomepage() {
   const primaryLeaderboardHref = primaryEventSlug
     ? `/events/${primaryEventSlug}/leaderboard`
     : '/events';
-  const navMenuItems: Array<[string, string]> = [
+  const fallbackNavMenuItems: Array<[string, string]> = [
     ['Events', '/events'],
     ['Live Leaderboard', primaryLeaderboardHref],
     ['Sponsors', '/sponsors'],
@@ -225,6 +240,46 @@ export function PublicEventsHomepage() {
     ['Archive', '/events/archive'],
     ['About', '/how-it-works'],
   ];
+  const navMenuItems =
+    cmsContent?.navigationMenus
+      ?.filter((item) => item.visible && item.position === 'header')
+      .sort((a, b) => a.order - b.order)
+      .map((item) => [item.label, item.href] as [string, string]) || fallbackNavMenuItems;
+  const heroAnnouncement = cmsContent?.homepage?.announcement || 'Trusted Public Voting Platform';
+  const heroTitle = cmsContent?.homepage?.heroTitle || 'Where Influence Meets Integrity.';
+  const heroSubtitle =
+    cmsContent?.homepage?.heroSubtitle ||
+    "Africa's most trusted voting & sponsorship platform built for transparent scale, enterprise compliance, and real-time engagement.";
+  const sponsorBanners = (() => {
+    const items = (cmsContent?.sponsorBanners || [])
+      .filter((item) => item.active && item.placement === 'homepage_top')
+      .map((item) => ({
+        id: item.id,
+        title: item.title,
+        subtitle: 'Sponsor Showcase',
+        detail: item.targetUrl,
+        image: item.imageUrl,
+      }));
+    return items.length > 0 ? items : defaultSponsorBanners;
+  })();
+  const footerGroups = {
+    Platform:
+      cmsContent?.footerLinks
+        ?.filter((item) => item.visible && item.group === 'Platform')
+        .sort((a, b) => a.order - b.order) || [],
+    Company:
+      cmsContent?.footerLinks
+        ?.filter((item) => item.visible && item.group === 'Company')
+        .sort((a, b) => a.order - b.order) || [],
+    Legal:
+      cmsContent?.footerLinks
+        ?.filter((item) => item.visible && item.group === 'Legal')
+        .sort((a, b) => a.order - b.order) || [],
+    Social:
+      cmsContent?.footerLinks
+        ?.filter((item) => item.visible && item.group === 'Social')
+        .sort((a, b) => a.order - b.order) || [],
+  };
 
   const eventSchema = {
     '@context': 'https://schema.org',
@@ -317,10 +372,10 @@ export function PublicEventsHomepage() {
           <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-14 sm:px-6 lg:px-8 lg:pt-20">
             <div className="max-w-3xl animate-[fade-in_600ms_ease-out]">
               <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-400/10 px-3 py-1 text-xs uppercase tracking-[0.14em] text-emerald-200">
-                Trusted Public Voting Platform
+                {heroAnnouncement}
               </p>
               <h1 className="font-serif text-5xl leading-tight text-white md:text-6xl">
-                Where Influence Meets Integrity.
+                {heroTitle}
               </h1>
               <p className="mt-5 max-w-2xl text-lg text-slate-200">
                 Africa’s most trusted voting & sponsorship platform built for transparent scale,
@@ -597,38 +652,68 @@ export function PublicEventsHomepage() {
           <div>
             <h4 className="font-semibold text-white">Platform</h4>
             <ul className="mt-3 space-y-2 text-sm text-slate-300">
-              <li><Link href="/events">Events</Link></li>
-              <li><Link href={primaryLeaderboardHref}>Leaderboard</Link></li>
-              <li><Link href="/sponsors">Sponsors</Link></li>
-              <li><Link href="/events/archive">Archive</Link></li>
+              {(footerGroups.Platform.length > 0
+                ? footerGroups.Platform
+                : [
+                    { id: 'pf-1', label: 'Events', href: '/events' },
+                    { id: 'pf-2', label: 'Leaderboard', href: primaryLeaderboardHref },
+                    { id: 'pf-3', label: 'Sponsors', href: '/sponsors' },
+                    { id: 'pf-4', label: 'Archive', href: '/events/archive' },
+                  ]
+              ).map((item) => (
+                <li key={item.id}><Link href={item.href}>{item.label}</Link></li>
+              ))}
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-white">Company</h4>
             <ul className="mt-3 space-y-2 text-sm text-slate-300">
-              <li><Link href="/how-it-works">About</Link></li>
-              <li><Link href="/events">Careers</Link></li>
-              <li><Link href="/events">Press</Link></li>
-              <li><Link href="/notifications">Contact</Link></li>
+              {(footerGroups.Company.length > 0
+                ? footerGroups.Company
+                : [
+                    { id: 'cp-1', label: 'About', href: '/how-it-works' },
+                    { id: 'cp-2', label: 'Careers', href: '/events' },
+                    { id: 'cp-3', label: 'Press', href: '/events' },
+                    { id: 'cp-4', label: 'Contact', href: '/notifications' },
+                  ]
+              ).map((item) => (
+                <li key={item.id}><Link href={item.href}>{item.label}</Link></li>
+              ))}
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-white">Legal</h4>
             <ul className="mt-3 space-y-2 text-sm text-slate-300">
-              <li><Link href="/terms">Terms</Link></li>
-              <li><Link href="/privacy">Privacy</Link></li>
-              <li><Link href="/events">Anti-Fraud Policy</Link></li>
-              <li><Link href="/events">Sponsorship Guidelines</Link></li>
-              <li><Link href="/events">Compliance</Link></li>
+              {(footerGroups.Legal.length > 0
+                ? footerGroups.Legal
+                : [
+                    { id: 'lg-1', label: 'Terms', href: '/terms' },
+                    { id: 'lg-2', label: 'Privacy', href: '/privacy' },
+                    { id: 'lg-3', label: 'Anti-Fraud Policy', href: '/events' },
+                    { id: 'lg-4', label: 'Sponsorship Guidelines', href: '/events' },
+                    { id: 'lg-5', label: 'Compliance', href: '/events' },
+                  ]
+              ).map((item) => (
+                <li key={item.id}><Link href={item.href}>{item.label}</Link></li>
+              ))}
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-white">Social</h4>
             <ul className="mt-3 space-y-2 text-sm text-slate-300">
-              <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a></li>
-              <li><a href="https://tiktok.com" target="_blank" rel="noopener noreferrer">TikTok</a></li>
-              <li><a href="https://youtube.com" target="_blank" rel="noopener noreferrer">YouTube</a></li>
-              <li><a href="https://x.com" target="_blank" rel="noopener noreferrer">Twitter</a></li>
+              {(footerGroups.Social.length > 0
+                ? footerGroups.Social
+                : [
+                    { id: 'sc-1', label: 'Instagram', href: 'https://instagram.com' },
+                    { id: 'sc-2', label: 'TikTok', href: 'https://tiktok.com' },
+                    { id: 'sc-3', label: 'YouTube', href: 'https://youtube.com' },
+                    { id: 'sc-4', label: 'Twitter', href: 'https://x.com' },
+                  ]
+              ).map((item) => (
+                <li key={item.id}>
+                  <a href={item.href} target="_blank" rel="noopener noreferrer">{item.label}</a>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
@@ -662,4 +747,6 @@ export function PublicEventsHomepage() {
     </div>
   );
 }
+
+
 

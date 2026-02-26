@@ -319,6 +319,7 @@ export function VoterSettingsPage({ profile, recentPayments }: VoterSettingsPage
                   </div>
                   <div>
                     <Label htmlFor="photo">Profile Photo</Label>
+                    <p className="mt-1 text-xs text-muted-foreground">Recommended: 1024x1024 px square, JPG/WebP.</p>
                     <Input id="photo" type="file" accept="image/*" onChange={(e) => void handleProfilePhotoUpload(e)} disabled={isUploadingPhoto} />
                     {isUploadingPhoto ? <p className="mt-1 text-xs text-muted-foreground">Uploading photo...</p> : null}
                     {photoUploadError ? <p className="mt-1 text-xs text-red-600">{photoUploadError}</p> : null}

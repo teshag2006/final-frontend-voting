@@ -75,7 +75,7 @@ export const paymentMethods: PaymentMethodConfig[] = [
     id: "crypto",
     label: "Crypto (Bitcoin)",
     description: "Bitcoin or Ethereum",
-    enabled: false,
+    enabled: true,
     countries: ["ALL"],
   },
 ];

@@ -26,6 +26,9 @@ export async function GET(request: NextRequest) {
   const instagramFollowersMin = Number(searchParams.get('instagramFollowersMin') || 0);
   const tiktokFollowersMin = Number(searchParams.get('tiktokFollowersMin') || 0);
   const youtubeFollowersMin = Number(searchParams.get('youtubeFollowersMin') || 0);
+  const xFollowersMin = Number(searchParams.get('xFollowersMin') || 0);
+  const facebookFollowersMin = Number(searchParams.get('facebookFollowersMin') || 0);
+  const snapchatFollowersMin = Number(searchParams.get('snapchatFollowersMin') || 0);
   const engagementQualityMin = Number(searchParams.get('engagementQualityMin') || 0);
   const fraudRiskMax = Number(searchParams.get('fraudRiskMax') || 100);
   const profileCompletionMin = Number(searchParams.get('profileCompletionMin') || 0);
@@ -46,6 +49,9 @@ export async function GET(request: NextRequest) {
       const instagramFollowers = contestant.socialPlatforms.find((item) => item.platform === 'Instagram')?.followers || 0;
       const tiktokFollowers = contestant.socialPlatforms.find((item) => item.platform === 'TikTok')?.followers || 0;
       const youtubeFollowers = contestant.socialPlatforms.find((item) => item.platform === 'YouTube')?.followers || 0;
+      const xFollowers = contestant.socialPlatforms.find((item) => item.platform === 'X')?.followers || 0;
+      const facebookFollowers = contestant.socialPlatforms.find((item) => item.platform === 'Facebook')?.followers || 0;
+      const snapchatFollowers = contestant.socialPlatforms.find((item) => item.platform === 'Snapchat')?.followers || 0;
       const availableDate = new Date(contestant.availableFrom).getTime();
       const availableFromTime = availableFrom ? new Date(availableFrom).getTime() : Number.NaN;
       const availableToTime = availableTo ? new Date(availableTo).getTime() : Number.NaN;
@@ -69,6 +75,9 @@ export async function GET(request: NextRequest) {
       if (instagramFollowers < instagramFollowersMin) return false;
       if (tiktokFollowers < tiktokFollowersMin) return false;
       if (youtubeFollowers < youtubeFollowersMin) return false;
+      if (xFollowers < xFollowersMin) return false;
+      if (facebookFollowers < facebookFollowersMin) return false;
+      if (snapchatFollowers < snapchatFollowersMin) return false;
       if (contestant.engagementQualityScore < engagementQualityMin) return false;
       if (contestant.fraudRiskScore > fraudRiskMax) return false;
       if (contestant.profileCompletion < profileCompletionMin) return false;

@@ -203,6 +203,7 @@ export function SettingsGeneralTab({ initialData, onSave, isLoading }: SettingsG
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               <div>
                 <p className="text-xs text-slate-600">Logo Upload</p>
+                <p className="mt-1 text-[11px] text-slate-500">Recommended: 512x512 px square (PNG with transparent background preferred).</p>
                 <div className="mt-2 flex items-center gap-3">
                   {formData.logoUrl ? (
                     <div className="relative">
@@ -241,6 +242,7 @@ export function SettingsGeneralTab({ initialData, onSave, isLoading }: SettingsG
 
               <div>
                 <p className="text-xs text-slate-600">Favicon Upload</p>
+                <p className="mt-1 text-[11px] text-slate-500">Recommended: 64x64 px square (ICO or PNG).</p>
                 <div className="mt-2 flex items-center gap-3">
                   {formData.faviconUrl ? (
                     <div className="relative">
