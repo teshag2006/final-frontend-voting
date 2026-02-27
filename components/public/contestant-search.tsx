@@ -4,8 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, X, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 interface SearchResult {
   id: string;
@@ -59,7 +57,6 @@ export function ContestantSearch({
 
     debounceTimer.current = setTimeout(async () => {
       try {
-        // TODO: Replace with actual API call when backend is ready
         const response = await fetch(
           `/api/contestants/search?q=${encodeURIComponent(query)}&limit=10${
             categoryId ? `&categoryId=${categoryId}` : ''
@@ -70,10 +67,13 @@ export function ContestantSearch({
           const data = await response.json();
           setResults(data.results || []);
           setShowResults(true);
+        } else {
+          setResults([]);
+          setShowResults(true);
         }
       } catch (error) {
-        console.error('Search error:', error);
         setResults([]);
+        setShowResults(true);
       } finally {
         setIsSearching(false);
       }

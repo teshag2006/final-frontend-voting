@@ -1,38 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { paymentMethods } from '@/lib/vote-checkout-mock';
-
-const methodFields: Record<string, Array<{ name: string; label: string; placeholder: string }>> = {
-  credit_debit_card: [
-    { name: 'cardNumber', label: 'Card Number', placeholder: '4111 1111 1111 1111' },
-    { name: 'cardHolder', label: 'Card Holder', placeholder: 'Full name' },
-    { name: 'expiry', label: 'Expiry', placeholder: 'MM/YY' },
-    { name: 'cvv', label: 'CVV', placeholder: '123' },
-  ],
-  mobile_money: [
-    { name: 'provider', label: 'Provider', placeholder: 'M-Pesa / Airtel / Orange' },
-    { name: 'phone', label: 'Phone Number', placeholder: '+2519XXXXXXXX' },
-  ],
-  chapa: [
-    { name: 'phone', label: 'Phone Number', placeholder: '+2519XXXXXXXX' },
-    { name: 'email', label: 'Email', placeholder: 'you@example.com' },
-  ],
-  telebirr: [
-    { name: 'phone', label: 'Telebirr Phone', placeholder: '+2519XXXXXXXX' },
-  ],
-  digital_wallet: [
-    { name: 'wallet', label: 'Wallet', placeholder: 'PayPal' },
-    { name: 'account', label: 'PayPal Email', placeholder: 'paypal@email.com' },
-  ],
-  crypto: [
-    { name: 'network', label: 'Network', placeholder: 'Bitcoin / Ethereum' },
-    { name: 'walletAddress', label: 'Wallet Address', placeholder: 'Paste wallet address' },
-  ],
-};
 
 export default function PaymentMethodCheckoutPage() {
   const params = useParams();
@@ -48,29 +20,86 @@ export default function PaymentMethodCheckoutPage() {
   const eventName = searchParams.get('eventName') || 'Event';
   const eventSlug = searchParams.get('eventSlug') || '';
   const contestantSlug = searchParams.get('contestantSlug') || '';
+  const returnStatus = searchParams.get('status') || '';
+  const hasHandledReturn = useRef(false);
 
-  const [formState, setFormState] = useState<Record<string, string>>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
-  const fields = useMemo(() => methodFields[method] || [], [method]);
+  const getProviderRedirectUrl = () => {
+    const providerUrl = String((methodMeta as any)?.providerUrl || '').trim();
+    if (!providerUrl) return '';
 
-  const handleChange = (fieldName: string, value: string) => {
-    setFormState((prev) => ({ ...prev, [fieldName]: value }));
+    const returnBase = `${window.location.origin}/vote/checkout/pay/${encodeURIComponent(method)}`;
+    const returnParams = new URLSearchParams({
+      status: 'success',
+      quantity: String(quantity),
+      totalAmount: String(totalAmount),
+      currency,
+      eventName,
+      eventSlug,
+      contestantSlug,
+    });
+    const cancelParams = new URLSearchParams({
+      status: 'cancelled',
+      quantity: String(quantity),
+      totalAmount: String(totalAmount),
+      currency,
+      eventName,
+      eventSlug,
+      contestantSlug,
+    });
+
+    // Keep this frontend-only and provider-agnostic for dev stage.
+    const url = new URL(providerUrl);
+    url.searchParams.set('amount', String(totalAmount));
+    url.searchParams.set('currency', currency);
+    url.searchParams.set('reference', `vote-${Date.now()}`);
+    url.searchParams.set('return_url', `${returnBase}?${returnParams.toString()}`);
+    url.searchParams.set('cancel_url', `${returnBase}?${cancelParams.toString()}`);
+    return url.toString();
   };
 
-  const handleConfirmPayment = async () => {
-    if (!methodMeta) {
-      setErrorMessage('Invalid payment method.');
+  useEffect(() => {
+    if (hasHandledReturn.current) return;
+    if (returnStatus !== 'success' && returnStatus !== 'cancelled') return;
+
+    if (returnStatus === 'cancelled') {
+      hasHandledReturn.current = true;
+      setErrorMessage('Payment was cancelled. You can try again with this or another method.');
       return;
     }
 
-    for (const field of fields) {
-      if (!String(formState[field.name] || '').trim()) {
-        setErrorMessage(`Please enter ${field.label.toLowerCase()}.`);
-        return;
-      }
+    hasHandledReturn.current = true;
+    setIsProcessing(true);
+    setInfoMessage('Payment return received. Finalizing...');
+    setErrorMessage(null);
+
+    const paymentId = `txn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    void fetch('/api/voter/payments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        paymentId,
+        votesPurchased: quantity,
+        amount: totalAmount,
+        currency,
+        paymentMethod: method,
+        eventName,
+        status: 'confirmed',
+      }),
+    })
+      .finally(() => {
+        router.replace('/voter/dashboard');
+      });
+  }, [returnStatus, quantity, totalAmount, currency, method, eventName, router]);
+
+  const handleContinueToProvider = async () => {
+    if (!methodMeta) {
+      setErrorMessage('Invalid payment method.');
+      return;
     }
 
     setIsProcessing(true);
@@ -78,34 +107,16 @@ export default function PaymentMethodCheckoutPage() {
     setInfoMessage(null);
 
     try {
-      const paymentId = `txn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const response = await fetch('/api/voter/payments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({
-          paymentId,
-          votesPurchased: quantity,
-          amount: totalAmount,
-          currency,
-          paymentMethod: method,
-          eventName,
-          status: 'confirmed',
-        }),
-      });
-
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) {
-        setErrorMessage(payload?.message || 'Payment failed. Please try again.');
+      const redirectUrl = getProviderRedirectUrl();
+      if (!redirectUrl) {
+        setErrorMessage('Provider URL is not configured for this payment method.');
         return;
       }
 
-      setInfoMessage(`Payment successful via ${methodMeta.label}. Redirecting...`);
-      setTimeout(() => {
-        router.push('/voter/dashboard');
-      }, 900);
+      setInfoMessage(`Redirecting to ${methodMeta.label}...`);
+      window.location.assign(redirectUrl);
     } catch {
-      setErrorMessage('Payment failed. Please try again.');
+      setErrorMessage('Unable to redirect to payment provider. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -138,25 +149,10 @@ export default function PaymentMethodCheckoutPage() {
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900">Payment Details</h2>
-            {fields.length === 0 ? (
-              <p className="text-sm text-slate-600">No extra details required for this method.</p>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {fields.map((field) => (
-                  <div key={field.name} className="space-y-1">
-                    <label className="text-sm font-medium text-slate-700">{field.label}</label>
-                    <input
-                      type="text"
-                      value={formState[field.name] || ''}
-                      onChange={(e) => handleChange(field.name, e.target.value)}
-                      placeholder={field.placeholder}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-accent"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <h2 className="text-lg font-semibold text-slate-900">Redirect To Official Provider</h2>
+            <p className="text-sm text-slate-600">
+              For security, payment details are entered on the official {methodMeta.label} page.
+            </p>
 
             {errorMessage && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -177,11 +173,11 @@ export default function PaymentMethodCheckoutPage() {
                 Back
               </button>
               <button
-                onClick={handleConfirmPayment}
+                onClick={handleContinueToProvider}
                 disabled={isProcessing}
                 className="rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent/90 disabled:opacity-50"
               >
-                {isProcessing ? 'Processing...' : 'Confirm Payment'}
+                {isProcessing ? 'Redirecting...' : `Continue To ${methodMeta.label}`}
               </button>
             </div>
           </div>

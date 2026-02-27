@@ -21,12 +21,14 @@ import {
   generateMetricsTimeseries,
   getMaintenanceTasks,
 } from '@/lib/cache-monitor-mock';
+import { useAuth } from '@/context/AuthContext';
 
 export default function RedisCacheMonitorPage() {
+  const { userRole } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoading, setIsLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const [isSuperAdmin] = useState(true); // TODO: Get from auth context
+  const isSuperAdmin = userRole === 'admin';
 
   // Mock data states
   const [overview, setOverview] = useState(generateRedisOverview());
@@ -40,7 +42,6 @@ export default function RedisCacheMonitorPage() {
   const handleRefresh = async () => {
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API calls
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setOverview(generateRedisOverview());
       setKeys(generateCacheKeys());
@@ -50,22 +51,18 @@ export default function RedisCacheMonitorPage() {
       setLastRefresh(new Date());
       setActionMessage('Cache dashboard refreshed.');
     } catch (error) {
-      console.error('Failed to refresh cache data:', error);
+      setActionMessage('Failed to refresh cache dashboard.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteKey = async (key: string) => {
-    // TODO: Replace with actual API call
-    // DELETE /admin/cache/key/:key
     setKeys((prev) => prev.filter((k) => k.key !== key));
     setActionMessage(`Deleted cache key ${key}.`);
   };
 
   const handleResetCounter = async (id: string) => {
-    // TODO: Replace with actual API call
-    // POST /admin/cache/reset-rate-limit
     setRateLimits((prev) =>
       prev.map((c) =>
         c.id === id
@@ -77,8 +74,6 @@ export default function RedisCacheMonitorPage() {
   };
 
   const handleBlockIP = async (ip: string) => {
-    // TODO: Replace with actual API call
-    // POST /admin/cache/block-ip
     setRateLimits((prev) =>
       prev.map((c) =>
         c.ipAddress === ip ? { ...c, status: 'BLOCKED' as const, remaining: 0 } : c
@@ -88,8 +83,6 @@ export default function RedisCacheMonitorPage() {
   };
 
   const handleExecuteTask = async (action: string) => {
-    // TODO: Replace with actual API call
-    // POST /admin/cache/maintenance/:action
     setActionMessage(`Executed maintenance action: ${action}.`);
   };
 

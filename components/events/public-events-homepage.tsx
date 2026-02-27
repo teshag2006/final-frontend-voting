@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import Script from 'next/script';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
@@ -61,7 +60,7 @@ const trendingContestants = [
   },
   {
     id: 'c-3',
-    name: 'Lulit\ Bekele',
+    name: 'Lulit Bekele',
     rank: 3,
     votes: 813335,
     tier: 'B',
@@ -304,9 +303,12 @@ export function PublicEventsHomepage() {
 
   return (
     <div className="min-h-screen bg-[#050a1c] text-white">
-      <Script id="events-schema" type="application/ld+json">
-        {JSON.stringify(eventSchema)}
-      </Script>
+      <script
+        id="events-schema"
+        type="application/ld+json"
+        // JSON-LD payload is pre-serialized and static for this render pass.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
+      />
 
       <header
         className={`sticky top-0 z-50 border-b transition-all duration-300 ${

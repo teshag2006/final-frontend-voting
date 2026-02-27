@@ -28,6 +28,7 @@ export const paymentMethods: PaymentMethodConfig[] = [
     description: "Visa, Mastercard, American Express",
     enabled: true,
     countries: ["ALL"],
+    providerUrl: "https://stripe.com/payments/checkout",
   },
   {
     id: "mobile_money",
@@ -35,6 +36,7 @@ export const paymentMethods: PaymentMethodConfig[] = [
     description: "M-Pesa, Airtel Money, Orange Money",
     enabled: true,
     countries: ["ET", "KE", "UG", "RW", "TZ"],
+    providerUrl: "https://www.safaricom.co.ke/main-mpesa/m-pesa-services",
   },
   {
     id: "chapa",
@@ -42,6 +44,7 @@ export const paymentMethods: PaymentMethodConfig[] = [
     description: "Ethiopia's leading payment processor",
     enabled: true,
     countries: ["ET"],
+    providerUrl: "https://chapa.co/",
   },
   {
     id: "telebirr",
@@ -49,6 +52,7 @@ export const paymentMethods: PaymentMethodConfig[] = [
     description: "Ethio Telecom mobile wallet",
     enabled: true,
     countries: ["ET"],
+    providerUrl: "https://telebirr.et/",
   },
   {
     id: "digital_wallet",
@@ -56,6 +60,7 @@ export const paymentMethods: PaymentMethodConfig[] = [
     description: "Secure PayPal checkout",
     enabled: true,
     countries: ["ALL"],
+    providerUrl: "https://www.paypal.com/checkoutnow",
   },
   {
     id: "crypto",
@@ -63,6 +68,7 @@ export const paymentMethods: PaymentMethodConfig[] = [
     description: "Bitcoin or Ethereum",
     enabled: true,
     countries: ["ALL"],
+    providerUrl: "https://commerce.coinbase.com/",
   },
 ];
 

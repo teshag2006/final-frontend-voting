@@ -22,6 +22,8 @@ export default function VoteCheckoutPage() {
   const [safeQuantity, setSafeQuantity] = useState(10);
   const [eventSlug, setEventSlug] = useState('');
   const [contestantSlug, setContestantSlug] = useState('');
+  const [userCountry, setUserCountry] = useState<'ET' | 'US'>('US');
+  const [hasExplicitMethod, setHasExplicitMethod] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -35,6 +37,7 @@ export default function VoteCheckoutPage() {
     if (requestedMethod) {
       const isValidMethod = paymentMethods.some((m) => m.id === requestedMethod);
       if (isValidMethod) {
+        setHasExplicitMethod(true);
         setSelectedPaymentMethod(requestedMethod as PaymentMethod);
       }
     }
@@ -42,9 +45,15 @@ export default function VoteCheckoutPage() {
     if (requestedContestantSlug) setContestantSlug(requestedContestantSlug);
   }, []);
 
+  useEffect(() => {
+    // Frontend-only mock geolocation heuristic for dev stage.
+    const locale = Intl.DateTimeFormat().resolvedOptions().locale.toUpperCase();
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    const ethiopiaLikely = locale.endsWith('-ET') || tz === 'Africa/Addis_Ababa';
+    setUserCountry(ethiopiaLikely ? 'ET' : 'US');
+  }, []);
+
   // Default to Chapa for Ethiopian users, Credit Card for others
-  // TODO: Replace with actual geolocation detection from user session/IP
-  const userCountry = 'ET'; // Mock: set to 'ET' for Ethiopia, 'US' for others
   const defaultPaymentMethod: PaymentMethod = userCountry === 'ET' ? 'chapa' : 'credit_debit_card';
   
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(
@@ -52,6 +61,12 @@ export default function VoteCheckoutPage() {
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!hasExplicitMethod) {
+      setSelectedPaymentMethod(defaultPaymentMethod);
+    }
+  }, [defaultPaymentMethod, hasExplicitMethod]);
 
   const pricingQuote = useMemo(() => {
     const pricePerVote = mockPricingResponse.pricePerVote;

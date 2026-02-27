@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { PublicEventsHomepage } from '@/components/events/public-events-homepage';
 
 export const metadata: Metadata = {
@@ -8,12 +8,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Events | Enterprise Voting & Sponsorship Platform',
     description:
-      'Africa’s trusted voting and sponsorship ecosystem with real-time integrity monitoring.',
+      "Africa's trusted voting and sponsorship ecosystem with real-time integrity monitoring.",
   },
 };
-
-export const runtime = 'edge';
 
 export default function EventsPage() {
   return <PublicEventsHomepage />;
 }
+
