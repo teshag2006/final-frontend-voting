@@ -1,6 +1,6 @@
 'use client';
 
-import { ComponentType, ReactNode, useMemo, useState } from 'react';
+import { ComponentType, ReactNode, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   BarChart3,
@@ -13,11 +13,14 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   mockAdminRevenueSeries,
   mockIntegritySignals,
   mockMarketplaceContestants,
 } from '@/lib/sponsorship-mock';
+import type { Sponsor } from '@/types/contestant';
 
 type EnforcementAction = 'apply_penalty' | 'reduce_integrity' | 'suspend_sponsorship' | 'downgrade_tier';
 
@@ -29,6 +32,9 @@ const actionLabels: Record<EnforcementAction, string> = {
 };
 
 export default function AdminSponsorsPage() {
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [isSponsorsLoading, setIsSponsorsLoading] = useState(true);
+  const [sponsorSearch, setSponsorSearch] = useState('');
   const [logRows, setLogRows] = useState([
     { at: '2026-02-18 11:22', action: 'Apply penalty', target: 'Yonas H', note: 'Vote anomaly confirmation' },
     { at: '2026-02-18 09:15', action: 'Reduce integrity score', target: 'Abeba T', note: 'Follower burst threshold breach' },
@@ -70,6 +76,30 @@ export default function AdminSponsorsPage() {
     };
   }, []);
 
+  const filteredSponsors = useMemo(() => {
+    const q = sponsorSearch.trim().toLowerCase();
+    if (!q) return sponsors;
+    return sponsors.filter((row) => (row.name || '').toLowerCase().includes(q));
+  }, [sponsors, sponsorSearch]);
+
+  useEffect(() => {
+    const loadSponsors = async () => {
+      setIsSponsorsLoading(true);
+      try {
+        const response = await fetch('/api/admin/sponsors');
+        if (response.ok) {
+          const payload = (await response.json()) as Sponsor[];
+          setSponsors(Array.isArray(payload) ? payload : []);
+        } else {
+          setSponsors([]);
+        }
+      } finally {
+        setIsSponsorsLoading(false);
+      }
+    };
+    void loadSponsors();
+  }, []);
+
   const handleEnforcement = (target: string, action: EnforcementAction) => {
     const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
     setLogRows((prev) => [
@@ -83,6 +113,118 @@ export default function AdminSponsorsPage() {
     ]);
   };
 
+  const patchSponsor = async (id: string, patch: Partial<Sponsor>) => {
+    const response = await fetch('/api/admin/sponsors', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, patch }),
+    });
+    return response.ok;
+  };
+
+  const handleApproveSponsor = async (sponsor: Sponsor) => {
+    if (!sponsor.id) return;
+    if (!window.confirm(`Approve sponsor "${sponsor.name}"?`)) return;
+    const previous = { ...sponsor };
+    setSponsors((prev) =>
+      prev.map((row) =>
+        row.id === sponsor.id ? { ...row, approved: true, status: 'active' } : row
+      )
+    );
+    const ok = await patchSponsor(sponsor.id, { approved: true, status: 'active' });
+    if (!ok) {
+      setSponsors((prev) => prev.map((row) => (row.id === sponsor.id ? previous : row)));
+      window.alert('Could not approve sponsor.');
+    }
+  };
+
+  const handleRejectSponsor = async (sponsor: Sponsor) => {
+    if (!sponsor.id) return;
+    if (!window.confirm(`Reject sponsor "${sponsor.name}"?`)) return;
+    const previous = { ...sponsor };
+    setSponsors((prev) =>
+      prev.map((row) =>
+        row.id === sponsor.id ? { ...row, approved: false, status: 'draft' } : row
+      )
+    );
+    const ok = await patchSponsor(sponsor.id, { approved: false, status: 'draft' });
+    if (!ok) {
+      setSponsors((prev) => prev.map((row) => (row.id === sponsor.id ? previous : row)));
+      window.alert('Could not reject sponsor.');
+    }
+  };
+
+  const handleDisableSponsor = async (sponsor: Sponsor) => {
+    if (!sponsor.id) return;
+    if (!window.confirm(`Disable sponsor "${sponsor.name}"?`)) return;
+    const previous = { ...sponsor };
+    setSponsors((prev) =>
+      prev.map((row) =>
+        row.id === sponsor.id ? { ...row, approved: false, status: 'paused' } : row
+      )
+    );
+    const ok = await patchSponsor(sponsor.id, { approved: false, status: 'paused' });
+    if (!ok) {
+      setSponsors((prev) => prev.map((row) => (row.id === sponsor.id ? previous : row)));
+      window.alert('Could not disable sponsor.');
+    }
+  };
+
+  const handleLoginAsSponsor = async (sponsor: Sponsor) => {
+    if (!sponsor.id) return;
+    const confirmed = window.confirm(
+      `Sign in as sponsor "${sponsor.name}"? You will switch to sponsor dashboard.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch('/api/admin/sponsors/impersonate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          sponsorId: sponsor.id,
+          name: sponsor.name,
+          avatar: sponsor.logo_url || sponsor.logoUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        window.alert('Could not start sponsor login. Please try again.');
+        return;
+      }
+
+      const payload = (await response.json()) as {
+        user?: { id: string; email: string; name: string; role: 'sponsor'; avatar?: string };
+      };
+      if (!payload.user) {
+        window.alert('Sponsor session data is missing.');
+        return;
+      }
+
+      localStorage.setItem('auth_user_id', payload.user.id);
+      localStorage.setItem('auth_user_role', payload.user.role);
+      localStorage.setItem('auth_impersonation_user', JSON.stringify(payload.user));
+
+      const expiresAt = Date.now() + 60 * 60 * 1000;
+      const token = btoa(
+        JSON.stringify({
+          id: payload.user.id,
+          email: payload.user.email,
+          role: payload.user.role,
+          name: payload.user.name,
+        })
+      );
+      localStorage.setItem('auth_token', `${token}.${Date.now()}`);
+      localStorage.setItem('refresh_token', Math.random().toString(36).slice(2));
+      localStorage.setItem('token_expires_at', String(expiresAt));
+
+      window.location.href = '/sponsors';
+    } catch {
+      window.alert('Could not start sponsor login. Please try again.');
+    }
+  };
+
   return (
     <main className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -93,6 +235,105 @@ export default function AdminSponsorsPage() {
         </p>
       </section>
 
+      <Tabs defaultValue="registry" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+          <TabsTrigger value="registry">Registry</TabsTrigger>
+          <TabsTrigger value="insights">Insights</TabsTrigger>
+          <TabsTrigger value="enforcement">Enforcement</TabsTrigger>
+          <TabsTrigger value="notes">System Notes</TabsTrigger>
+        </TabsList>
+
+      <TabsContent value="registry" className="space-y-4">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Sponsor Registry</h2>
+            <p className="text-sm text-slate-600">
+              Manage sponsors the same way as contestant moderation: approve, reject, or disable.
+            </p>
+          </div>
+          <div className="w-full sm:w-80">
+            <Input
+              value={sponsorSearch}
+              onChange={(event) => setSponsorSearch(event.target.value)}
+              placeholder="Search sponsor name"
+              aria-label="Search sponsors"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 overflow-x-auto rounded-lg border border-slate-200">
+          <table className="w-full text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Sponsor ID</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Name</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Approved</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
+                    <th className="px-4 py-3 text-center font-semibold text-slate-700">Sign In</th>
+                    <th className="px-4 py-3 text-right font-semibold text-slate-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isSponsorsLoading ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-6 text-center text-slate-500">
+                        Loading sponsors...
+                      </td>
+                    </tr>
+                  ) : filteredSponsors.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-6 text-center text-slate-500">
+                        No sponsors found.
+                      </td>
+                    </tr>
+                  ) : (
+                filteredSponsors.map((sponsor) => (
+                  <tr key={sponsor.id || sponsor.name} className="border-b border-slate-100">
+                    <td className="px-4 py-3 font-mono text-xs text-slate-500">{sponsor.id || '-'}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900">{sponsor.name}</td>
+                    <td className="px-4 py-3">
+                      <Badge className={sponsor.approved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}>
+                        {sponsor.approved ? 'Yes' : 'No'}
+                      </Badge>
+                    </td>
+                        <td className="px-4 py-3">
+                          <Badge className="bg-slate-100 text-slate-700">
+                            {sponsor.status || 'draft'}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => void handleLoginAsSponsor(sponsor)}
+                          >
+                            Sign In
+                          </Button>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" onClick={() => void handleApproveSponsor(sponsor)}>
+                              Approve
+                            </Button>
+                        <Button size="sm" variant="outline" onClick={() => void handleRejectSponsor(sponsor)}>
+                          Reject
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => void handleDisableSponsor(sponsor)}>
+                          Disable
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      </TabsContent>
+
+      <TabsContent value="insights" className="space-y-6">
       <section className="grid gap-4 xl:grid-cols-4">
         <Panel title="Top SDS" icon={BarChart3}>
           <div className="space-y-2">
@@ -218,7 +459,9 @@ export default function AdminSponsorsPage() {
           </div>
         </article>
       </section>
+      </TabsContent>
 
+      <TabsContent value="enforcement" className="space-y-4">
       <section className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
@@ -296,7 +539,9 @@ export default function AdminSponsorsPage() {
           </div>
         </article>
       </section>
+      </TabsContent>
 
+      <TabsContent value="notes" className="space-y-4">
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <h3 className="text-base font-semibold text-slate-900">Error States</h3>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
@@ -317,6 +562,8 @@ export default function AdminSponsorsPage() {
         <AlertTriangle className="mr-2 inline h-4 w-4" />
         External sponsor links must open in a new tab across sponsor-facing pages.
       </section>
+      </TabsContent>
+      </Tabs>
     </main>
   );
 }

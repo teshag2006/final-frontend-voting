@@ -16,10 +16,7 @@ import { ActiveSessionsTable, type SessionData } from '@/components/admin/active
 import { RoleAuditTable, type AuditEntry } from '@/components/admin/role-audit-table';
 import {
   generateMockAdminUsers,
-  generateMockRoles,
-  generateMockSessions,
   generateMockAuditEntries,
-  generateMockPermissions,
 } from '@/lib/users-roles-mock';
 
 const CREATE_ROLE_OPTIONS: RoleType[] = [
@@ -74,6 +71,11 @@ export default function AdminUsersAndRolesPage() {
   // Permissions Matrix State
   const [allRoles, setAllRoles] = useState<RoleType[]>([]);
   const [permissions, setPermissions] = useState<Record<RoleType, PermissionData[]>>({} as any);
+  const [permissionsBaseline, setPermissionsBaseline] = useState<Record<RoleType, PermissionData[]>>({} as any);
+  const [pendingPermissionChanges, setPendingPermissionChanges] = useState<
+    Record<string, { role: RoleType; module: string; action: 'view' | 'create' | 'update' | 'delete'; value: boolean }>
+  >({});
+  const [isSavingPermissions, setIsSavingPermissions] = useState(false);
 
   // Sessions Tab State
   const [sessions, setSessions] = useState<SessionData[]>([]);
@@ -81,64 +83,163 @@ export default function AdminUsersAndRolesPage() {
   // Audit Tab State
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
 
-  const appendAudit = (
+  const appendAudit = async (
     action: AuditEntry['action'],
     target: string,
     details: string,
     riskLevel: AuditEntry['riskLevel'] = 'MEDIUM'
   ) => {
-    setAuditEntries((prev) => [
-      {
-        id: `AUDIT-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        action,
-        actor: 'Current Admin',
-        target,
-        details,
-        riskLevel,
-      },
-      ...prev,
-    ]);
+    try {
+      const response = await fetch('/api/admin/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          actor: 'Current Admin',
+          target,
+          details,
+          riskLevel,
+        }),
+      });
+      if (!response.ok) return;
+      const created = (await response.json()) as AuditEntry;
+      setAuditEntries((prev) => [created, ...prev]);
+    } catch {
+      setAuditEntries((prev) => [
+        {
+          id: `AUDIT-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          action,
+          actor: 'Current Admin',
+          target,
+          details,
+          riskLevel,
+        },
+        ...prev,
+      ]);
+    }
   };
 
-  const patchUser = async (id: string, patch: Partial<AdminUserData>) => {
-    const response = await fetch('/api/admin/users', {
+  const updateRoleOnApi = async (id: string, patch: Partial<RoleData>) => {
+    const response = await fetch('/api/admin/roles', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, patch }),
     });
     if (!response.ok) return null;
-    return (await response.json()) as AdminUserData;
+    return (await response.json()) as RoleData;
+  };
+
+  const revokeSessionsOnApi = async (params: URLSearchParams) => {
+    const response = await fetch(`/api/admin/sessions?${params.toString()}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as { revoked: number; sessions: SessionData[] };
+  };
+
+  const patchPermissionOnApi = async (
+    role: RoleType,
+    module: string,
+    action: 'view' | 'create' | 'update' | 'delete',
+    value: boolean
+  ) => {
+    const response = await fetch('/api/admin/permissions', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role, module, action, value }),
+    });
+    if (!response.ok) return false;
+    return true;
   };
 
   // Initialize data from backend, fallback to mock in dev
   useEffect(() => {
     const loadData = async () => {
-      const mockRoles = generateMockRoles();
-      const mockSessions = generateMockSessions(15);
-      const mockAudit = generateMockAuditEntries(50);
-      const mockPermissions = generateMockPermissions();
       let users: AdminUserData[] = [];
+      let loadedRoles: RoleData[] = [];
+      let loadedSessions: SessionData[] = [];
+      let loadedAudit: AuditEntry[] = [];
+      let loadedPermissions: Record<RoleType, PermissionData[]> = {} as Record<
+        RoleType,
+        PermissionData[]
+      >;
 
       try {
-        const response = await fetch('/api/admin/users');
-        if (response.ok) {
-          const payload = (await response.json()) as AdminUserData[];
+        const [
+          usersResponse,
+          rolesResponse,
+          permissionsResponse,
+          sessionsResponse,
+          auditResponse,
+        ] = await Promise.all([
+          fetch('/api/admin/users'),
+          fetch('/api/admin/roles'),
+          fetch('/api/admin/permissions'),
+          fetch('/api/admin/sessions'),
+          fetch('/api/admin/audit'),
+        ]);
+
+        if (usersResponse.ok) {
+          const payload = (await usersResponse.json()) as AdminUserData[];
           users = Array.isArray(payload) ? payload : [];
-        } else {
-          users = generateMockAdminUsers(25);
+        }
+
+        if (rolesResponse.ok) {
+          loadedRoles = (await rolesResponse.json()) as RoleData[];
+        }
+
+        if (permissionsResponse.ok) {
+          loadedPermissions = (await permissionsResponse.json()) as Record<
+            RoleType,
+            PermissionData[]
+          >;
+        }
+
+        if (sessionsResponse.ok) {
+          loadedSessions = (await sessionsResponse.json()) as SessionData[];
+        }
+
+        if (auditResponse.ok) {
+          loadedAudit = (await auditResponse.json()) as AuditEntry[];
         }
       } catch {
-        users = generateMockAdminUsers(25);
+        // Fallback below
+      }
+
+      if (users.length === 0) users = generateMockAdminUsers(25);
+      if (loadedAudit.length === 0) loadedAudit = generateMockAuditEntries(50);
+      if (loadedRoles.length === 0) {
+        loadedRoles = [];
+        const counts = users.reduce<Record<RoleType, number>>((acc, user) => {
+          const role = user.role as RoleType;
+          acc[role] = (acc[role] || 0) + 1;
+          return acc;
+        }, {} as Record<RoleType, number>);
+        CREATE_ROLE_OPTIONS.forEach((role, index) => {
+          loadedRoles.push({
+            id: `ROLE-${String(index + 1).padStart(3, '0')}`,
+            name: role,
+            description: `${role.replace(/_/g, ' ')} access`,
+            userCount: counts[role] || 0,
+            isSystemRole: true,
+            createdAt: new Date().toISOString(),
+          });
+        });
+      }
+      if (Object.keys(loadedPermissions).length === 0) {
+        loadedPermissions = {} as Record<RoleType, PermissionData[]>;
       }
 
       setAdminUsers(users);
       setDisplayedUsers(users);
-      setRoles(mockRoles);
-      setAllRoles(mockRoles.map((r) => r.name));
-      setSessions(mockSessions);
-      setAuditEntries(mockAudit);
-      setPermissions(mockPermissions);
+      setRoles(loadedRoles);
+      setAllRoles(loadedRoles.map((r) => r.name));
+      setSessions(loadedSessions);
+      setAuditEntries(loadedAudit);
+      setPermissions(loadedPermissions);
+      setPermissionsBaseline(structuredClone(loadedPermissions));
+      setPendingPermissionChanges({});
       setIsLoading(false);
     };
     void loadData();
@@ -163,6 +264,17 @@ export default function AdminUsersAndRolesPage() {
     });
     setDisplayedUsers(sorted);
   }, [adminUsers, userSortBy, userSortOrder]);
+
+  const patchUser = async (id: string, patch: Partial<AdminUserData>) => {
+    const response = await fetch('/api/admin/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, patch }),
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as AdminUserData;
+  };
+
 
   // User Actions
   const handleViewUser = (user: AdminUserData) => {
@@ -200,18 +312,25 @@ export default function AdminUsersAndRolesPage() {
           alert('Could not disable user.');
           return;
         }
-        appendAudit('ROLE_CHANGED', user.email, `User status changed to DISABLED for ${user.fullName}.`, 'HIGH');
+        void appendAudit('ROLE_CHANGED', user.email, `User status changed to DISABLED for ${user.fullName}.`, 'HIGH');
       });
     }
   };
 
   const handleForceLogout = (user: AdminUserData) => {
     if (confirm(`Force logout user ${user.fullName}?`)) {
-      const before = sessions.length;
-      setSessions((prev) => prev.filter((s) => s.userId !== user.id));
-      const removed = before - sessions.filter((s) => s.userId !== user.id).length;
-      appendAudit('FORCE_LOGOUT', user.email, `Forced logout for ${user.fullName}. Revoked active sessions.`, 'MEDIUM');
-      alert(`Forced logout complete. ${removed > 0 ? `${removed} session(s) revoked.` : 'No active sessions found.'}`);
+      const params = new URLSearchParams({ userId: user.id });
+      void revokeSessionsOnApi(params).then((result) => {
+        if (!result) {
+          alert('Could not force logout user.');
+          return;
+        }
+        setSessions(result.sessions);
+        void appendAudit('FORCE_LOGOUT', user.email, `Forced logout for ${user.fullName}. Revoked active sessions.`, 'MEDIUM');
+        alert(
+          `Forced logout complete. ${result.revoked > 0 ? `${result.revoked} session(s) revoked.` : 'No active sessions found.'}`
+        );
+      });
     }
   };
 
@@ -221,7 +340,7 @@ export default function AdminUsersAndRolesPage() {
       setSelectedUser(user);
       setTempPassword(generated);
       setIsResetPasswordOpen(true);
-      appendAudit('PASSWORD_RESET', user.email, `Password reset triggered for ${user.fullName}.`, 'MEDIUM');
+      void appendAudit('PASSWORD_RESET', user.email, `Password reset triggered for ${user.fullName}.`, 'MEDIUM');
     }
   };
 
@@ -239,7 +358,7 @@ export default function AdminUsersAndRolesPage() {
           alert('Could not update 2FA setting.');
           return;
         }
-        appendAudit(
+        void appendAudit(
           nextValue ? '2FA_ENABLED' : '2FA_DISABLED',
           user.email,
           `${nextValue ? 'Enabled' : 'Disabled'} 2FA for ${user.fullName}.`,
@@ -269,7 +388,7 @@ export default function AdminUsersAndRolesPage() {
         return;
       }
       setAdminUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
-      appendAudit('ROLE_CHANGED', updated.email, `Updated user profile for ${updated.fullName}.`, 'MEDIUM');
+      void appendAudit('ROLE_CHANGED', updated.email, `Updated user profile for ${updated.fullName}.`, 'MEDIUM');
       setIsEditOpen(false);
       setSelectedUser(null);
     } finally {
@@ -287,7 +406,7 @@ export default function AdminUsersAndRolesPage() {
         return;
       }
       setAdminUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
-      appendAudit('ROLE_ASSIGNED', updated.email, `Assigned role ${assignRole} to ${updated.fullName}.`, 'HIGH');
+      void appendAudit('ROLE_ASSIGNED', updated.email, `Assigned role ${assignRole} to ${updated.fullName}.`, 'HIGH');
       setIsAssignRoleOpen(false);
       setSelectedUser(null);
     } finally {
@@ -324,6 +443,7 @@ export default function AdminUsersAndRolesPage() {
 
       const created = (await response.json()) as AdminUserData;
       setAdminUsers((prev) => [created, ...prev]);
+      void appendAudit('USER_CREATED', created.email, `Created user ${created.fullName} with role ${created.role}.`, 'MEDIUM');
       setCreateForm({ fullName: '', email: '', role: 'ADMIN' });
       setIsCreateOpen(false);
     } finally {
@@ -334,24 +454,178 @@ export default function AdminUsersAndRolesPage() {
   // Session Actions
   const handleForceLogoutSession = (session: SessionData) => {
     if (confirm(`Force logout session ${session.id.slice(0, 8)}?`)) {
-      setSessions((prev) => prev.filter((s) => s.id !== session.id));
+      const params = new URLSearchParams({ sessionId: session.id });
+      void revokeSessionsOnApi(params).then((result) => {
+        if (!result) {
+          alert('Could not revoke session.');
+          return;
+        }
+        setSessions(result.sessions);
+        void appendAudit(
+          'FORCE_LOGOUT',
+          session.userName,
+          `Revoked individual session ${session.id.slice(0, 8)} for ${session.userName}.`,
+          'MEDIUM'
+        );
+      });
     }
   };
 
   const handleRevokeAllSessions = (userId: string) => {
     if (confirm('Revoke all sessions for this user?')) {
-      setSessions((prev) => prev.filter((s) => s.userId !== userId));
+      const user = adminUsers.find((entry) => entry.id === userId);
+      const params = new URLSearchParams({ userId });
+      void revokeSessionsOnApi(params).then((result) => {
+        if (!result) {
+          alert('Could not revoke all sessions for this user.');
+          return;
+        }
+        setSessions(result.sessions);
+        void appendAudit(
+          'FORCE_LOGOUT',
+          user?.email || userId,
+          `Revoked all active sessions for ${user?.fullName || userId}.`,
+          'HIGH'
+        );
+      });
     }
   };
 
   // Permission Changes
   const handlePermissionChange = (role: RoleType, module: string, action: string, value: boolean) => {
+    const typedAction = action as 'view' | 'create' | 'update' | 'delete';
+    if (!permissions[role] || permissions[role].length === 0) {
+      alert(`Permissions for role ${role} are not loaded yet. Please refresh and try again.`);
+      return;
+    }
+
+    const hasModule = permissions[role].some((p) => p.module === module);
+    if (!hasModule) {
+      alert(`Module ${module} is not available for role ${role}.`);
+      return;
+    }
+
     setPermissions((prev) => ({
       ...prev,
       [role]: prev[role].map((p) =>
         p.module === module ? { ...p, [action]: value } : p
       ),
     }));
+
+    const baselineValue = permissionsBaseline?.[role]?.find((p) => p.module === module)?.[typedAction];
+    const key = `${role}::${module}::${typedAction}`;
+
+    setPendingPermissionChanges((prev) => {
+      const next = { ...prev };
+      if (baselineValue === value) {
+        delete next[key];
+      } else {
+        next[key] = { role, module, action: typedAction, value };
+      }
+      return next;
+    });
+  };
+
+  const handleDiscardPermissionChanges = () => {
+    setPermissions(structuredClone(permissionsBaseline));
+    setPendingPermissionChanges({});
+  };
+
+  const handleSavePermissionChanges = async () => {
+    const entries = Object.values(pendingPermissionChanges);
+    if (entries.length === 0) return;
+
+    setIsSavingPermissions(true);
+    let failures = 0;
+
+    try {
+      for (const change of entries) {
+        const ok = await patchPermissionOnApi(
+          change.role,
+          change.module,
+          change.action,
+          change.value
+        );
+
+        if (!ok) {
+          failures += 1;
+          continue;
+        }
+
+        await appendAudit(
+          'PERMISSION_MODIFIED',
+          change.role,
+          `Permission ${change.action.toUpperCase()} on ${change.module} set to ${change.value ? 'ENABLED' : 'DISABLED'} for role ${change.role}.`,
+          'HIGH'
+        );
+      }
+
+      if (failures > 0) {
+        const response = await fetch('/api/admin/permissions');
+        if (response.ok) {
+          const latest = (await response.json()) as Record<RoleType, PermissionData[]>;
+          setPermissions(latest);
+          setPermissionsBaseline(structuredClone(latest));
+          setPendingPermissionChanges({});
+        }
+        alert(`${failures} permission updates failed. Latest server state has been reloaded.`);
+        return;
+      }
+
+      setPermissionsBaseline(structuredClone(permissions));
+      setPendingPermissionChanges({});
+    } finally {
+      setIsSavingPermissions(false);
+    }
+  };
+
+  const handleEditRole = (role: RoleData) => {
+    if (role.isSystemRole) {
+      alert('System roles cannot be edited here. Manage access from the Permissions tab.');
+      return;
+    }
+    const nextDescription = prompt(`Update description for ${role.name}`, role.description);
+    if (!nextDescription || nextDescription.trim() === role.description) return;
+
+    void updateRoleOnApi(role.id, { description: nextDescription.trim() }).then((updated) => {
+      if (!updated) {
+        alert('Could not update role.');
+        return;
+      }
+      setRoles((prev) => prev.map((entry) => (entry.id === updated.id ? updated : entry)));
+      void appendAudit(
+        'ROLE_CHANGED',
+        role.name,
+        `Role description updated for ${role.name}.`,
+        'MEDIUM'
+      );
+    });
+  };
+
+  const handleOpenRolePermissions = (role: RoleData) => {
+    setActiveTab('permissions');
+    alert(`You are now editing permissions for ${role.name}.`);
+  };
+
+  const handleDeactivateRole = (role: RoleData) => {
+    if (role.isSystemRole) {
+      alert('System roles cannot be deactivated.');
+      return;
+    }
+    if (role.userCount > 0) {
+      alert('Reassign users before deactivating this role.');
+      return;
+    }
+    if (!confirm(`Deactivate role ${role.name}?`)) return;
+
+    void updateRoleOnApi(role.id, { userCount: 0 }).then((updated) => {
+      if (!updated) {
+        alert('Could not deactivate role.');
+        return;
+      }
+      setRoles((prev) => prev.filter((entry) => entry.id !== role.id));
+      void appendAudit('ROLE_CHANGED', role.name, `Role ${role.name} deactivated.`, 'HIGH');
+    });
   };
 
   return (
@@ -399,6 +673,11 @@ export default function AdminUsersAndRolesPage() {
 
             {/* Admin Users Tab */}
             <TabsContent value="users" className="space-y-4">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-sm text-slate-900">
+                  <strong>Workflow:</strong> Create user, assign role, enable 2FA, and monitor status. User changes persist through <code>/api/admin/users</code>.
+                </p>
+              </div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground">
@@ -429,15 +708,15 @@ export default function AdminUsersAndRolesPage() {
             <TabsContent value="roles" className="space-y-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-4">
                 <p className="text-sm text-blue-900">
-                  <strong>Note:</strong> System roles (SUPER_ADMIN, ADMIN, etc.) cannot be deleted. You can manage their permissions using the Permissions tab.
+                  <strong>Workflow:</strong> Roles define access boundaries. System roles (SUPER_ADMIN, ADMIN, etc.) are fixed. Use <strong>Manage Permissions</strong> to control what each role can do.
                 </p>
               </div>
               <RolesTable
                 roles={roles}
                 isLoading={isLoading}
-                onEdit={(role) => console.log('Edit role:', role)}
-                onAssignPermissions={(role) => console.log('Assign permissions:', role)}
-                onDeactivate={(role) => console.log('Deactivate role:', role)}
+                onEdit={handleEditRole}
+                onAssignPermissions={handleOpenRolePermissions}
+                onDeactivate={handleDeactivateRole}
               />
             </TabsContent>
 
@@ -445,20 +724,45 @@ export default function AdminUsersAndRolesPage() {
             <TabsContent value="permissions" className="space-y-4">
               <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4">
                 <p className="text-sm text-amber-900">
-                  <strong>Security Notice:</strong> Permission changes are high-risk actions and will be logged to the Audit Log. All changes require confirmation.
+                  <strong>Workflow:</strong> Toggle permissions per role and module, then click <strong>Save Changes</strong>. Changes are only persisted after save and then logged in Audit.
                 </p>
+              </div>
+              <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Pending permission changes: <span className="font-semibold text-foreground">{Object.keys(pendingPermissionChanges).length}</span>
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleDiscardPermissionChanges}
+                    disabled={isSavingPermissions || Object.keys(pendingPermissionChanges).length === 0}
+                  >
+                    Discard
+                  </Button>
+                  <Button
+                    onClick={() => void handleSavePermissionChanges()}
+                    disabled={isSavingPermissions || Object.keys(pendingPermissionChanges).length === 0}
+                  >
+                    {isSavingPermissions ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
               </div>
               <PermissionsMatrix
                 roles={allRoles}
                 permissions={permissions}
                 isLoading={isLoading}
                 onPermissionChange={handlePermissionChange}
-                readOnly={false}
+                readOnly={isSavingPermissions}
               />
             </TabsContent>
 
             {/* Active Sessions Tab */}
             <TabsContent value="sessions" className="space-y-4">
+              <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3">
+                <p className="text-sm text-rose-900">
+                  <strong>Workflow:</strong> Revoke one session or all user sessions for incident response. Session revocation is handled by <code>/api/admin/sessions</code>.
+                </p>
+              </div>
               <ActiveSessionsTable
                 sessions={sessions}
                 isLoading={isLoading}
@@ -471,7 +775,7 @@ export default function AdminUsersAndRolesPage() {
             <TabsContent value="audit" className="space-y-4">
               <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 mb-4">
                 <p className="text-sm text-gray-900">
-                  <strong>Read-Only:</strong> This audit log cannot be modified. It provides a complete history of all role and permission changes.
+                  <strong>Read-Only:</strong> This is your security timeline. It records user, role, permission, and session-control actions from admin workflows.
                 </p>
               </div>
               <RoleAuditTable entries={auditEntries} isLoading={isLoading} />

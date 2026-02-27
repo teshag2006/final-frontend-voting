@@ -1,30 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { Sponsor } from '@/types/contestant';
-import { mockSponsorInventory } from '@/lib/sponsorship-mock';
+import { generateMockRoles } from '@/lib/users-roles-mock';
 import {
-  getAdminSponsors,
-  seedAdminSponsors,
-  updateAdminSponsor,
-} from '@/lib/admin-sponsors-runtime-store';
+  getAdminRoles,
+  seedAdminRoles,
+  updateAdminRole,
+} from '@/lib/admin-roles-runtime-store';
 
 let seeded = false;
 
 function ensureSeeded() {
   if (seeded) return;
-  seedAdminSponsors(mockSponsorInventory);
+  seedAdminRoles(generateMockRoles());
   seeded = true;
 }
 
 export async function GET() {
   ensureSeeded();
-  return NextResponse.json(getAdminSponsors());
+  return NextResponse.json(getAdminRoles());
 }
 
 export async function PATCH(request: NextRequest) {
   ensureSeeded();
   const payload = (await request.json()) as {
     id?: string;
-    patch?: Partial<Sponsor>;
+    patch?: {
+      description?: string;
+      userCount?: number;
+    };
   };
 
   const id = String(payload.id || '').trim();
@@ -32,9 +34,9 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ message: 'id is required' }, { status: 400 });
   }
 
-  const updated = updateAdminSponsor(id, payload.patch || {});
+  const updated = updateAdminRole(id, payload.patch || {});
   if (!updated) {
-    return NextResponse.json({ message: 'Sponsor not found' }, { status: 404 });
+    return NextResponse.json({ message: 'Role not found' }, { status: 404 });
   }
 
   return NextResponse.json(updated);
