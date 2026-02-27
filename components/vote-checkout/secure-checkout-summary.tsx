@@ -33,7 +33,7 @@ export function SecureCheckoutSummary({
 
       <div className="space-y-3 text-sm">
         <div className="flex items-center justify-between">
-          <span className="text-slate-600">You are voting for:</span>
+          <span className="text-slate-600">Purchase:</span>
           <span className="font-semibold text-slate-900">{contestantName}</span>
         </div>
         <div className="flex items-center justify-between">

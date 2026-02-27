@@ -68,6 +68,8 @@ export default function VoteCheckoutPage() {
     }
   }, [defaultPaymentMethod, hasExplicitMethod]);
 
+  const isPackageCheckout = !contestantSlug;
+
   const pricingQuote = useMemo(() => {
     const pricePerVote = mockPricingResponse.pricePerVote;
     const subtotal = Number((safeQuantity * pricePerVote).toFixed(2));
@@ -95,7 +97,7 @@ export default function VoteCheckoutPage() {
         quantity: String(pricingQuote.quantity),
         totalAmount: String(pricingQuote.totalAmount),
         currency: String(pricingQuote.currency || 'USD'),
-        eventName: mockCheckoutContestant.event.name,
+        eventName: isPackageCheckout ? 'Wallet Vote Package' : mockCheckoutContestant.event.name,
       });
       if (eventSlug) params.set('eventSlug', eventSlug);
       if (contestantSlug) params.set('contestantSlug', contestantSlug);
@@ -125,16 +127,24 @@ export default function VoteCheckoutPage() {
         <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto mb-12">
           {/* Left: Main Checkout Form (2 columns) */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Contestant Header */}
-            <CheckoutHeader
-              contestantImage={mockCheckoutContestant.image}
-              contestantName={mockCheckoutContestant.name}
-              eventName={mockCheckoutContestant.event.name}
-              category={mockCheckoutContestant.category}
-              rank={mockCheckoutContestant.rank}
-              totalVotes={mockCheckoutContestant.totalVotes}
-              pricePerVote={mockCheckoutContestant.pricePerVote}
-            />
+            {isPackageCheckout ? (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 className="text-xl font-bold text-slate-900">Wallet Vote Package</h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  Buy votes into your wallet and use them later on any eligible contestant.
+                </p>
+              </div>
+            ) : (
+              <CheckoutHeader
+                contestantImage={mockCheckoutContestant.image}
+                contestantName={mockCheckoutContestant.name}
+                eventName={mockCheckoutContestant.event.name}
+                category={mockCheckoutContestant.category}
+                rank={mockCheckoutContestant.rank}
+                totalVotes={mockCheckoutContestant.totalVotes}
+                pricePerVote={mockCheckoutContestant.pricePerVote}
+              />
+            )}
 
             {/* Vote Quantity Section */}
             <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
@@ -191,7 +201,7 @@ export default function VoteCheckoutPage() {
           {/* Right: Secure Checkout Summary */}
           <div className="lg:col-span-1">
             <SecureCheckoutSummary
-              contestantName={mockCheckoutContestant.name}
+              contestantName={isPackageCheckout ? 'Wallet Vote Package' : mockCheckoutContestant.name}
               quantity={pricingQuote.quantity}
               totalAmount={pricingQuote.totalAmount}
               paymentMethod={selectedMethodLabel}

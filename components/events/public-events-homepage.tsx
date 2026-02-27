@@ -412,7 +412,7 @@ export function PublicEventsHomepage() {
               <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400" />
               Live Voting Events
             </h2>
-            <Link href="#live-events" className="text-sm text-slate-200 hover:text-white">
+            <Link href="/categories" className="text-sm text-slate-200 hover:text-white">
               View All Events <ArrowRight className="ml-1 inline h-4 w-4" />
             </Link>
           </div>

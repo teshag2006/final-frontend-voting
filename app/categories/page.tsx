@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { mockEvents } from '@/lib/events-mock';
+import { Navbar } from '@/components/navbar';
 
 export const metadata = {
-  title: 'Categories | Enterprise Voting Platform',
-  description: 'Browse voting categories across active and upcoming events.',
+  title: 'Events | Enterprise Voting Platform',
+  description: 'Browse active and upcoming events.',
 };
 
 export default function CategoriesPage() {
@@ -13,14 +14,16 @@ export default function CategoriesPage() {
   );
 
   return (
-    <main className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
+      <Navbar variant="topbar-dark" />
+      <main>
       <section className="border-b border-border bg-card/50">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Categories
+            Events
           </h1>
           <p className="mt-3 max-w-3xl text-muted-foreground">
-            Choose an event to explore its categories and view contestants by segment.
+            Choose an event to explore categories and view contestants by segment.
           </p>
         </div>
       </section>
@@ -59,6 +62,7 @@ export default function CategoriesPage() {
           ))}
         </div>
       </section>
-    </main>
+      </main>
+    </div>
   );
 }

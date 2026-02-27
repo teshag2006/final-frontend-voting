@@ -34,6 +34,8 @@ const DEFAULT_PAYMENT_METHODS = [
   { id: 'credit_card', name: 'Credit Card', description: 'Visa, Mastercard, American Express' },
   { id: 'wallet', name: 'Digital Wallet', description: 'Apple Pay, Google Pay' },
   { id: 'mobile_money', name: 'Mobile Money', description: 'M-Pesa, AirtelMoney' },
+  { id: 'chapa', name: 'Chapa', description: "Ethiopia's leading payment processor" },
+  { id: 'telebirr', name: 'Telebirr', description: 'Ethio Telecom mobile wallet' },
 ]
 
 export function SubscriptionManagementPage({

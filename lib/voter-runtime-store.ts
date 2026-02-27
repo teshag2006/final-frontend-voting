@@ -4,6 +4,7 @@ import type { SessionUser } from '@/lib/server/session';
 import { getUserById } from '@/lib/mock-users';
 
 type PaymentStatus = 'pending' | 'confirmed' | 'failed' | 'refunded';
+type PaymentPurchaseType = 'package' | 'direct';
 
 interface FreeVoteLedger {
   eventSlug: string;
@@ -16,6 +17,9 @@ interface PaymentLedger {
   paymentId: string;
   receiptNumber: string;
   eventName: string;
+  eventSlug?: string;
+  contestantSlug?: string;
+  purchaseType: PaymentPurchaseType;
   votesPurchased: number;
   votesRemaining: number;
   amount: number;
@@ -160,6 +164,9 @@ export function registerVoterPayment(
     currency?: string;
     paymentMethod?: string;
     eventName?: string;
+    eventSlug?: string;
+    contestantSlug?: string;
+    purchaseType?: PaymentPurchaseType;
     status?: PaymentStatus;
   }
 ) {
@@ -180,11 +187,18 @@ export function registerVoterPayment(
 
   const votesPurchased = Math.max(1, Number(payload.votesPurchased || 0));
   const status: PaymentStatus = payload.status || 'confirmed';
+  const eventSlug = String(payload.eventSlug || '').trim() || undefined;
+  const contestantSlug = String(payload.contestantSlug || '').trim() || undefined;
+  const purchaseType: PaymentPurchaseType = payload.purchaseType
+    || (contestantSlug ? 'direct' : 'package');
   const createdAt = nowIso();
   const payment: PaymentLedger = {
     paymentId,
     receiptNumber: mkReceipt(),
     eventName: payload.eventName || 'Campus Star 2026',
+    eventSlug,
+    contestantSlug,
+    purchaseType,
     votesPurchased,
     votesRemaining: status === 'confirmed' ? votesPurchased : 0,
     amount: Number(payload.amount || 0),
@@ -329,6 +343,9 @@ export function getVoterPayments(user: SessionUser) {
       paymentId: payment.paymentId,
       votesRemaining: payment.votesRemaining,
       verifiedAt: payment.verifiedAt,
+      eventSlug: payment.eventSlug,
+      contestantSlug: payment.contestantSlug,
+      purchaseType: payment.purchaseType,
     })),
   };
 }

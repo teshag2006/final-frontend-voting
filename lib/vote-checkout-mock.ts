@@ -43,7 +43,7 @@ export const paymentMethods: PaymentMethodConfig[] = [
     label: "Chapa",
     description: "Ethiopia's leading payment processor",
     enabled: true,
-    countries: ["ET"],
+    countries: ["ALL"],
     providerUrl: "https://chapa.co/",
   },
   {
@@ -51,7 +51,7 @@ export const paymentMethods: PaymentMethodConfig[] = [
     label: "Telebirr",
     description: "Ethio Telecom mobile wallet",
     enabled: true,
-    countries: ["ET"],
+    countries: ["ALL"],
     providerUrl: "https://telebirr.et/",
   },
   {

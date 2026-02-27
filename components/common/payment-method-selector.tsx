@@ -29,6 +29,8 @@ export function PaymentMethodSelector({
     credit_card: <CreditCard className="h-5 w-5" />,
     wallet: <Wallet className="h-5 w-5" />,
     mobile_money: <Phone className="h-5 w-5" />,
+    chapa: <Wallet className="h-5 w-5" />,
+    telebirr: <Phone className="h-5 w-5" />,
   }
 
   return (

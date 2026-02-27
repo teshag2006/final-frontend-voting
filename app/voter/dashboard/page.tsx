@@ -14,6 +14,8 @@ import { mockVoterDashboard } from '@/lib/voter-dashboard-mock';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const QUICK_PACKAGE_OPTIONS = [10, 25, 50, 100] as const;
+
 export default function VoterDashboard() {
   const router = useRouter();
   const { logout } = useAuth();
@@ -67,6 +69,10 @@ export default function VoterDashboard() {
 
   const handleBuyMoreVotes = () => {
     router.push('/vote/checkout?quantity=10');
+  };
+
+  const handleBuyPackage = (quantity: number) => {
+    router.push(`/vote/checkout?quantity=${encodeURIComponent(String(quantity))}`);
   };
 
   const handleManageSessions = () => {
@@ -142,10 +148,34 @@ export default function VoterDashboard() {
             {/* Wallet Summary - 3 Card Overview */}
             {data.walletData && (
               <section className="mb-8">
-                <h2 className="mb-4 text-lg font-semibold text-foreground">Wallet Overview</h2>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="text-lg font-semibold text-foreground">Wallet Overview</h2>
+                  <Button onClick={() => handleBuyPackage(10)} className="bg-accent text-white hover:bg-accent/90">
+                    Buy Vote Package
+                  </Button>
+                </div>
                 <WalletSummary wallet={data.walletData} />
               </section>
             )}
+
+            <section className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-base font-semibold text-slate-900">Buy Vote Package</h3>
+                <p className="text-xs text-slate-500">Select a bundle and continue to payment</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {QUICK_PACKAGE_OPTIONS.map((quantity) => (
+                  <Button
+                    key={quantity}
+                    variant="outline"
+                    className="h-12 border-slate-300 font-semibold text-slate-800 hover:border-accent hover:bg-accent hover:text-white"
+                    onClick={() => handleBuyPackage(quantity)}
+                  >
+                    {quantity} Votes
+                  </Button>
+                ))}
+              </div>
+            </section>
 
             {/* Voting by Category with Direct Vote Buttons */}
             <section className="mb-8">

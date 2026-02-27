@@ -88,6 +88,9 @@ export default function PaymentMethodCheckoutPage() {
         currency,
         paymentMethod: method,
         eventName,
+        eventSlug,
+        contestantSlug,
+        purchaseType: contestantSlug ? 'direct' : 'package',
         status: 'confirmed',
       }),
     })

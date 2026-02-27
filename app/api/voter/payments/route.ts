@@ -19,6 +19,9 @@ export async function POST(request: NextRequest) {
     currency?: string;
     paymentMethod?: string;
     eventName?: string;
+    eventSlug?: string;
+    contestantSlug?: string;
+    purchaseType?: 'package' | 'direct';
     status?: 'pending' | 'confirmed' | 'failed' | 'refunded';
   };
 
@@ -34,6 +37,9 @@ export async function POST(request: NextRequest) {
       currency: payload.currency,
       paymentMethod: payload.paymentMethod,
       eventName: payload.eventName,
+      eventSlug: payload.eventSlug,
+      contestantSlug: payload.contestantSlug,
+      purchaseType: payload.purchaseType,
       status: payload.status,
     });
     return NextResponse.json(result, { status: 201 });
