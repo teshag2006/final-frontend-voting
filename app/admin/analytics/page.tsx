@@ -223,7 +223,7 @@ function AnalyticsContent() {
                     <div className="w-full bg-slate-700 rounded-full h-3">
                       <div
                         className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all"
-                        style={{ width: `${role.percentage * 100}%` }}
+                        style={{ width: `${role.percentage}%` }}
                       ></div>
                     </div>
                   </div>

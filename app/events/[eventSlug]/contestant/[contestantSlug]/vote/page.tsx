@@ -1,11 +1,9 @@
-// @ts-nocheck
 "use client";
 import { useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { VoteBreadcrumb } from "@/components/vote-selection/vote-breadcrumb";
 import { FreeVoteHero } from "@/components/vote-selection/free-vote-hero";
 import { PaidVoteHero } from "@/components/vote-selection/paid-vote-hero";
-import { SMSVerificationModal } from "@/components/vote-selection/sms-verification-modal";
 import { PaidVoteSection } from "@/components/vote-selection/paid-vote-section";
 import { VoteLimitsInfo } from "@/components/vote-selection/vote-limits-info";
 import { PaidVotesSummary } from "@/components/vote-selection/paid-votes-summary";
@@ -38,7 +36,6 @@ export default function VoteSelectionPage() {
   const eligibility = mockVoteEligibility ?? DEFAULT_ELIGIBILITY;
 
   const [quantity, setQuantity] = useState(1);
-  const [isSMSModalOpen, setIsSMSModalOpen] = useState(false);
   const [isFreeVoteLoading, setIsFreeVoteLoading] = useState(false);
   const [isPaidVoteLoading, setIsPaidVoteLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -52,24 +49,6 @@ export default function VoteSelectionPage() {
     }
     router.push(`/events/${eventSlug}/contestant/${contestantSlug}/vote/free`);
   }, [eligibility.freeEligible, eventSlug, contestantSlug, router]);
-
-  // Handle SMS verification and free vote submission
-  const handleVerifyAndCastVote = useCallback(
-    async (phoneNumber: string, otp: string) => {
-      setIsFreeVoteLoading(true);
-      setErrorMessage(null);
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        router.push(`/events/${eventSlug}/contestant/${contestantSlug}`);
-      } catch (error) {
-        setErrorMessage("Unable to confirm your free vote right now. Please retry.");
-        throw new Error("free-vote-failed");
-      } finally {
-        setIsFreeVoteLoading(false);
-      }
-    },
-    [eventSlug, contestantSlug]
-  );
 
   // Proceed to paid checkout
   const handleProceedToCheckout = useCallback(async () => {
@@ -134,14 +113,6 @@ export default function VoteSelectionPage() {
                 </div>
               </section>
             )}
-
-            {/* SMS Verification Modal */}
-            <SMSVerificationModal
-              isOpen={isSMSModalOpen}
-              onClose={() => setIsSMSModalOpen(false)}
-              onVerify={handleVerifyAndCastVote}
-              contestantName={contestant.name}
-            />
 
             {/* Divider */}
             {eligibility.freeEligible && (

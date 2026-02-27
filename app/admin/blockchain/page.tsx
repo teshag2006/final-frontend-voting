@@ -19,6 +19,7 @@ export default function BlockchainMonitorPage() {
   const [filters, setFilters] = useState<AnchorFilters>({});
   const [selectedSnapshot, setSelectedSnapshot] = useState<SnapshotDetail | null>(null);
   const [verificationInput, setVerificationInput] = useState('');
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   // Fetch data
   useEffect(() => {
@@ -47,21 +48,18 @@ export default function BlockchainMonitorPage() {
   };
 
   const handleAnchorDaily = async () => {
-    // API: POST /admin/blockchain/anchor/daily
-    console.log('Anchoring daily snapshot...');
     await new Promise(resolve => setTimeout(resolve, 1000));
+    setActionMessage('Daily snapshot anchored successfully (mock).');
   };
 
   const handleAnchorEvent = async () => {
-    // API: POST /admin/blockchain/anchor/event/:eventId
-    console.log('Anchoring event final...');
     await new Promise(resolve => setTimeout(resolve, 1000));
+    setActionMessage('Event final anchor created (mock).');
   };
 
   const handleRetry = async (anchorId: string) => {
-    // API: POST /admin/blockchain/anchors/:anchorId/retry
-    console.log(`Retrying anchor: ${anchorId}`);
     await new Promise(resolve => setTimeout(resolve, 500));
+    setActionMessage(`Retried anchor ${anchorId} (mock).`);
   };
 
   const handleVerifyHash = (record: AnchorRecord) => {
@@ -94,6 +92,11 @@ export default function BlockchainMonitorPage() {
         </div>
 
         {/* Summary Cards */}
+        {actionMessage && (
+          <Alert className="border-blue-200 bg-blue-50">
+            <AlertDescription className="text-blue-800">{actionMessage}</AlertDescription>
+          </Alert>
+        )}
         {summary && <BlockchainSummaryCards summary={summary} isLoading={isLoading} />}
 
         {/* Main Content Tabs */}

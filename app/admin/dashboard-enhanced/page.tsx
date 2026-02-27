@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ProtectedRouteWrapper } from '@/components/auth/protected-route-wrapper';
@@ -12,8 +13,6 @@ import {
   FileText,
   TrendingUp,
   AlertCircle,
-  Eye,
-  Edit,
   Trash2,
   CheckCircle,
   Clock,
@@ -122,6 +121,20 @@ function AdminDashboardContent() {
       createdAt: '2 days ago',
     },
   ];
+  const [reviewItems, setReviewItems] = useState(pendingReviews);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const pendingCount = useMemo(
+    () => reviewItems.filter((item) => item.status === 'pending').length,
+    [reviewItems]
+  );
+
+  const handleReviewAction = (reviewId: string, nextStatus: 'approved' | 'rejected') => {
+    setReviewItems((prev) =>
+      prev.map((item) => (item.id === reviewId ? { ...item, status: nextStatus } : item))
+    );
+    setActionMessage(nextStatus === 'approved' ? 'Review approved (mock).' : 'Review rejected (mock).');
+    setTimeout(() => setActionMessage(null), 2200);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
@@ -147,6 +160,11 @@ function AdminDashboardContent() {
           <h2 className="text-3xl font-bold text-white">Welcome back, {currentUser.name}!</h2>
           <p className="text-slate-400 mt-1">Here's what's happening with your platform today.</p>
         </div>
+        {actionMessage ? (
+          <div className="mb-4 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200">
+            {actionMessage}
+          </div>
+        ) : null}
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
@@ -310,11 +328,13 @@ function AdminDashboardContent() {
               <CardHeader>
                 <CardTitle className="text-white text-lg flex items-center gap-2">
                   <Clock className="w-5 h-5 text-orange-400" />
-                  Pending Review ({pendingReviews.length})
+                  Pending Review ({pendingCount})
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {pendingReviews.map((review) => (
+                {reviewItems
+                  .filter((review) => review.status === 'pending')
+                  .map((review) => (
                   <div
                     key={review.id}
                     className="p-3 bg-slate-800 rounded-lg border border-slate-700 hover:border-orange-600/50 transition"
@@ -322,11 +342,17 @@ function AdminDashboardContent() {
                     <p className="font-semibold text-white text-sm">{review.title}</p>
                     <p className="text-xs text-slate-400 mt-1">{review.createdAt}</p>
                     <div className="flex gap-2 mt-2">
-                      <button className="flex-1 px-2 py-1 bg-green-600/20 hover:bg-green-600/30 text-green-300 text-xs rounded transition flex items-center justify-center gap-1">
+                      <button
+                        className="flex-1 px-2 py-1 bg-green-600/20 hover:bg-green-600/30 text-green-300 text-xs rounded transition flex items-center justify-center gap-1"
+                        onClick={() => handleReviewAction(review.id, 'approved')}
+                      >
                         <CheckCircle className="w-3 h-3" />
                         Approve
                       </button>
-                      <button className="flex-1 px-2 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-300 text-xs rounded transition flex items-center justify-center gap-1">
+                      <button
+                        className="flex-1 px-2 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-300 text-xs rounded transition flex items-center justify-center gap-1"
+                        onClick={() => handleReviewAction(review.id, 'rejected')}
+                      >
                         <Trash2 className="w-3 h-3" />
                         Reject
                       </button>

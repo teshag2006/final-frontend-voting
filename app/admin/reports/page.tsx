@@ -34,6 +34,7 @@ export default function ReportsPage() {
   const [paymentMetrics, setPaymentMetrics] = useState(generatePaymentMetrics());
   const [fraudMetrics, setFraudMetrics] = useState(generateFraudMetrics());
   const [systemLogs, setSystemLogs] = useState(generateSystemLogs());
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
 
   useEffect(() => {
     // Simulate loading delay
@@ -47,10 +48,9 @@ export default function ReportsPage() {
     try {
       // Simulate export API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log(`Exported report as ${format.toUpperCase()}`);
-      // In production, trigger download here
+      setExportMessage(`Report exported as ${format.toUpperCase()} (mock).`);
     } catch (error) {
-      console.error('Export failed:', error);
+      setExportMessage('Export failed in mock mode.');
     }
   };
 
@@ -86,6 +86,11 @@ export default function ReportsPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {exportMessage ? (
+          <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-800">
+            {exportMessage}
+          </div>
+        ) : null}
         <TabsList className="mb-6 flex w-full flex-nowrap gap-1 overflow-x-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="voting">Voting</TabsTrigger>

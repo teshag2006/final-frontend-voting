@@ -23,6 +23,7 @@ interface HealthMaintenanceControlsProps {
 export function HealthMaintenanceControls({ isAdmin, isSuperAdmin }: HealthMaintenanceControlsProps) {
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   const actions: MaintenanceAction[] = [
     {
@@ -88,7 +89,7 @@ export function HealthMaintenanceControls({ isAdmin, isSuperAdmin }: HealthMaint
   };
 
   const handleExecuteAction = (actionId: string) => {
-    console.log(`Executing action: ${actionId}`);
+    setMessage(`Executed action: ${actionId} (mock).`);
     setSelectedAction(null);
     setShowConfirmation(false);
     // API call would go here
@@ -138,6 +139,11 @@ export function HealthMaintenanceControls({ isAdmin, isSuperAdmin }: HealthMaint
             </Button>
           ))}
         </div>
+        {message ? (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+            {message}
+          </div>
+        ) : null}
 
         {isSuperAdmin && (
           <div className="pt-3 border-t border-border/30 flex items-start gap-2 text-sm text-muted-foreground bg-background/50 p-3 rounded-lg">

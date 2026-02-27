@@ -35,6 +35,7 @@ export default function RedisCacheMonitorPage() {
   const [metrics, setMetrics] = useState(generateCacheMetrics());
   const [timeseries, setTimeseries] = useState(generateMetricsTimeseries());
   const [maintenanceTasks] = useState(getMaintenanceTasks());
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const handleRefresh = async () => {
     setIsLoading(true);
@@ -47,6 +48,7 @@ export default function RedisCacheMonitorPage() {
       setMetrics(generateCacheMetrics());
       setTimeseries(generateMetricsTimeseries());
       setLastRefresh(new Date());
+      setActionMessage('Cache dashboard refreshed.');
     } catch (error) {
       console.error('Failed to refresh cache data:', error);
     } finally {
@@ -58,6 +60,7 @@ export default function RedisCacheMonitorPage() {
     // TODO: Replace with actual API call
     // DELETE /admin/cache/key/:key
     setKeys((prev) => prev.filter((k) => k.key !== key));
+    setActionMessage(`Deleted cache key ${key}.`);
   };
 
   const handleResetCounter = async (id: string) => {
@@ -70,18 +73,24 @@ export default function RedisCacheMonitorPage() {
           : c
       )
     );
+    setActionMessage(`Reset rate-limit counter ${id}.`);
   };
 
   const handleBlockIP = async (ip: string) => {
     // TODO: Replace with actual API call
     // POST /admin/cache/block-ip
-    console.log('Blocking IP:', ip);
+    setRateLimits((prev) =>
+      prev.map((c) =>
+        c.ipAddress === ip ? { ...c, status: 'BLOCKED' as const, remaining: 0 } : c
+      )
+    );
+    setActionMessage(`Blocked IP ${ip}.`);
   };
 
   const handleExecuteTask = async (action: string) => {
     // TODO: Replace with actual API call
     // POST /admin/cache/maintenance/:action
-    console.log('Executing task:', action);
+    setActionMessage(`Executed maintenance action: ${action}.`);
   };
 
   // Auto-refresh every 30 seconds
@@ -112,6 +121,11 @@ export default function RedisCacheMonitorPage() {
       <div className="text-xs text-muted-foreground">
         Last updated: {lastRefresh.toLocaleTimeString()}
       </div>
+      {actionMessage ? (
+        <Alert>
+          <AlertDescription>{actionMessage}</AlertDescription>
+        </Alert>
+      ) : null}
 
       {/* Help Alert */}
       <Alert>

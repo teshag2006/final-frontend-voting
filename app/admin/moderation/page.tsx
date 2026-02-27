@@ -16,7 +16,6 @@ import {
   Flag,
   Clock,
   User,
-  MessageSquare,
   FileText,
 } from 'lucide-react';
 
@@ -39,8 +38,8 @@ function ModerationContent() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [selectedItem, setSelectedItem] = useState<ModerationItem | null>(null);
-
-  const moderationItems: ModerationItem[] = [
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [moderationItems, setModerationItems] = useState<ModerationItem[]>([
     {
       id: '1',
       type: 'content',
@@ -102,7 +101,7 @@ function ModerationContent() {
       createdAt: '2 hours ago',
       daysOld: 0,
     },
-  ];
+  ]);
 
   if (!currentUser) {
     return null;
@@ -123,6 +122,14 @@ function ModerationContent() {
   }
 
   const filteredItems = moderationItems.filter((item) => item.status === activeTab);
+  const handleReviewAction = (itemId: string, nextStatus: 'approved' | 'rejected') => {
+    setModerationItems((prev) =>
+      prev.map((item) => (item.id === itemId ? { ...item, status: nextStatus } : item))
+    );
+    setSelectedItem((prev) => (prev && prev.id === itemId ? { ...prev, status: nextStatus } : prev));
+    setActionMessage(nextStatus === 'approved' ? 'Item approved (mock).' : 'Item rejected (mock).');
+    setTimeout(() => setActionMessage(null), 2200);
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -169,6 +176,11 @@ function ModerationContent() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-6xl px-4 py-8">
+        {actionMessage ? (
+          <Card className="mb-4 border-emerald-200 bg-emerald-50">
+            <CardContent className="py-3 text-sm text-emerald-800">{actionMessage}</CardContent>
+          </Card>
+        ) : null}
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="border-slate-700 bg-slate-800">
@@ -332,11 +344,17 @@ function ModerationContent() {
                 {/* Actions */}
                 {selectedItem.status === 'pending' && (
                   <div className="border-t border-slate-700 pt-6 space-y-2">
-                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white gap-2">
+                    <Button
+                      className="w-full bg-green-600 hover:bg-green-700 text-white gap-2"
+                      onClick={() => handleReviewAction(selectedItem.id, 'approved')}
+                    >
                       <CheckCircle2 className="w-4 h-4" />
                       Approve
                     </Button>
-                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white gap-2">
+                    <Button
+                      className="w-full bg-red-600 hover:bg-red-700 text-white gap-2"
+                      onClick={() => handleReviewAction(selectedItem.id, 'rejected')}
+                    >
                       <X className="w-4 h-4" />
                       Reject
                     </Button>

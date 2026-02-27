@@ -35,10 +35,7 @@ export function SMSVerificationModal({
 
     setIsLoading(true);
     try {
-      // TODO: Call API to send OTP
-      // POST /api/vote/send-otp with phone number
-      console.log('[v0] Sending OTP to:', phone);
-      // Simulate API call
+      // Mock send OTP delay in dev mode
       await new Promise(resolve => setTimeout(resolve, 1000));
       setStep('otp');
     } catch (err) {
@@ -63,7 +60,6 @@ export function SMSVerificationModal({
       setStep('success');
       setTimeout(() => {
         onClose();
-        // TODO: Redirect to receipt page
       }, 2000);
     } catch (err) {
       setError('Invalid OTP. Please try again.');

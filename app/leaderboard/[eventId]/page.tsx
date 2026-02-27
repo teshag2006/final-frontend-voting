@@ -30,11 +30,6 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
   // Fetch leaderboard data - in production, this would call your API
   const data = getMockLeaderboardData(eventId);
 
-  const handleExport = async (format: 'csv' | 'pdf') => {
-    // In production, this would call an API endpoint
-    console.log(`Exporting ${format}...`);
-  };
-
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
@@ -89,7 +84,6 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
         {/* Filters */}
         <LeaderboardFilters
           categories={data.categories}
-          onExport={handleExport}
         />
 
         {/* Leaderboard Table */}

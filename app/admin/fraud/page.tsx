@@ -65,6 +65,7 @@ export default function AdminFraudMonitoringPage() {
   const [pageSize, setPageSize] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const [selectedCase, setSelectedCase] = useState<FraudCase | undefined>();
   const [detailModal, setDetailModal] = useState(false);
@@ -135,10 +136,34 @@ export default function AdminFraudMonitoringPage() {
   const handleActionConfirm = async (notes: string) => {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log(`[Fraud Monitoring] Action: ${actionModal.action}, Target: ${actionModal.targetId}, Notes: ${notes}`);
+    if (!actionModal.targetId || !actionModal.action) {
+      setActionModal({ isOpen: false });
+      return;
+    }
 
-    // In production, this would update via API
-    // For now, just close the modal
+    if (actionModal.action === 'mark_reviewed') {
+      setAllCases((prev) =>
+        prev.map((item) =>
+          item.id === actionModal.targetId ? { ...item, status: 'REVIEWED' as const } : item
+        )
+      );
+    }
+    if (actionModal.action === 'override') {
+      setAllCases((prev) =>
+        prev.map((item) =>
+          item.id === actionModal.targetId ? { ...item, status: 'OVERRIDDEN' as const } : item
+        )
+      );
+    }
+    if (actionModal.action === 'escalate') {
+      setAllCases((prev) =>
+        prev.map((item) =>
+          item.id === actionModal.targetId ? { ...item, status: 'BLOCKED' as const } : item
+        )
+      );
+    }
+
+    setActionMessage(`Executed ${actionModal.action.replace('_', ' ')} on ${actionModal.targetName}. Notes: ${notes || 'N/A'}`);
     setActionModal({ isOpen: false });
   };
 
@@ -230,6 +255,12 @@ export default function AdminFraudMonitoringPage() {
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {actionMessage ? (
+            <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-800">
+              {actionMessage}
+            </div>
+          ) : null}
+
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
             <FraudSummaryCard

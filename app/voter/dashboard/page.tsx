@@ -151,7 +151,11 @@ export default function VoterDashboard() {
             <section className="mb-8">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-foreground">Voting by Category</h2>
-                <Button variant="link" className="text-primary hover:text-primary/80">
+                <Button
+                  variant="link"
+                  className="text-primary hover:text-primary/80"
+                  onClick={() => router.push('/vote')}
+                >
                   See all categories <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>

@@ -22,6 +22,7 @@ export default function VoteMonitoringPage() {
   const [filters, setFilters] = useState<VoteFilters>({ suspiciousOnly: false });
   const [selectedVote, setSelectedVote] = useState<Vote | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   // Fetch data
   useEffect(() => {
@@ -55,23 +56,37 @@ export default function VoteMonitoringPage() {
   };
 
   const handleBlockIp = (ipAddress: string) => {
-    console.log(`Blocking IP: ${ipAddress}`);
-    // API: POST /admin/votes/block-ip
+    setSuspiciousIps((prev) =>
+      prev.map((ip) => (ip.ipAddress === ipAddress ? { ...ip, status: 'BLOCKED' as const } : ip))
+    );
+    setActionMessage(`Blocked IP ${ipAddress} (mock action).`);
   };
 
   const handleMarkReviewed = (alertId: string) => {
-    console.log(`Marking alert reviewed: ${alertId}`);
-    // API: POST /admin/votes/mark-reviewed
+    setAlerts((prev) =>
+      prev.map((alert) => (alert.id === alertId ? { ...alert, reviewed: true } : alert))
+    );
+    setActionMessage(`Marked alert ${alertId} as reviewed.`);
   };
 
   const handleFreezeContestant = (contestantId: string) => {
-    console.log(`Freezing contestant: ${contestantId}`);
-    // API: POST /admin/votes/freeze-contestant
+    setVotes((prev) =>
+      prev.map((vote) =>
+        vote.contestantId === contestantId ? { ...vote, paymentStatus: 'FLAGGED' as const } : vote
+      )
+    );
+    setActionMessage(`Contestant ${contestantId} frozen for review (mock).`);
   };
 
   const handleExport = (format: 'CSV' | 'EXCEL' | 'PDF') => {
-    console.log(`Exporting as ${format}...`);
-    // API: GET /admin/votes/export?format={format}&filters={JSON.stringify(filters)}
+    setActionMessage(`Prepared ${format} export with current filters (mock).`);
+  };
+
+  const handleFlagVote = (voteId: string) => {
+    setVotes((prev) =>
+      prev.map((vote) => (vote.voteId === voteId ? { ...vote, paymentStatus: 'FLAGGED' as const } : vote))
+    );
+    setActionMessage(`Flagged vote ${voteId}.`);
   };
 
   const hasPaymentAlert = paymentAlerts.some(a => a.status !== 'HEALTHY');
@@ -114,6 +129,11 @@ export default function VoteMonitoringPage() {
             </AlertDescription>
           </Alert>
         )}
+        {actionMessage && (
+          <Alert className="border-blue-200 bg-blue-50">
+            <AlertDescription className="text-blue-800">{actionMessage}</AlertDescription>
+          </Alert>
+        )}
 
         {/* Stats Dashboard */}
         {stats && <VoteStatsDashboard stats={stats} isLoading={isLoading} />}
@@ -149,7 +169,7 @@ export default function VoteMonitoringPage() {
                       isLoading={isLoading}
                       onViewDetails={(vote) => setSelectedVote(vote)}
                       onBlockIp={handleBlockIp}
-                      onFlagVote={(voteId) => console.log(`Flagged: ${voteId}`)}
+                      onFlagVote={handleFlagVote}
                     />
                   </CardContent>
                 </Card>

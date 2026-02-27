@@ -51,6 +51,7 @@ export default function AdminPaymentsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefunding, setIsRefunding] = useState(false);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [refundModal, setRefundModal] = useState<{
     isOpen: boolean;
     payment?: PaymentData;
@@ -86,8 +87,7 @@ export default function AdminPaymentsPage() {
   };
 
   const handleViewDetails = (payment: PaymentData) => {
-    console.log('View details for payment:', payment);
-    // In real app, navigate to detail page or open modal
+    setActionMessage(`Viewing payment ${payment.paymentId}: ${payment.contestant}, ${payment.status}.`);
   };
 
   const handleVerify = (payment: PaymentData) => {
@@ -121,6 +121,7 @@ export default function AdminPaymentsPage() {
       );
 
       setSummary(calculatePaymentsSummary(filteredPayments));
+      setActionMessage(`Refund processed for ${refundModal.payment.paymentId}.`);
     } catch (error) {
       console.error('Refund failed:', error);
     } finally {
@@ -136,12 +137,12 @@ export default function AdminPaymentsPage() {
           p.id === payment.id ? { ...p, status: 'FLAGGED' as const } : p
         )
       );
+      setActionMessage(`Payment ${payment.paymentId} flagged as suspicious.`);
     }
   };
 
   const handleViewLog = (payment: PaymentData) => {
-    console.log('View gateway log for payment:', payment);
-    // In real app, open gateway logs modal
+    setActionMessage(`Gateway log opened for ${payment.paymentId} (mock view).`);
   };
 
   return (
@@ -182,6 +183,12 @@ export default function AdminPaymentsPage() {
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {actionMessage ? (
+            <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-800">
+              {actionMessage}
+            </div>
+          ) : null}
+
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <PaymentSummaryCard

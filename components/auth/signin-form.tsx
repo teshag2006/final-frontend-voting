@@ -92,6 +92,10 @@ export function SignInForm({
     }
   };
 
+  const handleSocialSignin = (provider: 'Google' | 'Facebook') => {
+    setError(`${provider} sign-in is unavailable in mock mode. Use email/password for now.`);
+  };
+
   return (
     <Card className={cn('w-full max-w-md', className)}>
       <CardHeader className="space-y-2">
@@ -228,7 +232,7 @@ export function SignInForm({
               type="button"
               variant="outline"
               disabled={isLoading || externalIsLoading}
-              onClick={() => console.log('Google sign in')}
+              onClick={() => handleSocialSignin('Google')}
             >
               Google
             </Button>
@@ -236,7 +240,7 @@ export function SignInForm({
               type="button"
               variant="outline"
               disabled={isLoading || externalIsLoading}
-              onClick={() => console.log('Facebook sign in')}
+              onClick={() => handleSocialSignin('Facebook')}
             >
               Facebook
             </Button>
