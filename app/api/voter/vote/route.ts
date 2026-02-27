@@ -7,6 +7,8 @@ export async function POST(request: NextRequest) {
   if (!access.ok) return access.response;
 
   const payload = (await request.json().catch(() => ({}))) as {
+    eventSlug?: string;
+    eventName?: string;
     categoryId?: string;
     categoryName?: string;
     contestantName?: string;
@@ -20,6 +22,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = castVoterVote(access.user, {
+      eventSlug: payload.eventSlug ? String(payload.eventSlug) : undefined,
+      eventName: payload.eventName ? String(payload.eventName) : undefined,
       categoryId: String(payload.categoryId),
       categoryName: payload.categoryName ? String(payload.categoryName) : undefined,
       contestantName: payload.contestantName ? String(payload.contestantName) : undefined,

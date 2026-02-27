@@ -58,7 +58,7 @@ export function FreeVoteSection({
                 Your free vote has already been used
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                You've already claimed your 1 free vote for this event. Purchase paid votes to continue voting.
+                You've already claimed your 1 free vote for this category in this event. Purchase paid votes to continue voting.
               </p>
             </>
           )}

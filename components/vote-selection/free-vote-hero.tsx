@@ -52,7 +52,7 @@ export function FreeVoteHero({
                 Your Free Vote Awaits
               </h2>
               <p className='text-lg text-white/90'>
-                Ethiopian voters get one free vote per event. Verify your phone number to claim yours now.
+                Ethiopian voters get one free vote per category per event. Verify your phone number to claim yours now.
               </p>
             </div>
 
@@ -82,7 +82,7 @@ export function FreeVoteHero({
               </Button>
             ) : (
               <div className='rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 p-4 text-white text-sm'>
-                Your free vote has already been used for this event.
+                Your free vote has already been used for this category in this event.
               </div>
             )}
           </div>

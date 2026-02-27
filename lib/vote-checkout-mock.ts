@@ -37,13 +37,6 @@ export const paymentMethods: PaymentMethodConfig[] = [
     countries: ["ET", "KE", "UG", "RW", "TZ"],
   },
   {
-    id: "bank_transfer",
-    label: "Bank Transfer",
-    description: "Direct bank account transfer",
-    enabled: true,
-    countries: ["ET", "ZA", "NG", "GH"],
-  },
-  {
     id: "chapa",
     label: "Chapa",
     description: "Ethiopia's leading payment processor",
@@ -58,16 +51,9 @@ export const paymentMethods: PaymentMethodConfig[] = [
     countries: ["ET"],
   },
   {
-    id: "cbe_birr",
-    label: "CBE-Birr",
-    description: "Commercial Bank of Ethiopia",
-    enabled: true,
-    countries: ["ET"],
-  },
-  {
     id: "digital_wallet",
-    label: "Digital Wallet",
-    description: "Google Pay, Apple Pay, Paypal",
+    label: "PayPal",
+    description: "Secure PayPal checkout",
     enabled: true,
     countries: ["ALL"],
   },

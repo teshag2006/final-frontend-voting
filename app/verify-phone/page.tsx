@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/auth/phone-input';
 import { OtpInput } from '@/components/auth/otp-input';
@@ -11,9 +11,10 @@ import { useAuth } from '@/context/AuthContext';
 type Stage = 'phone' | 'otp' | 'success' | 'error';
 type ErrorType = 'invalid_format' | 'rate_limit' | 'invalid_otp' | 'expired' | 'too_many' | 'server_error' | null;
 
-export default function VerifyPhonePage() {
+function VerifyPhonePageContent() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const searchParams = useSearchParams();
+  const { isAuthenticated, userRole } = useAuth();
   const [stage, setStage] = useState<Stage>('phone');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
@@ -25,6 +26,8 @@ export default function VerifyPhonePage() {
   const [resendCountdown, setResendCountdown] = useState(0);
   const otpStartTime = useRef<number>(0);
   const [timeRemaining, setTimeRemaining] = useState(300);
+  const nextPathRaw = searchParams.get('next') || '/voter/dashboard';
+  const nextPath = nextPathRaw.startsWith('/') ? nextPathRaw : '/voter/dashboard';
 
   // Validate Ethiopian phone number format
   const validatePhone = (value: string): boolean => {
@@ -95,7 +98,7 @@ export default function VerifyPhonePage() {
         }
         setStage('success');
         setTimeout(() => {
-          router.push('/voter/dashboard');
+          router.push(nextPath);
         }, 2000);
       } else if (Math.random() < 0.2) {
         setError('expired');
@@ -143,6 +146,29 @@ export default function VerifyPhonePage() {
       return;
     }
   }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    if (!isAuthenticated || userRole !== 'voter') {
+      return;
+    }
+
+    const checkPhoneVerification = async () => {
+      try {
+        const response = await fetch('/api/voter/wallet', { method: 'GET' });
+        if (!response.ok) return;
+        const payload = (await response.json().catch(() => null)) as
+          | { isPhoneVerified?: boolean }
+          | null;
+        if (payload?.isPhoneVerified) {
+          router.replace(nextPath);
+        }
+      } catch {
+        // Keep verify page available if wallet check fails.
+      }
+    };
+
+    void checkPhoneVerification();
+  }, [isAuthenticated, userRole, router, nextPath]);
 
   // Resend countdown timer effect
   useEffect(() => {
@@ -319,6 +345,14 @@ export default function VerifyPhonePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyPhonePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50" />}>
+      <VerifyPhonePageContent />
+    </Suspense>
   );
 }
 

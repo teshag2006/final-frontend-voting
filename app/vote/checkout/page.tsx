@@ -7,10 +7,7 @@ import { Footer } from '@/components/footer';
 import { CheckoutHeader } from '@/components/vote-checkout/checkout-header';
 import { VoteSummary } from '@/components/vote-checkout/vote-summary';
 import { PaymentMethodSelector } from '@/components/vote-checkout/payment-method-selector';
-import { LimitConfirmation } from '@/components/vote-checkout/limit-confirmation';
-import { TermsConsent } from '@/components/vote-checkout/terms-consent';
 import { SecureCheckoutSummary } from '@/components/vote-checkout/secure-checkout-summary';
-import { IntegrityNotice } from '@/components/vote-checkout/integrity-notice';
 import { Button } from '@/components/ui/button';
 import {
   mockCheckoutSession,
@@ -23,13 +20,26 @@ import type { PaymentMethod } from '@/types/vote';
 export default function VoteCheckoutPage() {
   const router = useRouter();
   const [safeQuantity, setSafeQuantity] = useState(10);
+  const [eventSlug, setEventSlug] = useState('');
+  const [contestantSlug, setContestantSlug] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const requestedQuantity = Number(params.get('quantity') || 10);
+    const requestedMethod = String(params.get('method') || '').trim();
+    const requestedEventSlug = String(params.get('eventSlug') || '').trim();
+    const requestedContestantSlug = String(params.get('contestantSlug') || '').trim();
     if (Number.isFinite(requestedQuantity) && requestedQuantity > 0) {
       setSafeQuantity(requestedQuantity);
     }
+    if (requestedMethod) {
+      const isValidMethod = paymentMethods.some((m) => m.id === requestedMethod);
+      if (isValidMethod) {
+        setSelectedPaymentMethod(requestedMethod as PaymentMethod);
+      }
+    }
+    if (requestedEventSlug) setEventSlug(requestedEventSlug);
+    if (requestedContestantSlug) setContestantSlug(requestedContestantSlug);
   }, []);
 
   // Default to Chapa for Ethiopian users, Credit Card for others
@@ -40,12 +50,8 @@ export default function VoteCheckoutPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(
     defaultPaymentMethod
   );
-  const [nonRefundableAccepted, setNonRefundableAccepted] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [finalVotesAccepted, setFinalVotesAccepted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [checkoutInfo, setCheckoutInfo] = useState<string | null>(null);
 
   const pricingQuote = useMemo(() => {
     const pricePerVote = mockPricingResponse.pricePerVote;
@@ -63,48 +69,22 @@ export default function VoteCheckoutPage() {
     };
   }, [safeQuantity]);
 
-  const allTermsAccepted =
-    nonRefundableAccepted && termsAccepted && finalVotesAccepted;
-
   const handleProceedToPayment = async () => {
     if (isProcessing) return;
 
-    if (!allTermsAccepted) {
-      setCheckoutError('Please accept all terms before proceeding.');
-      return;
-    }
-
     setIsProcessing(true);
     setCheckoutError(null);
-    setCheckoutInfo(null);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const paymentId = `txn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const paymentResponse = await fetch('/api/voter/payments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paymentId,
-          votesPurchased: pricingQuote.quantity,
-          amount: pricingQuote.totalAmount,
-          currency: pricingQuote.currency,
-          paymentMethod: selectedPaymentMethod,
-          eventName: mockCheckoutContestant.event.name,
-          status: 'confirmed',
-        }),
+      const params = new URLSearchParams({
+        quantity: String(pricingQuote.quantity),
+        totalAmount: String(pricingQuote.totalAmount),
+        currency: String(pricingQuote.currency || 'USD'),
+        eventName: mockCheckoutContestant.event.name,
       });
-
-      const payload = await paymentResponse.json().catch(() => null);
-      if (!paymentResponse.ok) {
-        setCheckoutError(payload?.message || 'Payment registration failed. Please sign in as voter and try again.');
-        return;
-      }
-
-      setCheckoutInfo(`Payment confirmed. Transaction ID: ${paymentId}. Redirecting to your wallet...`);
-      setTimeout(() => {
-        router.push('/voter/dashboard');
-      }, 1200);
+      if (eventSlug) params.set('eventSlug', eventSlug);
+      if (contestantSlug) params.set('contestantSlug', contestantSlug);
+      router.push(`/vote/checkout/pay/${encodeURIComponent(selectedPaymentMethod)}?${params.toString()}`);
     } catch (error) {
       setCheckoutError('Payment initiation failed. Please try again.');
     } finally {
@@ -116,14 +96,14 @@ export default function VoteCheckoutPage() {
     paymentMethods.find((m) => m.id === selectedPaymentMethod)?.label || 'Payment Method';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#ffffff_0%,#eef2ff_45%,#e7ecff_100%)] flex flex-col">
       <Navbar />
 
       <main className="flex-1 px-4 py-12 md:px-6 lg:px-8">
         {/* Page Title */}
         <div className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Vote Checkout</h1>
-          <p className="text-white/60">Complete your secure vote purchase</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-2">Vote Checkout</h1>
+          <p className="text-slate-600">Complete your secure vote purchase</p>
         </div>
 
         {/* Main Content */}
@@ -142,21 +122,22 @@ export default function VoteCheckoutPage() {
             />
 
             {/* Vote Quantity Section */}
-            <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-              <h3 className="font-bold text-white text-lg mb-4">Vote Quantity</h3>
+            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 text-lg font-bold text-slate-900">Vote Quantity</h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {[1, 5, 10, 25, 50, 100].map((num) => (
                     <Button
                       key={num}
                       variant="outline"
-                      className="border-white/20 text-white hover:bg-accent hover:text-white hover:border-accent"
+                      onClick={() => setSafeQuantity(num)}
+                      className="border-slate-300 text-slate-800 hover:border-accent hover:bg-accent hover:text-white"
                     >
                       {num}
                     </Button>
                   ))}
                 </div>
-                <div className="text-xs text-white/50 mt-4">
+                <div className="mt-4 text-xs text-slate-500">
                   Min: 1 vote | Max: {mockCheckoutSession.maxPerTransaction} votes per
                   transaction
                 </div>
@@ -182,55 +163,12 @@ export default function VoteCheckoutPage() {
               userCountry={userCountry}
             />
 
-            {/* Voter Information Section */}
-            <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-              <h3 className="font-bold text-white text-lg">Voter Information (Optional)</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm text-white/70 mb-2">Email</label>
-                  <input
-                    type="email"
-                    placeholder="your@email.com"
-                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:border-accent focus:outline-none transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-white/70 mb-2">Country</label>
-                  <select className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:border-accent focus:outline-none transition">
-                    <option value="US">United States</option>
-                    <option value="ET">Ethiopia</option>
-                    <option value="KE">Kenya</option>
-                    <option value="NG">Nigeria</option>
-                    <option value="ZA">South Africa</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Terms & Consent */}
-            <TermsConsent
-              nonRefundableAccepted={nonRefundableAccepted}
-              termsAccepted={termsAccepted}
-              finalVotesAccepted={finalVotesAccepted}
-              onNonRefundableChange={setNonRefundableAccepted}
-              onTermsChange={setTermsAccepted}
-              onFinalVotesChange={setFinalVotesAccepted}
-            />
-
-            {/* Integrity Notice */}
-            <IntegrityNotice className="mb-8" />
-
             {checkoutError && (
               <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {checkoutError}
               </div>
             )}
-            {checkoutInfo && (
-              <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                {checkoutInfo}
-              </div>
-            )}
-            <p className="text-xs text-white/60">
+            <p className="text-xs text-slate-600">
               Price and final vote quantity are confirmed by backend before payment authorization.
             </p>
           </div>
@@ -244,20 +182,11 @@ export default function VoteCheckoutPage() {
               paymentMethod={selectedMethodLabel}
               onProceedClick={handleProceedToPayment}
               isLoading={isProcessing}
-              isDisabled={!allTermsAccepted}
+              isDisabled={false}
             />
           </div>
         </div>
 
-        {/* Limit Confirmation (Full Width) */}
-        <div className="max-w-7xl mx-auto mb-12">
-          <LimitConfirmation
-            paidRemaining={mockCheckoutSession.paidVotesRemaining}
-            dailyRemaining={mockCheckoutSession.dailyVotesRemaining}
-            maxPerTransaction={mockCheckoutSession.maxPerTransaction}
-            quantity={pricingQuote.quantity}
-          />
-        </div>
       </main>
 
       <Footer />

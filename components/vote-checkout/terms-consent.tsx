@@ -23,13 +23,12 @@ export function TermsConsent({
   const allAccepted = nonRefundableAccepted && termsAccepted && finalVotesAccepted;
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-      <h3 className="font-bold text-white text-lg flex items-center gap-2">
-        <span className="text-lg">⚠️</span> Voter Information
+    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+      <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
+        <span className="text-lg">??</span> Voter Information
       </h3>
 
       <div className="space-y-4">
-        {/* Non-Refundable */}
         <div className="flex items-start gap-3">
           <Checkbox
             id="non-refundable"
@@ -37,34 +36,21 @@ export function TermsConsent({
             onCheckedChange={onNonRefundableChange}
             className="mt-1"
           />
-          <Label
-            htmlFor="non-refundable"
-            className="text-sm text-white/80 leading-relaxed cursor-pointer"
-          >
+          <Label htmlFor="non-refundable" className="cursor-pointer text-sm leading-relaxed text-slate-700">
             I confirm my vote is <span className="font-semibold">non-refundable</span>
           </Label>
         </div>
 
-        {/* Terms & Conditions */}
         <div className="flex items-start gap-3">
-          <Checkbox
-            id="terms"
-            checked={termsAccepted}
-            onCheckedChange={onTermsChange}
-            className="mt-1"
-          />
-          <Label
-            htmlFor="terms"
-            className="text-sm text-white/80 leading-relaxed cursor-pointer"
-          >
+          <Checkbox id="terms" checked={termsAccepted} onCheckedChange={onTermsChange} className="mt-1" />
+          <Label htmlFor="terms" className="cursor-pointer text-sm leading-relaxed text-slate-700">
             I agree to the{' '}
-            <a href="/terms" className="text-accent hover:underline font-semibold">
+            <a href="/terms" className="font-semibold text-accent hover:underline">
               terms & conditions
             </a>
           </Label>
         </div>
 
-        {/* Final Votes */}
         <div className="flex items-start gap-3">
           <Checkbox
             id="final-votes"
@@ -72,25 +58,20 @@ export function TermsConsent({
             onCheckedChange={onFinalVotesChange}
             className="mt-1"
           />
-          <Label
-            htmlFor="final-votes"
-            className="text-sm text-white/80 leading-relaxed cursor-pointer"
-          >
-            I understand votes are <span className="font-semibold">final</span> and cannot be
-            changed
+          <Label htmlFor="final-votes" className="cursor-pointer text-sm leading-relaxed text-slate-700">
+            I understand votes are <span className="font-semibold">final</span> and cannot be changed
           </Label>
         </div>
       </div>
 
-      {/* Status Indicator */}
-      <div className="pt-4 border-t border-white/10">
+      <div className="border-t border-slate-200 pt-4">
         {allAccepted ? (
-          <div className="text-sm text-accent flex items-center gap-2">
-            <span className="text-lg">✓</span> All terms accepted
+          <div className="flex items-center gap-2 text-sm text-emerald-700">
+            <span className="text-lg">?</span> All terms accepted
           </div>
         ) : (
-          <div className="text-sm text-white/50 flex items-center gap-2">
-            <span className="text-lg">○</span> Accept all terms to proceed
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <span className="text-lg">?</span> Accept all terms to proceed
           </div>
         )}
       </div>

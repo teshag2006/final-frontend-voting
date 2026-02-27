@@ -28,30 +28,25 @@ export function VoteSummary({
   ];
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-      <h3 className="font-bold text-white text-lg">Order Summary</h3>
+    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+      <h3 className="text-lg font-bold text-slate-900">Order Summary</h3>
 
-      {/* Summary Items */}
       <div className="space-y-3">
         {summaryItems.map((item, idx) => (
-          <div key={idx} className="flex justify-between items-center">
-            <span className="text-white/70">{item.label}:</span>
-            <span className="font-semibold text-white">{item.value}</span>
+          <div key={idx} className="flex items-center justify-between">
+            <span className="text-slate-600">{item.label}:</span>
+            <span className="font-semibold text-slate-900">{item.value}</span>
           </div>
         ))}
       </div>
 
-      {/* Divider */}
-      <div className="border-t border-white/10 pt-4" />
+      <div className="border-t border-slate-200 pt-4" />
 
-      {/* Total */}
-      <div className="flex justify-between items-end">
-        <span className="text-lg font-bold text-white">Total Payable:</span>
+      <div className="flex items-end justify-between">
+        <span className="text-lg font-bold text-slate-900">Total Payable:</span>
         <div className="text-right">
-          <div className="text-3xl font-bold text-accent">
-            ${totalAmount.toFixed(2)}
-          </div>
-          <div className="text-xs text-white/50 mt-1">{currency}</div>
+          <div className="text-3xl font-bold text-accent">${totalAmount.toFixed(2)}</div>
+          <div className="mt-1 text-xs text-slate-500">{currency}</div>
         </div>
       </div>
     </div>

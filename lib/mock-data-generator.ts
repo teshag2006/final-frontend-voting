@@ -1,4 +1,5 @@
-﻿import { mockEvents } from './events-mock';
+import { mockEvents } from './events-mock';
+import { makeUniqueSlug } from './slug';
 
 // Get event by slug
 export function getEventBySlug(slug: string) {
@@ -316,8 +317,15 @@ export function getContestantsForEvent(eventSlug: string) {
       },
     },
   ];
-
-  return baseContestants;
+  const used = new Set<string>();
+  return baseContestants.map((contestant, index) => ({
+    ...contestant,
+    slug: makeUniqueSlug(
+      contestant.slug || contestant.name || contestant.id || `contestant-${index + 1}`,
+      used,
+      'contestant'
+    ),
+  }));
 }
 
 // Generate mock categories for an event
@@ -465,6 +473,7 @@ export function getMediaDashboardData() {
     })),
   };
 }
+
 
 
 

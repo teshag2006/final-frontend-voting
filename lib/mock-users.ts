@@ -11,6 +11,7 @@ export interface UserPreferences {
 export interface UserProfile {
   bio: string;
   phone?: string;
+  phoneVerified?: boolean;
   location?: string;
   birthDate?: string;
   verified: boolean;
@@ -219,6 +220,8 @@ export const mockUsers: User[] = [
     avatar: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Ruth%20Kebede',
     profile: {
       bio: 'Music enthusiast',
+      phone: '+251 911 223 344',
+      phoneVerified: true,
       location: 'Dire Dawa, Ethiopia',
       verified: true,
       verificationDate: '2024-03-01',
@@ -241,6 +244,8 @@ export const mockUsers: User[] = [
     avatar: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Natnael%20Bekele',
     profile: {
       bio: 'Artist and Designer',
+      phone: '+251 922 334 455',
+      phoneVerified: true,
       location: 'Mekelle, Ethiopia',
       verified: true,
       verificationDate: '2024-03-02',
@@ -263,6 +268,8 @@ export const mockUsers: User[] = [
     avatar: 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=Bethel%20Girma',
     profile: {
       bio: 'Creative Director',
+      phone: '+251 933 445 566',
+      phoneVerified: true,
       location: 'Adama, Ethiopia',
       verified: true,
       verificationDate: '2024-03-03',

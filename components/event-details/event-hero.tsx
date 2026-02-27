@@ -80,7 +80,7 @@ export function EventHero({ event }: EventHeroProps) {
       </div>
 
       {/* Content */}
-      <div className="relative mx-auto max-w-7xl px-4 pb-8 pt-28 lg:px-8 lg:pb-12 lg:pt-36">
+      <div className="relative mx-auto max-w-7xl px-4 pb-7 pt-24 lg:px-8 lg:pb-11 lg:pt-32">
         <div className="max-w-xl">
           <h1 className="text-3xl font-bold tracking-tight text-primary-foreground md:text-4xl lg:text-5xl text-balance">
             {event.name}

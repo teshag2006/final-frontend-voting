@@ -6,7 +6,6 @@ import { ProfileBreadcrumb } from "@/components/contestant-profile/profile-bread
 import { ProfileHero } from "@/components/contestant-profile/profile-hero";
 import { PhotoGallery } from "@/components/contestant-profile/photo-gallery";
 import { AboutSection } from "@/components/contestant-profile/about-section";
-import { HybridVotingBanner } from "@/components/contestant-profile/hybrid-voting-banner";
 import { SponsorsSection } from "@/components/contestant-profile/sponsors-section";
 import { VotePanel } from "@/components/contestant-profile/vote-panel";
 import { GeographicSupport } from "@/components/contestant-profile/geographic-support";
@@ -211,7 +210,6 @@ export default async function ContestantProfilePage({
                 contestantName={contestant.name}
               />
               <AboutSection contestant={contestant} />
-              <HybridVotingBanner />
               <SponsorsSection
                 sponsors={sponsorSet}
                 eventSlug={eventSlug}

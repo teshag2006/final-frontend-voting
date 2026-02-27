@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { getSponsorDiscoverContestants } from '@/lib/api';
 import { mockMarketplaceContestants, type MarketplaceContestant } from '@/lib/sponsorship-mock';
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 6;
 
 export default function SponsorsDiscoverPage() {
   const [query, setQuery] = useState('');
@@ -26,18 +26,12 @@ export default function SponsorsDiscoverPage() {
   const [sponsoredStatus, setSponsoredStatus] = useState<'ALL' | 'SPONSORED' | 'UNSPONSORED'>('ALL');
   const [votesGrowthMin, setVotesGrowthMin] = useState('');
   const [followersGrowthMin, setFollowersGrowthMin] = useState('');
-  const [integrityScoreMin, setIntegrityScoreMin] = useState('0');
-  const [integrityScoreMax, setIntegrityScoreMax] = useState('100');
   const [instagramFollowersMin, setInstagramFollowersMin] = useState('');
   const [tiktokFollowersMin, setTiktokFollowersMin] = useState('');
   const [youtubeFollowersMin, setYoutubeFollowersMin] = useState('');
   const [xFollowersMin, setXFollowersMin] = useState('');
   const [facebookFollowersMin, setFacebookFollowersMin] = useState('');
   const [snapchatFollowersMin, setSnapchatFollowersMin] = useState('');
-  const [engagementQualityMin, setEngagementQualityMin] = useState('0');
-  const [fraudRiskMax, setFraudRiskMax] = useState('100');
-  const [profileCompletionMin, setProfileCompletionMin] = useState('0');
-  const [responseRateMin, setResponseRateMin] = useState('0');
   const [deliverableCompletionMin, setDeliverableCompletionMin] = useState('0');
   const [readyNowOnly, setReadyNowOnly] = useState(false);
   const [availableFrom, setAvailableFrom] = useState('');
@@ -46,7 +40,6 @@ export default function SponsorsDiscoverPage() {
   const [highIntegrityOnly, setHighIntegrityOnly] = useState(false);
   const [votesMin, setVotesMin] = useState('');
   const [followersMin, setFollowersMin] = useState('');
-  const [engagementMin, setEngagementMin] = useState('');
   const [industryCategory, setIndustryCategory] = useState('');
   const [page, setPage] = useState(1);
   const [apiContestants, setApiContestants] = useState<MarketplaceContestant[]>(mockMarketplaceContestants);
@@ -69,18 +62,12 @@ export default function SponsorsDiscoverPage() {
       sponsoredStatus,
       votesGrowthMin: votesGrowthMin ? Number(votesGrowthMin) : undefined,
       followersGrowthMin: followersGrowthMin ? Number(followersGrowthMin) : undefined,
-      integrityScoreMin: integrityScoreMin ? Number(integrityScoreMin) : undefined,
-      integrityScoreMax: integrityScoreMax ? Number(integrityScoreMax) : undefined,
       instagramFollowersMin: instagramFollowersMin ? Number(instagramFollowersMin) : undefined,
       tiktokFollowersMin: tiktokFollowersMin ? Number(tiktokFollowersMin) : undefined,
       youtubeFollowersMin: youtubeFollowersMin ? Number(youtubeFollowersMin) : undefined,
       xFollowersMin: xFollowersMin ? Number(xFollowersMin) : undefined,
       facebookFollowersMin: facebookFollowersMin ? Number(facebookFollowersMin) : undefined,
       snapchatFollowersMin: snapchatFollowersMin ? Number(snapchatFollowersMin) : undefined,
-      engagementQualityMin: engagementQualityMin ? Number(engagementQualityMin) : undefined,
-      fraudRiskMax: fraudRiskMax ? Number(fraudRiskMax) : undefined,
-      profileCompletionMin: profileCompletionMin ? Number(profileCompletionMin) : undefined,
-      responseRateMin: responseRateMin ? Number(responseRateMin) : undefined,
       deliverableCompletionMin: deliverableCompletionMin ? Number(deliverableCompletionMin) : undefined,
       readyNowOnly,
       availableFrom: availableFrom || undefined,
@@ -89,7 +76,6 @@ export default function SponsorsDiscoverPage() {
       highIntegrityOnly,
       votesMin: votesMin ? Number(votesMin) : undefined,
       followersMin: followersMin ? Number(followersMin) : undefined,
-      engagementMin: engagementMin ? Number(engagementMin) : undefined,
       industryCategory,
     }).then((res) => {
       if (!mounted || !res) return;
@@ -114,18 +100,12 @@ export default function SponsorsDiscoverPage() {
     sponsoredStatus,
     votesGrowthMin,
     followersGrowthMin,
-    integrityScoreMin,
-    integrityScoreMax,
     instagramFollowersMin,
     tiktokFollowersMin,
     youtubeFollowersMin,
     xFollowersMin,
     facebookFollowersMin,
     snapchatFollowersMin,
-    engagementQualityMin,
-    fraudRiskMax,
-    profileCompletionMin,
-    responseRateMin,
     deliverableCompletionMin,
     readyNowOnly,
     availableFrom,
@@ -134,7 +114,6 @@ export default function SponsorsDiscoverPage() {
     highIntegrityOnly,
     votesMin,
     followersMin,
-    engagementMin,
     industryCategory,
   ]);
 
@@ -166,18 +145,12 @@ export default function SponsorsDiscoverPage() {
         if (sponsoredStatus === 'UNSPONSORED' && contestant.sponsored) return false;
         if (votesGrowthMin && contestant.votes7dGrowth < Number(votesGrowthMin)) return false;
         if (followersGrowthMin && contestant.followers7dGrowth < Number(followersGrowthMin)) return false;
-        if (contestant.integrityScore < Number(integrityScoreMin)) return false;
-        if (contestant.integrityScore > Number(integrityScoreMax)) return false;
         if (instagramFollowersMin && instagramFollowers < Number(instagramFollowersMin)) return false;
         if (tiktokFollowersMin && tiktokFollowers < Number(tiktokFollowersMin)) return false;
         if (youtubeFollowersMin && youtubeFollowers < Number(youtubeFollowersMin)) return false;
         if (xFollowersMin && xFollowers < Number(xFollowersMin)) return false;
         if (facebookFollowersMin && facebookFollowers < Number(facebookFollowersMin)) return false;
         if (snapchatFollowersMin && snapchatFollowers < Number(snapchatFollowersMin)) return false;
-        if (contestant.engagementQualityScore < Number(engagementQualityMin)) return false;
-        if (contestant.fraudRiskScore > Number(fraudRiskMax)) return false;
-        if (contestant.profileCompletion < Number(profileCompletionMin)) return false;
-        if (contestant.responseRatePct < Number(responseRateMin)) return false;
         if (contestant.deliverableCompletionPct < Number(deliverableCompletionMin)) return false;
         if (readyNowOnly && !contestant.readyNow) return false;
         if (!Number.isNaN(availableFromTime) && availableDate < availableFromTime) return false;
@@ -186,7 +159,6 @@ export default function SponsorsDiscoverPage() {
         if (highIntegrityOnly && contestant.integrityStatus !== 'verified') return false;
         if (votesMin && contestant.votes < Number(votesMin)) return false;
         if (followersMin && contestant.followers < Number(followersMin)) return false;
-        if (engagementMin && contestant.engagementRate < Number(engagementMin)) return false;
         if (industryCategory.trim()) {
           const normalized = industryCategory.trim().toLowerCase();
           if (!contestant.category.toLowerCase().includes(normalized)) return false;
@@ -212,18 +184,12 @@ export default function SponsorsDiscoverPage() {
     sponsoredStatus,
     votesGrowthMin,
     followersGrowthMin,
-    integrityScoreMin,
-    integrityScoreMax,
     instagramFollowersMin,
     tiktokFollowersMin,
     youtubeFollowersMin,
     xFollowersMin,
     facebookFollowersMin,
     snapchatFollowersMin,
-    engagementQualityMin,
-    fraudRiskMax,
-    profileCompletionMin,
-    responseRateMin,
     deliverableCompletionMin,
     readyNowOnly,
     availableFrom,
@@ -232,7 +198,6 @@ export default function SponsorsDiscoverPage() {
     highIntegrityOnly,
     votesMin,
     followersMin,
-    engagementMin,
     industryCategory,
   ]);
 
@@ -242,7 +207,6 @@ export default function SponsorsDiscoverPage() {
   const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
   const maxVotes = Math.max(...apiContestants.map((item) => item.votes), 1000);
   const maxFollowers = Math.max(...apiContestants.map((item) => item.followers), 1000);
-  const maxEngagement = Math.max(...apiContestants.map((item) => item.engagementRate), 10);
   const maxBudget = Math.max(...apiContestants.map((item) => item.expectedSponsorshipUsd), 1000);
   const maxInstagramFollowers = Math.max(
     ...apiContestants.map((item) => item.socialPlatforms.find((platform) => platform.platform === 'Instagram')?.followers || 0),
@@ -285,8 +249,8 @@ export default function SponsorsDiscoverPage() {
       </header>
 
       <main className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-        <section className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
-          <aside className="h-fit space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm xl:sticky xl:top-32">
+        <section className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)_minmax(0,1fr)]">
+          <aside className="h-fit space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:sticky lg:top-32">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
@@ -487,15 +451,6 @@ export default function SponsorsDiscoverPage() {
               }}
             />
             <FilterSlider
-              label="Engagement %"
-              value={engagementMin ? Number(engagementMin) : 0}
-              max={Math.ceil(maxEngagement)}
-              onChange={(value) => {
-                setEngagementMin(value > 0 ? String(value) : '');
-                setPage(1);
-              }}
-            />
-            <FilterSlider
               label="Votes 7d Growth Min %"
               value={votesGrowthMin ? Number(votesGrowthMin) : 0}
               max={30}
@@ -510,24 +465,6 @@ export default function SponsorsDiscoverPage() {
               max={20}
               onChange={(value) => {
                 setFollowersGrowthMin(value > 0 ? String(value) : '');
-                setPage(1);
-              }}
-            />
-            <FilterSlider
-              label="Integrity Score Min"
-              value={Number(integrityScoreMin)}
-              max={100}
-              onChange={(value) => {
-                setIntegrityScoreMin(String(value));
-                setPage(1);
-              }}
-            />
-            <FilterSlider
-              label="Integrity Score Max"
-              value={Number(integrityScoreMax)}
-              max={100}
-              onChange={(value) => {
-                setIntegrityScoreMax(String(value));
                 setPage(1);
               }}
             />
@@ -582,42 +519,6 @@ export default function SponsorsDiscoverPage() {
               max={maxSnapchatFollowers}
               onChange={(value) => {
                 setSnapchatFollowersMin(value > 0 ? String(value) : '');
-                setPage(1);
-              }}
-            />
-            <FilterSlider
-              label="Engagement Quality Min"
-              value={Number(engagementQualityMin)}
-              max={100}
-              onChange={(value) => {
-                setEngagementQualityMin(String(value));
-                setPage(1);
-              }}
-            />
-            <FilterSlider
-              label="Fraud Risk Max"
-              value={Number(fraudRiskMax)}
-              max={100}
-              onChange={(value) => {
-                setFraudRiskMax(String(value));
-                setPage(1);
-              }}
-            />
-            <FilterSlider
-              label="Profile Completion Min"
-              value={Number(profileCompletionMin)}
-              max={100}
-              onChange={(value) => {
-                setProfileCompletionMin(String(value));
-                setPage(1);
-              }}
-            />
-            <FilterSlider
-              label="Response Rate Min"
-              value={Number(responseRateMin)}
-              max={100}
-              onChange={(value) => {
-                setResponseRateMin(String(value));
                 setPage(1);
               }}
             />
@@ -714,7 +615,7 @@ export default function SponsorsDiscoverPage() {
             </article>
           </aside>
 
-          <section className="space-y-4">
+          <section className="space-y-4 lg:col-span-2">
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
               <div className="flex items-center justify-between">
                 <p className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
@@ -727,7 +628,7 @@ export default function SponsorsDiscoverPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {paginated.map((contestant) => (
                 <article key={contestant.slug} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                   <div className="relative h-44">
@@ -749,8 +650,8 @@ export default function SponsorsDiscoverPage() {
                       )}
                     </div>
                     <div className="absolute bottom-3 left-3 right-3">
-                      <h2 className="text-3xl font-semibold text-white">{contestant.name}</h2>
-                      <p className="text-sm text-slate-100">
+                      <h2 className="text-2xl font-semibold text-white">{contestant.name}</h2>
+                      <p className="text-xs text-slate-100">
                         {contestant.category} | {contestant.age} yrs | {contestant.gender.replace(/_/g, ' ')}
                       </p>
                     </div>
@@ -775,10 +676,10 @@ export default function SponsorsDiscoverPage() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button asChild variant="outline" className="flex-1">
+                      <Button asChild variant="outline" className="flex-1 text-xs">
                         <Link href={`/sponsors/${contestant.slug}`}>View Details</Link>
                       </Button>
-                      <Button asChild className="flex-1">
+                      <Button asChild className="flex-1 px-0 text-xs">
                         <Link href={`/sponsors/campaigns?contestant=${contestant.slug}`}>Request Sponsorship</Link>
                       </Button>
                     </div>

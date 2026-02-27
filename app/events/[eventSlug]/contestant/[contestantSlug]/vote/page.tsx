@@ -50,8 +50,8 @@ export default function VoteSelectionPage() {
     if (!eligibility.freeEligible) {
       return;
     }
-    setIsSMSModalOpen(true);
-  }, [eligibility.freeEligible]);
+    router.push(`/events/${eventSlug}/contestant/${contestantSlug}/vote/free`);
+  }, [eligibility.freeEligible, eventSlug, contestantSlug, router]);
 
   // Handle SMS verification and free vote submission
   const handleVerifyAndCastVote = useCallback(
@@ -77,9 +77,7 @@ export default function VoteSelectionPage() {
     setErrorMessage(null);
     try {
       router.push(
-        `/vote/checkout?eventSlug=${encodeURIComponent(eventSlug)}&contestantSlug=${encodeURIComponent(
-          contestantSlug
-        )}&quantity=${quantity}`
+        `/events/${eventSlug}/contestant/${contestantSlug}/vote/paid`
       );
     } catch (error) {
       setErrorMessage("Checkout is temporarily unavailable. Please try again.");

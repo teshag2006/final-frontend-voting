@@ -20,7 +20,7 @@ export function VotePanel({
   isActive,
 }: VotePanelProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"free" | "paid">("paid");
+  const [activeTab, setActiveTab] = useState<"free" | "paid">("free");
 
   return (
     <div className="overflow-hidden rounded-[24px] border border-white/80 bg-white/90 shadow-[0_18px_38px_-24px_rgba(33,46,105,0.55)] backdrop-blur">
@@ -61,10 +61,12 @@ export function VotePanel({
         {activeTab === "free" ? (
           <div className="rounded-xl border border-border/80 bg-secondary/40 px-4 py-6 text-center">
             <p className="text-base text-muted-foreground">
-              1 free SMS-verified vote per event for Ethiopian voters.
+              1 free SMS-verified vote per category per event for Ethiopian voters.
             </p>
             <button
-              onClick={() => router.push(`/events/${eventSlug}/contestant/${contestantSlug}/vote`)}
+              onClick={() =>
+                router.push(`/events/${eventSlug}/contestant/${contestantSlug}/vote/free`)
+              }
               disabled={!isActive}
               className="mt-4 w-full rounded-xl bg-accent px-4 py-2.5 text-base font-semibold text-accent-foreground transition-all hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -80,7 +82,7 @@ export function VotePanel({
             <button
               onClick={() =>
                 router.push(
-                  `/vote/checkout?eventSlug=${encodeURIComponent(eventSlug)}&contestantSlug=${encodeURIComponent(contestantSlug)}&quantity=1`
+                  `/events/${eventSlug}/contestant/${contestantSlug}/vote/paid`
                 )
               }
               disabled={!isActive}

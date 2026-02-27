@@ -1,11 +1,12 @@
 import 'server-only';
 
 import type { SessionUser } from '@/lib/server/session';
-import { mockWalletData } from '@/lib/voter-dashboard-mock';
+import { getUserById } from '@/lib/mock-users';
 
 type PaymentStatus = 'pending' | 'confirmed' | 'failed' | 'refunded';
 
 interface FreeVoteLedger {
+  eventSlug: string;
   categoryId: string;
   categoryName: string;
   used: boolean;
@@ -74,14 +75,20 @@ function mkReceipt() {
 function ensureVoterState(user: SessionUser): VoterRuntimeState {
   const existing = voterStore.get(user.id);
   if (existing) return existing;
+  const storedUser = getUserById(user.id);
+  const initialPhoneVerified = Boolean(storedUser?.profile?.phoneVerified);
+  const initialPhoneNumber =
+    initialPhoneVerified && storedUser?.profile?.phone
+      ? String(storedUser.profile.phone)
+      : '';
 
   const seeded: VoterRuntimeState = {
     voterId: user.id,
     profile: {
       fullName: user.name || 'Voter',
       email: user.email || '',
-      phoneNumber: '',
-      phoneVerified: false,
+      phoneNumber: initialPhoneNumber,
+      phoneVerified: initialPhoneVerified,
       googleLinked: false,
       createdAt: nowIso(),
     },
@@ -106,6 +113,7 @@ function toWalletResponse(state: VoterRuntimeState) {
     isPhoneVerified: state.profile.phoneVerified,
     phoneNumber: state.profile.phoneNumber,
     freeVotes: state.freeVotes.map((item) => ({
+      eventSlug: item.eventSlug,
       categoryId: item.categoryId,
       categoryName: item.categoryName,
       isEligible: state.profile.phoneVerified,
@@ -124,13 +132,6 @@ export function verifyVoterPhone(user: SessionUser, phoneNumber: string) {
   const state = ensureVoterState(user);
   state.profile.phoneVerified = true;
   state.profile.phoneNumber = phoneNumber;
-  if (state.freeVotes.length === 0) {
-    state.freeVotes = (mockWalletData.freeVotes || []).map((item: any) => ({
-      categoryId: String(item.categoryId),
-      categoryName: String(item.categoryName),
-      used: false,
-    }));
-  }
   return {
     success: true,
     wallet: toWalletResponse(state),
@@ -211,6 +212,8 @@ export function registerVoterPayment(
 export function castVoterVote(
   user: SessionUser,
   payload: {
+    eventSlug?: string;
+    eventName?: string;
     categoryId: string;
     categoryName?: string;
     contestantName?: string;
@@ -223,6 +226,7 @@ export function castVoterVote(
   if (!categoryId) throw new Error('categoryId is required');
 
   const quantity = Math.max(1, Number(payload.quantity || 1));
+  const eventSlug = String(payload.eventSlug || '').trim();
 
   if (payload.isPaid) {
     if (state.paidVotesRemaining < quantity) {
@@ -250,7 +254,7 @@ export function castVoterVote(
     state.totalVotesUsed += quantity;
     const vote: VoteLedger = {
       id: mkId('vote'),
-      eventName: 'Campus Star 2026',
+      eventName: payload.eventName || eventSlug || 'Event',
       categoryId,
       categoryName: payload.categoryName || 'Paid Vote Category',
       contestantName: payload.contestantName || 'Contestant',
@@ -269,11 +273,23 @@ export function castVoterVote(
   }
 
   if (!state.profile.phoneVerified) throw new Error('Phone verification required for free vote');
+  if (!eventSlug) throw new Error('eventSlug is required for free vote');
+  if (quantity !== 1) throw new Error('Only one free vote is allowed per category per event');
 
-  const category = state.freeVotes.find((item) => item.categoryId === categoryId);
-  if (!category) throw new Error('Unknown category');
+  let category = state.freeVotes.find(
+    (item) => item.eventSlug === eventSlug && item.categoryId === categoryId
+  );
+  if (!category) {
+    category = {
+      eventSlug,
+      categoryId,
+      categoryName: payload.categoryName || categoryId,
+      used: false,
+    };
+    state.freeVotes.push(category);
+  }
   if (category.used) {
-    throw new Error('Free vote already used for this category');
+    throw new Error('Free vote already used for this category in this event');
   }
 
   category.used = true;
@@ -281,7 +297,7 @@ export function castVoterVote(
 
   const vote: VoteLedger = {
     id: mkId('vote'),
-    eventName: 'Campus Star 2026',
+    eventName: payload.eventName || eventSlug || 'Event',
     categoryId: category.categoryId,
     categoryName: payload.categoryName || category.categoryName,
     contestantName: payload.contestantName || 'Contestant',

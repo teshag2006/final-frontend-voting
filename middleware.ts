@@ -106,18 +106,13 @@ export async function middleware(request: NextRequest) {
 
 // Configure which routes to run middleware on
 export const config = {
-  matcher:
-    process.env.NODE_ENV !== 'production'
-      ? []
-      : [
-          /*
-           * Match all request paths except for the ones starting with:
-           * - api (API routes)
-           * - _next/static (static files)
-           * - _next/image (image optimization files)
-           * - favicon.ico (favicon file)
-           * - public folder
-           */
-          '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
-        ],
+  /*
+   * Match all request paths except for the ones starting with:
+   * - api (API routes)
+   * - _next/static (static files)
+   * - _next/image (image optimization files)
+   * - favicon.ico (favicon file)
+   * - public folder
+   */
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|public).*)'],
 };
