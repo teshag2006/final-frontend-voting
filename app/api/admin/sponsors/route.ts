@@ -1,41 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import type { Sponsor } from '@/types/contestant';
-import { mockSponsorInventory } from '@/lib/sponsorship-mock';
-import {
-  getAdminSponsors,
-  seedAdminSponsors,
-  updateAdminSponsor,
-} from '@/lib/admin-sponsors-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-let seeded = false;
-
-function ensureSeeded() {
-  if (seeded) return;
-  seedAdminSponsors(mockSponsorInventory);
-  seeded = true;
+export async function GET(request: Request) {
+  return proxyRequest(request, '/sponsors');
 }
 
-export async function GET() {
-  ensureSeeded();
-  return NextResponse.json(getAdminSponsors());
+export async function POST(request: Request) {
+  return proxyRequest(request, '/sponsors');
 }
 
-export async function PATCH(request: NextRequest) {
-  ensureSeeded();
-  const payload = (await request.json()) as {
-    id?: string;
-    patch?: Partial<Sponsor>;
-  };
+export async function PATCH(request: Request) {
+  return proxyRequest(request, '/sponsors');
+}
 
-  const id = String(payload.id || '').trim();
-  if (!id) {
-    return NextResponse.json({ message: 'id is required' }, { status: 400 });
-  }
+export async function PUT(request: Request) {
+  return proxyRequest(request, '/sponsors');
+}
 
-  const updated = updateAdminSponsor(id, payload.patch || {});
-  if (!updated) {
-    return NextResponse.json({ message: 'Sponsor not found' }, { status: 404 });
-  }
-
-  return NextResponse.json(updated);
+export async function DELETE(request: Request) {
+  return proxyRequest(request, '/sponsors');
 }

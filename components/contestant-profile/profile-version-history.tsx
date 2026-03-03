@@ -1,6 +1,6 @@
 'use client';
 
-import type { ContestantProfileVersion } from '@/lib/contestant-runtime-store';
+import type { ContestantProfileVersion } from '@/lib/contestant-types';
 
 export function ProfileVersionHistory({ versions }: { versions: ContestantProfileVersion[] }) {
   return (
@@ -22,3 +22,4 @@ export function ProfileVersionHistory({ versions }: { versions: ContestantProfil
     </section>
   );
 }
+

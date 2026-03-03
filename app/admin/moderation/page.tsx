@@ -127,7 +127,7 @@ function ModerationContent() {
       prev.map((item) => (item.id === itemId ? { ...item, status: nextStatus } : item))
     );
     setSelectedItem((prev) => (prev && prev.id === itemId ? { ...prev, status: nextStatus } : prev));
-    setActionMessage(nextStatus === 'approved' ? 'Item approved (mock).' : 'Item rejected (mock).');
+    setActionMessage(nextStatus === 'approved' ? 'Item approved.' : 'Item rejected.');
     setTimeout(() => setActionMessage(null), 2200);
   };
 

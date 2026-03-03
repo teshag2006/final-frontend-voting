@@ -1,29 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import {
-  createSponsorCampaign,
-  getSponsorCampaignTracking,
-  type CreateSponsorCampaignPayload,
-} from '@/lib/sponsor-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-export async function GET(request: NextRequest) {
-  const contestantSlug = request.nextUrl.searchParams.get('contestant');
-  return NextResponse.json(getSponsorCampaignTracking(contestantSlug || undefined));
+export async function GET(request: Request) {
+  return proxyRequest(request, '/sponsor/campaigns');
 }
 
-export async function POST(request: NextRequest) {
-  const payload = (await request.json()) as Partial<CreateSponsorCampaignPayload>;
-  if (!payload.action || !payload.sponsorName || !payload.contestantSlug || !payload.campaignTitle) {
-    return NextResponse.json({ message: 'Invalid campaign payload' }, { status: 400 });
-  }
-
-  const created = createSponsorCampaign({
-    action: payload.action,
-    sponsorName: payload.sponsorName,
-    contestantSlug: payload.contestantSlug,
-    campaignTitle: payload.campaignTitle,
-    paymentReference: payload.paymentReference,
-    deliverablesTotal: Number(payload.deliverablesTotal || 1),
-  });
-
-  return NextResponse.json(created, { status: 201 });
+export async function POST(request: Request) {
+  return proxyRequest(request, '/sponsor/campaigns');
 }

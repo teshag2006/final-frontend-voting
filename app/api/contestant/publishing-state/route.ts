@@ -1,14 +1,5 @@
-import { NextResponse } from 'next/server';
-import { getContestantPublishingState } from '@/lib/contestant-runtime-store';
-import { getAdminSettingsBundle } from '@/lib/admin-settings-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-export async function GET() {
-  const settings = getAdminSettingsBundle();
-  const rawLimit = Number(settings?.event?.maxGalleryPhotosPerContestant);
-  const maxGalleryPhotosPerContestant = Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 10;
-
-  return NextResponse.json({
-    ...getContestantPublishingState(),
-    maxGalleryPhotosPerContestant,
-  });
+export async function GET(request: Request) {
+  return proxyRequest(request, '/contestant/publishing-state');
 }

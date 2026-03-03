@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { uploadMediaFile } from '@/lib/client/upload-media';
-import type { AdminContentState } from '@/lib/admin-content-runtime-store';
+import type { AdminContentState } from '@/lib/admin-content-types';
 
 export default function ContentCmsSlidersPage() {
   const [state, setState] = useState<AdminContentState | null>(null);
@@ -274,3 +274,4 @@ export default function ContentCmsSlidersPage() {
     </section>
   );
 }
+

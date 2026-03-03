@@ -10,7 +10,7 @@ import type { ContestantData } from '@/components/admin/contestants-table';
 import type {
   ContestantChangeRequest,
   ContestantPublishingState,
-} from '@/lib/contestant-runtime-store';
+} from '@/lib/contestant-types';
 
 export default function AdminRegistrationReviewPage() {
   const [contestants, setContestants] = useState<ContestantData[]>([]);
@@ -151,6 +151,8 @@ export default function AdminRegistrationReviewPage() {
       }
 
       const payload = (await response.json()) as {
+        access_token?: string;
+        refresh_token?: string;
         user?: { id: string; email: string; name: string; role: 'contestant'; avatar?: string };
       };
       if (!payload.user) {
@@ -161,19 +163,12 @@ export default function AdminRegistrationReviewPage() {
       localStorage.setItem('auth_user_id', payload.user.id);
       localStorage.setItem('auth_user_role', payload.user.role);
       localStorage.setItem('auth_impersonation_user', JSON.stringify(payload.user));
-
-      const expiresAt = Date.now() + 60 * 60 * 1000;
-      const token = btoa(
-        JSON.stringify({
-          id: payload.user.id,
-          email: payload.user.email,
-          role: payload.user.role,
-          name: payload.user.name,
-        })
-      );
-      localStorage.setItem('auth_token', `${token}.${Date.now()}`);
-      localStorage.setItem('refresh_token', Math.random().toString(36).slice(2));
-      localStorage.setItem('token_expires_at', String(expiresAt));
+      if (payload.access_token) {
+        localStorage.setItem('auth_token', payload.access_token);
+      }
+      if (payload.refresh_token) {
+        localStorage.setItem('refresh_token', payload.refresh_token);
+      }
 
       window.location.href = '/events/contestant/dashboard';
     } catch {
@@ -401,3 +396,4 @@ export default function AdminRegistrationReviewPage() {
     </ProtectedRouteWrapper>
   );
 }
+

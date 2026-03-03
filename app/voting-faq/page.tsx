@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ProfileFAQ } from "@/components/contestant-profile/profile-faq";
-import { mockProfileFAQ } from "@/lib/contestant-profile-mock";
+import { getProfileFAQ } from "@/lib/contestant-profile-data";
 
 export const metadata: Metadata = {
   title: "Voting FAQ | Miss & Mr Africa",
   description: "Answers to common voting questions, limits, pricing, and verification.",
 };
 
-export default function VotingFAQPage() {
+export default async function VotingFAQPage() {
+  const profileFaq = await getProfileFAQ();
+
   return (
     <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,#ffffff_0%,#eef2ff_45%,#e7ecff_100%)]">
       <Navbar />
@@ -26,7 +28,7 @@ export default function VotingFAQPage() {
           </div>
 
           <div className="mt-6">
-            <ProfileFAQ items={mockProfileFAQ} />
+            <ProfileFAQ items={profileFaq} />
           </div>
         </section>
       </main>
@@ -35,3 +37,4 @@ export default function VotingFAQPage() {
     </div>
   );
 }
+

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getSponsorDiscoverContestants } from '@/lib/api';
-import { mockMarketplaceContestants, type MarketplaceContestant } from '@/lib/sponsorship-mock';
+import type { MarketplaceContestant } from '@/lib/types';
 
 const PAGE_SIZE = 6;
 
@@ -42,7 +42,7 @@ export default function SponsorsDiscoverPage() {
   const [followersMin, setFollowersMin] = useState('');
   const [industryCategory, setIndustryCategory] = useState('');
   const [page, setPage] = useState(1);
-  const [apiContestants, setApiContestants] = useState<MarketplaceContestant[]>(mockMarketplaceContestants);
+  const [apiContestants, setApiContestants] = useState<MarketplaceContestant[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -79,7 +79,7 @@ export default function SponsorsDiscoverPage() {
       industryCategory,
     }).then((res) => {
       if (!mounted || !res) return;
-      setApiContestants(res);
+      setApiContestants(res as MarketplaceContestant[]);
     });
 
     return () => {

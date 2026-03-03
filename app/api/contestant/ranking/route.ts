@@ -1,6 +1,21 @@
-import { NextResponse } from 'next/server';
-import { mockRankingData } from '@/lib/dashboard-mock';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-export async function GET() {
-  return NextResponse.json(mockRankingData);
+export async function GET(request: Request) {
+  return proxyRequest(request, '/contestant/ranking');
+}
+
+export async function POST(request: Request) {
+  return proxyRequest(request, '/contestant/ranking');
+}
+
+export async function PATCH(request: Request) {
+  return proxyRequest(request, '/contestant/ranking');
+}
+
+export async function PUT(request: Request) {
+  return proxyRequest(request, '/contestant/ranking');
+}
+
+export async function DELETE(request: Request) {
+  return proxyRequest(request, '/contestant/ranking');
 }

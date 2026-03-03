@@ -1,0 +1,203 @@
+{
+  "name": "Voting System Fraud Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fraud-alert",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "fraud-alert"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.severity }}",
+              "operation": "is",
+              "value2": "critical"
+            }
+          ]
+        }
+      },
+      "id": "severity-check",
+      "name": "Check Severity",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "operation": "format",
+        "format": "markdown",
+        "data": "={{ $json.fraud_alert }}"
+      },
+      "id": "format-critical",
+      "name": "Format Critical Alert",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [750, 150]
+    },
+    {
+      "parameters": {
+        "operation": "format",
+        "format": "markdown",
+        "data": "={{ $json.fraud_alert }}"
+      },
+      "id": "format-normal",
+      "name": "Format Normal Alert",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [750, 450]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_ADMIN_CHAT_ID",
+        "text": "🚨 *FRAUD ALERT* 🚨\n\n*Type:* {{ $json.alert_type }}\n*Severity:* {{ $json.severity }}\n*Risk Score:* {{ $json.fraud_alert.riskScore }}%\n\n*Details:*\n- IP: {{ $json.fraud_alert.ipAddress }}\n- VPN: {{ $json.fraud_alert.isVPN }}\n- Proxy: {{ $json.fraud_alert.isProxy }}\n- Votes/hr: {{ $json.fraud_alert.votesInLastHour }}\n\n*AI Analysis:*\n{{ $json.ai_analysis.summary }}\n\n*Recommended:* {{ $json.ai_analysis.recommended_action }}",
+        "additionalFields": {}
+      },
+      "id": "telegram-critical",
+      "name": "Telegram (Critical)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1000, 150]
+    },
+    {
+      "parameters": {
+        "phoneNumberId": "YOUR_PHONE_NUMBER_ID",
+        "from": "YOUR_WHATSAPP_NUMBER",
+        "to": "YOUR_ADMIN_NUMBER",
+        "message": "🚨 FRAUD ALERT!\n\nType: {{ $json.alert_type }}\nSeverity: {{ $json.severity }}\nRisk: {{ $json.fraud_alert.riskScore }}%\n\nIP: {{ $json.fraud_alert.ipAddress }}\nVPN: {{ $json.fraud_alert.isVPN }}\n\nAI: {{ $json.ai_analysis.summary }}"
+      },
+      "id": "whatsapp-critical",
+      "name": "WhatsApp (Critical)",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_ADMIN_CHAT_ID",
+        "text": "⚠️ *Fraud Warning*\n\n*Type:* {{ $json.alert_type }}\n*Risk Score:* {{ $json.fraud_alert.riskScore }}%\n\nIP: {{ $json.fraud_alert.ipAddress }}\nVPN: {{ $json.fraud_alert.isVPN }}",
+        "additionalFields": {}
+      },
+      "id": "telegram-normal",
+      "name": "Telegram (Normal)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1000, 450]
+    },
+    {
+      "parameters": {
+        "operation": "format",
+        "format": "markdown",
+        "data": "{\"status\": \"processed\", \"alert_type\": \"={{ $json.alert_type }}\", \"sent_to_telegram\": true, \"sent_to_whatsapp\": true}"
+      },
+      "id": "response",
+      "name": "Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Severity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Severity": {
+      "main": [
+        [
+          {
+            "node": "Format Critical Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Normal Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Critical Alert": {
+      "main": [
+        [
+          {
+            "node": "Telegram (Critical)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Normal Alert": {
+      "main": [
+        [
+          {
+            "node": "Telegram (Normal)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram (Critical)": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp (Critical)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram (Normal)": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp (Critical)": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "staticData": null,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "id": "fraud-alert-workflow"
+}

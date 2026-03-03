@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server';
-import { clearSessionCookie } from '@/lib/server/auth-route-utils';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-export async function POST() {
-  return clearSessionCookie(NextResponse.json({ success: true }));
+export async function POST(request: Request) {
+  return proxyRequest(request, '/auth/logout');
 }

@@ -1,10 +1,12 @@
-import { NextResponse } from 'next/server';
-import { getContestantSponsors } from '@/lib/sponsorship-mock';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
 export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ eventSlug: string; contestantSlug: string }> }
+  request: Request,
+  context: { params: Promise<{ eventSlug: string; contestantSlug: string }> }
 ) {
-  const { eventSlug, contestantSlug } = await params;
-  return NextResponse.json(getContestantSponsors(eventSlug, contestantSlug));
+  const { eventSlug, contestantSlug } = await context.params;
+  return proxyRequest(
+    request,
+    `/public/event/${encodeURIComponent(eventSlug)}/contestant/${encodeURIComponent(contestantSlug)}/sponsors`
+  );
 }

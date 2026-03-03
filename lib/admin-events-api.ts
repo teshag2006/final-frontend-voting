@@ -6,7 +6,10 @@
 
 import { AdminEvent, CreateEventPayload, UpdateEventPayload, ChangeEventStatusPayload } from '@/types/admin-event';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  '/api/v1';
 
 class AdminEventsAPI {
   /**

@@ -1,6 +1,6 @@
 'use client';
 
-import type { ContestantAudienceInsight } from '@/lib/contestant-runtime-store';
+import type { ContestantAudienceInsight } from '@/lib/contestant-types';
 
 export function AudienceInsightsPanel({ insights }: { insights: ContestantAudienceInsight[] }) {
   return (
@@ -33,3 +33,4 @@ export function AudienceInsightsPanel({ insights }: { insights: ContestantAudien
     </div>
   );
 }
+

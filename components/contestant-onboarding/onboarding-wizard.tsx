@@ -10,7 +10,7 @@ import type {
   ContestantOnboardingData,
   ContestantReadiness,
   ContestantSubmissionStatus,
-} from '@/lib/contestant-runtime-store';
+} from '@/lib/contestant-types';
 
 const STEPS = ['Basic Info', 'Compliance', 'Review'];
 
@@ -119,3 +119,4 @@ export function OnboardingWizard({
     </div>
   );
 }
+

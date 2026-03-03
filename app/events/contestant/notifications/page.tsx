@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { getContestantPriorityNotifications, getNotifications } from '@/lib/api';
-import { mockNotifications } from '@/lib/dashboard-mock';
 import { NotificationPriorityList } from '@/components/dashboard/notification-priority-list';
 
 export const metadata: Metadata = {
@@ -9,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NotificationsPage() {
-  const notifications = (await getNotifications()) || mockNotifications;
+  const notifications = (await getNotifications()) || [];
   const priorityNotifications = (await getContestantPriorityNotifications()) || [];
   const unread = notifications.filter((n) => !n.read);
   const read = notifications.filter((n) => n.read);
@@ -68,3 +67,4 @@ function Section({
     </div>
   );
 }
+

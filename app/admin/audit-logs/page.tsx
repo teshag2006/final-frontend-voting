@@ -1,19 +1,26 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuditSummaryCards } from '@/components/admin/audit-summary-cards';
 import { AuditLogsTable } from '@/components/admin/audit-logs-table';
 import { AuditLogDetailModal } from '@/components/admin/audit-log-detail-modal';
-import { generateAuditLogs, getAuditLogSummary } from '@/lib/audit-logs-mock';
+import { generateAuditLogs, getAuditLogSummary } from '@/lib/audit-logs-data';
 import { type AuditLog } from '@/types/audit-logs';
 import { Download, RefreshCw, Filter } from 'lucide-react';
 
 export default function AuditLogsPage() {
-  const [logs, setLogs] = useState<AuditLog[]>(generateAuditLogs(50));
-  const [summary, setSummary] = useState(getAuditLogSummary());
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [summary, setSummary] = useState({
+    totalLogsToday: 0,
+    securityEvents: 0,
+    failedOperations: 0,
+    roleChanges: 0,
+    paymentActions: 0,
+    blockchainEvents: 0,
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -33,12 +40,18 @@ export default function AuditLogsPage() {
 
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  useEffect(() => {
+    void handleRefresh();
+  }, []);
+
   const handleRefresh = useCallback(async () => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setLogs(generateAuditLogs(50));
-    setSummary(getAuditLogSummary());
+    const [nextLogs, nextSummary] = await Promise.all([
+      generateAuditLogs(50),
+      getAuditLogSummary(),
+    ]);
+    setLogs(nextLogs);
+    setSummary(nextSummary);
     setIsLoading(false);
   }, []);
 
@@ -190,3 +203,4 @@ export default function AuditLogsPage() {
     </div>
   );
 }
+

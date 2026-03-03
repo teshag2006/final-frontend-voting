@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { mockEvents } from '@/lib/events-mock';
+import { getAllEvents } from '@/lib/api';
 import { Navbar } from '@/components/navbar';
 
 export const metadata = {
@@ -8,8 +8,9 @@ export const metadata = {
   description: 'Browse active and upcoming events.',
 };
 
-export default function CategoriesPage() {
-  const activeAndUpcomingEvents = mockEvents.filter(
+export default async function CategoriesPage() {
+  const events = await getAllEvents({ page: 1, limit: 100 });
+  const activeAndUpcomingEvents = events.items.filter(
     (event) => event.status === 'LIVE' || event.status === 'UPCOMING'
   );
 

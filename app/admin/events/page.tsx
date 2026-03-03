@@ -13,7 +13,7 @@ import {
   generateMockEvents,
   filterEventsByStatus,
   sortEvents,
-} from '@/lib/events-management-mock';
+} from '@/lib/events-management-data';
 
 type FilterTab = 'all' | 'active' | 'upcoming' | 'closed';
 
@@ -28,13 +28,15 @@ export default function AdminEventsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTableLoading, setIsTableLoading] = useState(true);
 
-  // Initialize mock data
+  // Initialize events data from backend
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setEvents(generateMockEvents());
+    const loadEvents = async () => {
+      setIsTableLoading(true);
+      const rows = await generateMockEvents();
+      setEvents(rows);
       setIsTableLoading(false);
-    }, 500);
+    };
+    void loadEvents();
   }, []);
 
   // Apply filters and sorting
@@ -235,4 +237,5 @@ export default function AdminEventsPage() {
     </ProtectedRouteWrapper>
   );
 }
+
 

@@ -4,7 +4,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { AdminContentState } from '@/lib/admin-content-runtime-store';
+import type { AdminContentState } from '@/lib/admin-content-types';
 
 export default function ContentCmsHomepagePage() {
   const [state, setState] = useState<AdminContentState | null>(null);
@@ -69,3 +69,4 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
     </label>
   );
 }
+

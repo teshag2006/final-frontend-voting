@@ -1,6 +1,6 @@
 'use client';
 
-import type { ContestantSponsorOfferThreadMessage } from '@/lib/contestant-runtime-store';
+import type { ContestantSponsorOfferThreadMessage } from '@/lib/contestant-types';
 
 export function OfferThread({ messages }: { messages: ContestantSponsorOfferThreadMessage[] }) {
   return (
@@ -20,3 +20,4 @@ export function OfferThread({ messages }: { messages: ContestantSponsorOfferThre
     </div>
   );
 }
+

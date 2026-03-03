@@ -3,14 +3,26 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CheckCircle2, AlertCircle, Copy, ExternalLink } from 'lucide-react';
-import { mockBlockchainStatus, mockAnchoredBatches } from '@/lib/media-mock';
+import { getMediaBlockchain } from '@/lib/api';
 
 export const metadata = {
   title: 'Blockchain Transparency | Media Dashboard',
   description: 'Blockchain verification and transparency information.',
 };
 
-export default function MediaBlockchainPage() {
+export default async function MediaBlockchainPage() {
+  const blockchain = (await getMediaBlockchain()) || {};
+  const blockchainStatus = blockchain?.status || {
+    networkStatus: 'Disconnected',
+    currentBlockHeight: 0,
+    totalAnchoredBatches: 0,
+    networkName: 'Unknown',
+    contractAddress: '',
+  };
+  const anchoredBatches = Array.isArray(blockchain?.recentBatches)
+    ? blockchain.recentBatches
+    : [];
+
   return (
       <main className="space-y-6 px-4 py-8 md:px-8">
         {/* Header */}
@@ -21,7 +33,7 @@ export default function MediaBlockchainPage() {
 
         {/* Blockchain Panel */}
         <section>
-          <BlockchainPanel status={mockBlockchainStatus} recentBatches={mockAnchoredBatches} />
+          <BlockchainPanel status={blockchainStatus} recentBatches={anchoredBatches} />
         </section>
 
         {/* Verification Lookup */}
@@ -73,7 +85,7 @@ export default function MediaBlockchainPage() {
           <h3 className="mb-6 text-lg font-semibold text-white">Recent Anchor History</h3>
 
           <div className="space-y-3">
-            {mockAnchoredBatches.map((batch) => (
+            {anchoredBatches.map((batch) => (
               <div key={batch.batchId} className="flex items-start justify-between rounded-lg border border-slate-700 bg-slate-900 p-4">
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-2">
@@ -115,7 +127,7 @@ export default function MediaBlockchainPage() {
             <p className="font-medium">Blockchain Network Information</p>
             <p className="mt-1 text-xs text-blue-200">
               This dashboard provides transparent, read-only access to blockchain verification data. All vote batches are
-              anchored to {mockBlockchainStatus.networkName} for permanent record and public verification.
+              anchored to {blockchainStatus.networkName} for permanent record and public verification.
             </p>
           </div>
         </div>

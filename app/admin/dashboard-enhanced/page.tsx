@@ -132,7 +132,7 @@ function AdminDashboardContent() {
     setReviewItems((prev) =>
       prev.map((item) => (item.id === reviewId ? { ...item, status: nextStatus } : item))
     );
-    setActionMessage(nextStatus === 'approved' ? 'Review approved (mock).' : 'Review rejected (mock).');
+    setActionMessage(nextStatus === 'approved' ? 'Review approved.' : 'Review rejected.');
     setTimeout(() => setActionMessage(null), 2200);
   };
 

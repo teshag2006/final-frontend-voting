@@ -1,21 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import {
-  getContestantOnboarding,
-  isContestantProfileLocked,
-  updateContestantOnboarding,
-} from '@/lib/contestant-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-export async function GET() {
-  return NextResponse.json(getContestantOnboarding());
+export async function GET(request: Request) {
+  return proxyRequest(request, '/contestant/onboarding');
 }
 
-export async function PATCH(request: NextRequest) {
-  if (isContestantProfileLocked()) {
-    return NextResponse.json(
-      { message: 'Profile is locked after approval. Submit a change request.' },
-      { status: 423 }
-    );
-  }
-  const payload = await request.json();
-  return NextResponse.json(updateContestantOnboarding(payload || {}));
+export async function PATCH(request: Request) {
+  return proxyRequest(request, '/contestant/onboarding');
 }

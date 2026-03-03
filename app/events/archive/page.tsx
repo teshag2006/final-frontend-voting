@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
-import { EventCard } from '@/components/events/event-card';
-import { mockArchivedEvents, mockEvents } from '@/lib/events-mock';
+import { getAllEvents } from '@/lib/api';
 import { ArchiveFilterClient } from '@/components/events/archive-filter-client';
 import { EventNavbar } from '@/components/event-details/event-navbar';
 
@@ -13,12 +12,10 @@ export const metadata: Metadata = {
   },
 };
 
-const allArchivedEvents = [
-  ...mockArchivedEvents,
-  ...mockEvents.filter((e) => e.status === 'ARCHIVED'),
-];
+export default async function EventsArchivePage() {
+  const events = await getAllEvents({ page: 1, limit: 200, status: 'ARCHIVED' });
+  const allArchivedEvents = events.items;
 
-export default function EventsArchivePage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <EventNavbar />
@@ -41,3 +38,4 @@ export default function EventsArchivePage() {
     </main>
   );
 }
+

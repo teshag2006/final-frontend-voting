@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { DeliverableProofForm } from '@/components/contestant-sponsors/deliverable-proof-form';
-import type { ContestantDeliverableItem } from '@/lib/contestant-runtime-store';
+import type { ContestantDeliverableItem } from '@/lib/contestant-types';
 
 export function DeliverablesBoard({
   items,
@@ -31,3 +31,4 @@ export function DeliverablesBoard({
     </div>
   );
 }
+

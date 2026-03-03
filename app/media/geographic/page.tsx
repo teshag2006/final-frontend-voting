@@ -1,14 +1,16 @@
 import { GeographicDistribution } from '@/components/media/geographic-distribution';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mockGeoDistribution } from '@/lib/media-mock';
+import { getMediaGeographic } from '@/lib/api';
 
 export const metadata = {
   title: 'Geographic Distribution | Media Dashboard',
   description: 'Vote distribution by geographic region.',
 };
 
-export default function MediaGeographicPage() {
+export default async function MediaGeographicPage() {
+  const geoDistribution = (await getMediaGeographic()) || [];
+
   return (
       <main className="space-y-6 px-4 py-8 md:px-8">
         {/* Header */}
@@ -19,7 +21,7 @@ export default function MediaGeographicPage() {
 
         {/* Main Geographic Distribution */}
         <section>
-          <GeographicDistribution data={mockGeoDistribution} />
+          <GeographicDistribution data={geoDistribution} />
         </section>
 
         {/* Detailed Table */}
@@ -37,7 +39,7 @@ export default function MediaGeographicPage() {
                 </tr>
               </thead>
               <tbody>
-                {mockGeoDistribution.map((geo, idx) => (
+                {geoDistribution.map((geo, idx) => (
                   <tr
                     key={`${geo.country}-${geo.voteCount}-${idx}`}
                     className="border-b border-slate-700 transition-colors hover:bg-slate-900"
@@ -87,24 +89,24 @@ export default function MediaGeographicPage() {
               <div>
                 <p className="text-slate-400 text-xs">Total Votes</p>
                 <p className="mt-1 font-semibold text-white">
-                  {mockGeoDistribution.reduce((acc, geo) => acc + geo.voteCount, 0).toLocaleString()}
+                  {geoDistribution.reduce((acc, geo) => acc + Number(geo.voteCount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div>
                 <p className="text-slate-400 text-xs">Total Revenue</p>
                 <p className="mt-1 font-semibold text-white">
-                  ${mockGeoDistribution.reduce((acc, geo) => acc + geo.revenue, 0).toLocaleString()}
+                  ${geoDistribution.reduce((acc, geo) => acc + Number(geo.revenue || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div>
                 <p className="text-slate-400 text-xs">Unique Devices</p>
                 <p className="mt-1 font-semibold text-white">
-                  {mockGeoDistribution.reduce((acc, geo) => acc + geo.uniqueDevices, 0).toLocaleString()}
+                  {geoDistribution.reduce((acc, geo) => acc + Number(geo.uniqueDevices || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div>
                 <p className="text-slate-400 text-xs">Countries</p>
-                <p className="mt-1 font-semibold text-white">{mockGeoDistribution.length}</p>
+                <p className="mt-1 font-semibold text-white">{geoDistribution.length}</p>
               </div>
             </div>
           </div>
@@ -114,7 +116,7 @@ export default function MediaGeographicPage() {
         <Card className="border-0 bg-slate-950 p-6 shadow-lg">
           <h3 className="mb-6 text-lg font-semibold text-white">Top Performing Regions</h3>
           <div className="space-y-3">
-            {mockGeoDistribution.slice(0, 5).map((geo, idx) => {
+            {geoDistribution.slice(0, 5).map((geo, idx) => {
               const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
               return (
                 <div key={`${geo.country}-${geo.voteCount}-${idx}`} className="flex items-center justify-between rounded-lg bg-slate-900 p-3">

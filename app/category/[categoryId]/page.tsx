@@ -74,7 +74,13 @@ async function CategoryContent({
     limit: 1000, // Fetch all to extract countries
   });
 
-  const uniqueCountries = Array.from(new Set<string>(allCountriesResponse.data.map((c: any): string => String(c.country)))).sort();
+  const uniqueCountries = Array.from(
+    new Set<string>(
+      allCountriesResponse.items
+        .map((contestant) => String(contestant.country || ''))
+        .filter(Boolean)
+    )
+  ).sort();
 
   return (
     <>
@@ -90,23 +96,23 @@ async function CategoryContent({
             countries={uniqueCountries}
             currentSort={sort}
             currentCountry={country}
-            totalContestants={response.total}
+            totalContestants={response.pagination.total}
           />
         </div>
 
         {/* Contestant Grid */}
-        {response.data.length > 0 ? (
+        {response.items.length > 0 ? (
           <>
             <ContestantGrid
-              contestants={response.data}
+              contestants={response.items}
               categoryId={categoryId}
             />
 
             {/* Pagination */}
-            {response.total_pages > 1 && (
+            {(response.pagination.pages || 1) > 1 && (
               <Pagination
-                currentPage={response.page}
-                totalPages={response.total_pages}
+                currentPage={response.pagination.page}
+                totalPages={response.pagination.pages || 1}
                 categoryId={categoryId}
                 sort={sort !== 'total_votes' ? sort : undefined}
                 country={country}

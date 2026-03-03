@@ -9,12 +9,9 @@ import { VoteSummary } from '@/components/vote-checkout/vote-summary';
 import { PaymentMethodSelector } from '@/components/vote-checkout/payment-method-selector';
 import { SecureCheckoutSummary } from '@/components/vote-checkout/secure-checkout-summary';
 import { Button } from '@/components/ui/button';
-import {
-  mockCheckoutSession,
-  mockPricingResponse,
-  mockCheckoutContestant,
-  paymentMethods,
-} from '@/lib/vote-checkout-mock';
+import { createCheckoutSession, getContestantProfile, getEventBySlug } from '@/lib/api';
+import { PAYMENT_METHODS } from '@/lib/payment-methods';
+import { authService } from '@/lib/services/authService';
 import type { PaymentMethod } from '@/types/vote';
 
 export default function VoteCheckoutPage() {
@@ -22,6 +19,9 @@ export default function VoteCheckoutPage() {
   const [safeQuantity, setSafeQuantity] = useState(10);
   const [eventSlug, setEventSlug] = useState('');
   const [contestantSlug, setContestantSlug] = useState('');
+  const [contestant, setContestant] = useState<any | null>(null);
+  const [event, setEvent] = useState<any | null>(null);
+  const [unitPrice, setUnitPrice] = useState(1);
   const [userCountry, setUserCountry] = useState<'ET' | 'US'>('US');
   const [hasExplicitMethod, setHasExplicitMethod] = useState(false);
 
@@ -35,7 +35,7 @@ export default function VoteCheckoutPage() {
       setSafeQuantity(requestedQuantity);
     }
     if (requestedMethod) {
-      const isValidMethod = paymentMethods.some((m) => m.id === requestedMethod);
+      const isValidMethod = PAYMENT_METHODS.some((m) => m.id === requestedMethod);
       if (isValidMethod) {
         setHasExplicitMethod(true);
         setSelectedPaymentMethod(requestedMethod as PaymentMethod);
@@ -46,7 +46,7 @@ export default function VoteCheckoutPage() {
   }, []);
 
   useEffect(() => {
-    // Frontend-only mock geolocation heuristic for dev stage.
+    // Frontend-only geolocation heuristic for default payment method selection.
     const locale = Intl.DateTimeFormat().resolvedOptions().locale.toUpperCase();
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
     const ethiopiaLikely = locale.endsWith('-ET') || tz === 'Africa/Addis_Ababa';
@@ -68,23 +68,47 @@ export default function VoteCheckoutPage() {
     }
   }, [defaultPaymentMethod, hasExplicitMethod]);
 
+  useEffect(() => {
+    if (!eventSlug || !contestantSlug) {
+      setContestant(null);
+      setEvent(null);
+      return;
+    }
+    let mounted = true;
+    Promise.all([
+      getEventBySlug(eventSlug),
+      getContestantProfile(eventSlug, contestantSlug),
+    ]).then(([eventRes, contestantRes]) => {
+      if (!mounted) return;
+      setEvent(eventRes || null);
+      setContestant(contestantRes || null);
+      if (eventRes?.vote_price) {
+        setUnitPrice(Number(eventRes.vote_price) || 1);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [eventSlug, contestantSlug]);
+
   const isPackageCheckout = !contestantSlug;
 
   const pricingQuote = useMemo(() => {
-    const pricePerVote = mockPricingResponse.pricePerVote;
+    const pricePerVote = unitPrice;
     const subtotal = Number((safeQuantity * pricePerVote).toFixed(2));
     const serviceFee = Number((subtotal * 0.075).toFixed(2));
     const tax = Number((subtotal * 0.025).toFixed(2));
     return {
-      ...mockPricingResponse,
+      pricePerVote,
       quantity: safeQuantity,
       subtotal,
       serviceFee,
       tax,
       totalAmount: Number((subtotal + serviceFee + tax).toFixed(2)),
+      currency: userCountry === 'ET' ? 'ETB' : 'USD',
       generatedAt: new Date().toISOString(),
     };
-  }, [safeQuantity]);
+  }, [safeQuantity, unitPrice, userCountry]);
 
   const handleProceedToPayment = async () => {
     if (isProcessing) return;
@@ -93,11 +117,24 @@ export default function VoteCheckoutPage() {
     setCheckoutError(null);
 
     try {
+      const token = authService.getToken() || undefined;
+      if (contestant?.id) {
+        const checkout = await createCheckoutSession(
+          { contestantId: String(contestant.id), quantity: pricingQuote.quantity },
+          token
+        );
+        if (checkout) {
+          setUnitPrice(Number(checkout.unitPrice || unitPrice));
+        }
+      }
+
       const params = new URLSearchParams({
         quantity: String(pricingQuote.quantity),
         totalAmount: String(pricingQuote.totalAmount),
         currency: String(pricingQuote.currency || 'USD'),
-        eventName: isPackageCheckout ? 'Wallet Vote Package' : mockCheckoutContestant.event.name,
+        eventName: isPackageCheckout
+          ? 'Wallet Vote Package'
+          : event?.name || 'Event',
       });
       if (eventSlug) params.set('eventSlug', eventSlug);
       if (contestantSlug) params.set('contestantSlug', contestantSlug);
@@ -110,7 +147,7 @@ export default function VoteCheckoutPage() {
   };
 
   const selectedMethodLabel =
-    paymentMethods.find((m) => m.id === selectedPaymentMethod)?.label || 'Payment Method';
+    PAYMENT_METHODS.find((m) => m.id === selectedPaymentMethod)?.label || 'Payment Method';
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#ffffff_0%,#eef2ff_45%,#e7ecff_100%)] flex flex-col">
@@ -136,13 +173,13 @@ export default function VoteCheckoutPage() {
               </div>
             ) : (
               <CheckoutHeader
-                contestantImage={mockCheckoutContestant.image}
-                contestantName={mockCheckoutContestant.name}
-                eventName={mockCheckoutContestant.event.name}
-                category={mockCheckoutContestant.category}
-                rank={mockCheckoutContestant.rank}
-                totalVotes={mockCheckoutContestant.totalVotes}
-                pricePerVote={mockCheckoutContestant.pricePerVote}
+                contestantImage={contestant?.photo_url || contestant?.image_url || '/placeholder.svg'}
+                contestantName={contestant?.name || 'Contestant'}
+                eventName={event?.name || 'Event'}
+                category={contestant?.category_name || contestant?.category || 'Category'}
+                rank={contestant?.rank || 0}
+                totalVotes={contestant?.total_votes || 0}
+                pricePerVote={pricingQuote.pricePerVote}
               />
             )}
 
@@ -163,7 +200,7 @@ export default function VoteCheckoutPage() {
                   ))}
                 </div>
                 <div className="mt-4 text-xs text-slate-500">
-                  Min: 1 vote | Max: {mockCheckoutSession.maxPerTransaction} votes per
+                  Min: 1 vote | Max: 100 votes per
                   transaction
                 </div>
               </div>
@@ -182,7 +219,7 @@ export default function VoteCheckoutPage() {
 
             {/* Payment Method Selection */}
             <PaymentMethodSelector
-              methods={paymentMethods}
+              methods={PAYMENT_METHODS}
               selectedMethod={selectedPaymentMethod}
               onMethodChange={setSelectedPaymentMethod}
               userCountry={userCountry}
@@ -201,7 +238,7 @@ export default function VoteCheckoutPage() {
           {/* Right: Secure Checkout Summary */}
           <div className="lg:col-span-1">
             <SecureCheckoutSummary
-              contestantName={isPackageCheckout ? 'Wallet Vote Package' : mockCheckoutContestant.name}
+              contestantName={isPackageCheckout ? 'Wallet Vote Package' : contestant?.name || 'Contestant'}
               quantity={pricingQuote.quantity}
               totalAmount={pricingQuote.totalAmount}
               paymentMethod={selectedMethodLabel}

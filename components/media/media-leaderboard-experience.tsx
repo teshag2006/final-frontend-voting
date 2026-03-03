@@ -6,9 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Radio, Zap } from 'lucide-react';
-import { applyMockLeaderboardEffects, getMockLeaderboardData } from '@/lib/leaderboard-mock';
-
-const EVENT_ID = 'media-broadcast';
+import { apiFetch, transformLeaderboardEntry } from '@/lib/api';
 const LIVE_TICK_MS = 8000;
 
 type Row = {
@@ -77,16 +75,16 @@ const themes: ColumnTheme[] = [
   },
 ];
 
-function toRows(): Row[] {
-  const data = getMockLeaderboardData(EVENT_ID);
-  return [...(data.leaderboard || [])]
-    .sort((a: any, b: any) => Number(b.totalVotes || 0) - Number(a.totalVotes || 0))
-    .map((item: any, index: number) => ({
-      contestantId: item.contestantId,
-      firstName: item.firstName,
-      lastName: item.lastName,
-      profileImageUrl: item.profileImageUrl,
-      categoryName: item.categoryName,
+function toRows(entries: any[]): Row[] {
+  return [...(entries || [])]
+    .map((entry, index) => transformLeaderboardEntry(entry, index + 1))
+    .sort((a, b) => Number(b.totalVotes || 0) - Number(a.totalVotes || 0))
+    .map((item, index) => ({
+      contestantId: String(item.contestantId || ''),
+      firstName: String(item.firstName || ''),
+      lastName: String(item.lastName || ''),
+      profileImageUrl: String(item.profileImageUrl || '/placeholder.svg'),
+      categoryName: String(item.categoryName || 'General'),
       totalVotes: Number(item.totalVotes || 0),
       rank: index + 1,
     }));
@@ -341,15 +339,31 @@ function LeaderboardColumn({
 }
 
 export function MediaLeaderboardExperience() {
-  const [rows, setRows] = useState<Row[]>(() => toRows());
+  const [rows, setRows] = useState<Row[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
 
   useEffect(() => {
-    if (!autoPlay) return;
+    let mounted = true;
+    const load = async () => {
+      try {
+        const data = await apiFetch<any[]>('/media/leaderboard');
+        if (!mounted) return;
+        setRows(toRows(Array.isArray(data) ? data : []));
+      } catch {
+        if (mounted) setRows([]);
+      }
+    };
+
+    void load();
+    if (!autoPlay) return () => { mounted = false; };
     const id = setInterval(() => {
-      setRows((current) => applyMockLeaderboardEffects(current));
+      void load();
     }, LIVE_TICK_MS);
-    return () => clearInterval(id);
+
+    return () => {
+      mounted = false;
+      clearInterval(id);
+    };
   }, [autoPlay]);
 
   const categoryOrder = useMemo(() => {

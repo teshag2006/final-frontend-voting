@@ -10,6 +10,7 @@ import { useLiveLeaderboard } from '@/hooks/use-live-leaderboard'
 
 type EventModel = {
   id: string
+  slug: string
   name: string
   status: string
   end_date?: string
@@ -37,7 +38,7 @@ function formatCountdown(totalSeconds?: number): string {
 export function LiveLeaderboardPage({ event, initialData }: LiveLeaderboardPageProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined)
   const { data, error, isLoading, isValidating, changedContestantIds, leaderChanged, isFinalMinutes } =
-    useLiveLeaderboard(event.id, initialData)
+    useLiveLeaderboard(event.slug, initialData)
 
   const leaderboardRows = useMemo(() => {
     const rows = data?.leaderboard || []

@@ -8,17 +8,40 @@ export function NotificationBadge() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    // Simulate fetching unread notification count
-    // In production, this would be fetched from backend
-    const mockCount = Math.floor(Math.random() * 5);
-    setUnreadCount(mockCount);
+    let mounted = true;
 
-    // Simulate real-time updates
+    const loadUnreadCount = async () => {
+      try {
+        const response = await fetch('/api/contestant/notifications/unread-count', {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        if (!response.ok) return;
+
+        const payload = (await response.json()) as
+          | { unreadCount?: number; data?: { unreadCount?: number } }
+          | null;
+        const count = Number(payload?.unreadCount ?? payload?.data?.unreadCount ?? 0);
+        if (mounted) {
+          setUnreadCount(Number.isFinite(count) ? Math.max(0, count) : 0);
+        }
+      } catch {
+        if (mounted) {
+          setUnreadCount(0);
+        }
+      }
+    };
+
+    void loadUnreadCount();
     const interval = setInterval(() => {
-      setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 10000);
+      void loadUnreadCount();
+    }, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return (

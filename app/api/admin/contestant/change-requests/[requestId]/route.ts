@@ -1,20 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { reviewContestantChangeRequest } from '@/lib/contestant-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
+
+function resolvePath(params: { requestId: string }) {
+  return `/admin/contestant/change-requests/${encodeURIComponent(params.requestId)}`;
+}
 
 export async function PATCH(
-  request: NextRequest,
+  request: Request,
   context: { params: Promise<{ requestId: string }> }
 ) {
-  const { requestId } = await context.params;
-  const payload = await request.json();
-  const action = payload?.action as 'approve' | 'reject' | undefined;
-  const note = payload?.note ? String(payload.note) : undefined;
-  if (!action) {
-    return NextResponse.json({ message: 'action is required' }, { status: 400 });
-  }
-  const updated = reviewContestantChangeRequest({ requestId, action, note });
-  if (!updated) {
-    return NextResponse.json({ message: 'Change request not found' }, { status: 404 });
-  }
-  return NextResponse.json(updated);
+  const params = await context.params;
+  return proxyRequest(request, resolvePath(params));
 }

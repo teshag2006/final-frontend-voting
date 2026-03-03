@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import { getRankingData } from '@/lib/api';
-import { mockRankingData } from '@/lib/dashboard-mock';
+import { getRankingDataSafe } from '@/lib/dashboard-data';
 
 export const metadata: Metadata = {
   title: 'Ranking | Contestant Portal',
@@ -8,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RankingPage() {
-  const data = (await getRankingData()) || mockRankingData;
+  const data = await getRankingDataSafe();
   const movement = Number(data.rank_movement || 0);
 
   return (
@@ -66,3 +65,4 @@ function Card({ title, value, accent = 'text-slate-900' }: { title: string; valu
     </div>
   );
 }
+

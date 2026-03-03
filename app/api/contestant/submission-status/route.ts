@@ -1,15 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getContestantSubmissionStatus, updateContestantSubmissionStatus } from '@/lib/contestant-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-export async function GET() {
-  return NextResponse.json({ status: getContestantSubmissionStatus() });
+export async function GET(request: Request) {
+  return proxyRequest(request, '/contestant/submission-status');
 }
 
-export async function PATCH(request: NextRequest) {
-  const payload = await request.json();
-  const status = payload?.status;
-  if (!status) {
-    return NextResponse.json({ message: 'status is required' }, { status: 400 });
-  }
-  return NextResponse.json({ status: updateContestantSubmissionStatus(status) });
+export async function PATCH(request: Request) {
+  return proxyRequest(request, '/contestant/submission-status');
 }

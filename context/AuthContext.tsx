@@ -1,23 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { User, UserRole, UserProfile, UserPreferences, LoginRecord, SessionRecord } from '@/lib/mock-users';
-import { authenticateUser, getUserById } from '@/lib/mock-users';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { authService } from '@/lib/services/authService';
-
-export interface AuthUser {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  avatar?: string;
-  eventId?: string;
-  profile?: UserProfile;
-  preferences?: UserPreferences;
-  loginHistory?: LoginRecord[];
-  activeSessions?: SessionRecord[];
-  createdAt?: string;
-}
+import type { AuthUser, UserRole } from '@/lib/types';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -29,8 +14,8 @@ interface AuthContextType {
   hasRole: (role: UserRole | UserRole[]) => boolean;
   error: string | null;
   clearError: () => void;
-  updateProfile: (profile: Partial<UserProfile>) => void;
-  updatePreferences: (preferences: Partial<UserPreferences>) => void;
+  updateProfile: (profile: any) => void;
+  updatePreferences: (_preferences: any) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,187 +25,82 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Check for existing session on mount
-  useEffect(() => {
-    const checkExistingAuth = async () => {
-      setIsLoading(true);
-      try {
-        const impersonationRaw = localStorage.getItem('auth_impersonation_user');
-        if (impersonationRaw) {
-          const parsed = JSON.parse(impersonationRaw) as Partial<AuthUser>;
-          if (parsed?.id && parsed?.role === 'contestant') {
-            setUser({
-              id: String(parsed.id),
-              email: String(parsed.email || ''),
-              name: String(parsed.name || 'Contestant'),
-              role: 'contestant',
-              avatar: parsed.avatar ? String(parsed.avatar) : undefined,
-            });
-            localStorage.setItem('auth_user_id', String(parsed.id));
-            localStorage.setItem('auth_user_role', 'contestant');
-            setIsLoading(false);
-            return;
+  const hydrate = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const profile = await authService.getProfile();
+      if (profile) {
+        setUser(profile);
+        localStorage.setItem('auth_user_role', profile.role);
+        localStorage.setItem('auth_user_id', profile.id);
+        localStorage.setItem('auth_user_cache', JSON.stringify(profile));
+      } else {
+        const cachedRaw = localStorage.getItem('auth_user_cache');
+        if (cachedRaw && authService.getToken()) {
+          try {
+            setUser(JSON.parse(cachedRaw) as AuthUser);
+          } catch {
+            setUser(null);
           }
+        } else {
+          setUser(null);
         }
-
-        const storedUserId = localStorage.getItem('auth_user_id');
-        if (storedUserId) {
-          const retrievedUser = getUserById(storedUserId);
-          if (retrievedUser) {
-            const { password: _, ...userWithoutPassword } = retrievedUser as any;
-            setUser(userWithoutPassword as AuthUser);
-          } else {
-            const storedRole = localStorage.getItem('auth_user_role') as UserRole | null;
-            const cachedUserRaw = localStorage.getItem('auth_user_cache');
-            if (cachedUserRaw) {
-              const cachedUser = JSON.parse(cachedUserRaw) as Partial<AuthUser>;
-              if (cachedUser?.id && cachedUser?.role) {
-                setUser({
-                  id: String(cachedUser.id),
-                  email: String(cachedUser.email || ''),
-                  name: String(cachedUser.name || 'User'),
-                  role: cachedUser.role as UserRole,
-                  avatar: cachedUser.avatar ? String(cachedUser.avatar) : undefined,
-                });
-              } else {
-                if (storedRole) {
-                  setUser({
-                    id: storedUserId,
-                    email: '',
-                    name: 'User',
-                    role: storedRole,
-                  });
-                } else {
-                  localStorage.removeItem('auth_user_id');
-                  localStorage.removeItem('auth_user_role');
-                  localStorage.removeItem('auth_user_cache');
-                }
-              }
-            } else {
-              if (storedRole) {
-                setUser({
-                  id: storedUserId,
-                  email: '',
-                  name: 'User',
-                  role: storedRole,
-                });
-              } else {
-                localStorage.removeItem('auth_user_id');
-                localStorage.removeItem('auth_user_role');
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    checkExistingAuth();
+    } catch {
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    if (!isLoading) return;
-    const timeout = window.setTimeout(() => {
-      setIsLoading(false);
-    }, 2500);
-    return () => window.clearTimeout(timeout);
-  }, [isLoading]);
+    void hydrate();
+  }, [hydrate]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     setError(null);
-    try {
-      // Use auth service for login - separates UI from business logic
-      const response = await authService.login(email, password);
-
-      if (!response.success) {
-        throw new Error(response.error || 'Login failed');
-      }
-
-      if (!response.user) {
-        throw new Error('No user data returned');
-      }
-
-      // Convert to AuthUser
-      const user: AuthUser = {
-        id: response.user.id,
-        email: response.user.email,
-        name: response.user.name,
-        role: response.user.role as UserRole,
-        avatar: response.user.avatar,
-      };
-
-      // Get full user data including profile
-      const fullUser = getUserById(user.id);
-      if (fullUser) {
-        const { password: _, ...userWithoutPassword } = fullUser as any;
-        setUser({ ...userWithoutPassword, ...user } as AuthUser);
-      } else {
-        setUser(user);
-      }
-
-      // Store auth info in localStorage and cookies
-      localStorage.setItem('auth_user_id', response.user.id);
-      localStorage.setItem('auth_user_role', response.user.role);
-      localStorage.setItem('auth_user_cache', JSON.stringify(user));
-      // Tokens are stored by authService
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
-      setError(errorMessage);
-      setUser(null);
-      authService.logout();
-      throw err;
-    } finally {
+    const res = await authService.login(email, password);
+    if (!res.success || !res.user) {
+      setError(res.error || 'Login failed');
       setIsLoading(false);
+      throw new Error(res.error || 'Login failed');
     }
+    setUser(res.user);
+    setIsLoading(false);
   };
 
   const logout = () => {
+    authService.logout();
     setUser(null);
     setError(null);
-    // Use auth service logout - handles token cleanup and browser cleanup
-    authService.logout();
   };
 
-  const hasRole = (role: UserRole | UserRole[]): boolean => {
+  const hasRole = (role: UserRole | UserRole[]) => {
     if (!user) return false;
-    const roles = Array.isArray(role) ? role : [role];
-    return roles.includes(user.role);
+    const allowed = Array.isArray(role) ? role : [role];
+    return allowed.includes(user.role);
   };
 
   const clearError = () => setError(null);
 
-  const updateProfile = (profile: Partial<UserProfile>) => {
-    if (user) {
-      setUser({
-        ...user,
-        profile: {
-          ...user.profile,
-          ...profile,
-        } as UserProfile,
-      });
-    }
+  const updateProfile = (profile: any) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...profile };
+      localStorage.setItem('auth_user_cache', JSON.stringify(next));
+      return next;
+    });
   };
 
-  const updatePreferences = (preferences: Partial<UserPreferences>) => {
-    if (user) {
-      setUser({
-        ...user,
-        preferences: {
-          ...user.preferences,
-          ...preferences,
-        } as UserPreferences,
-      });
-    }
+  const updatePreferences = () => {
+    // Placeholder to keep existing API stable for pages that call it.
   };
 
   const value: AuthContextType = {
     user,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && !!authService.getToken(),
     userRole: user?.role || null,
     login,
     logout,
@@ -236,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

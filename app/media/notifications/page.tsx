@@ -1,64 +1,50 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, CheckCircle2, Info, TrendingUp, Trash2 } from 'lucide-react';
-
-const mockNotifications = [
-  {
-    id: 1,
-    type: 'blockchain',
-    title: 'Batch Anchored Successfully',
-    description: 'BATCH-0034521 with 12,450 votes has been anchored to blockchain',
-    time: '5 mins ago',
-    icon: CheckCircle2,
-    color: 'emerald',
-  },
-  {
-    id: 2,
-    type: 'fraud',
-    title: 'High Fraud Activity Detected',
-    description: 'Unusual voting pattern detected in Nigeria region (27 flags today)',
-    time: '2 hours ago',
-    icon: AlertCircle,
-    color: 'red',
-  },
-  {
-    id: 3,
-    type: 'leaderboard',
-    title: 'Leaderboard Updated',
-    description: 'Top 10 contestant rankings updated. Selam M leads with 57,000 votes',
-    time: '1 hour ago',
-    icon: TrendingUp,
-    color: 'blue',
-  },
-  {
-    id: 4,
-    type: 'system',
-    title: 'System Status: Excellent',
-    description: 'All systems operational. Last fraud scan: 5 mins ago',
-    time: '3 hours ago',
-    icon: Info,
-    color: 'slate',
-  },
-  {
-    id: 5,
-    type: 'export',
-    title: 'Export Ready',
-    description: 'Your leaderboard CSV export is ready for download',
-    time: '1 day ago',
-    icon: CheckCircle2,
-    color: 'emerald',
-  },
-];
+import { getMediaNotifications } from '@/lib/api';
 
 export default function MediaNotificationsPage() {
   const [filter, setFilter] = useState<'all' | 'blockchain' | 'fraud' | 'leaderboard' | 'system' | 'export'>('all');
-  const [notifications, setNotifications] = useState(
-    mockNotifications.map((item) => ({ ...item, read: false }))
-  );
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const rows = (await getMediaNotifications()) || [];
+      const iconByType: Record<string, any> = {
+        blockchain: CheckCircle2,
+        fraud: AlertCircle,
+        leaderboard: TrendingUp,
+        system: Info,
+        export: CheckCircle2,
+      };
+      const colorByType: Record<string, string> = {
+        blockchain: 'emerald',
+        fraud: 'red',
+        leaderboard: 'blue',
+        system: 'slate',
+        export: 'emerald',
+      };
+      const mapped = rows.map((item, idx) => {
+        const type = String(item?.type || 'system');
+        return {
+          id: String(item?.id || idx + 1),
+          type,
+          title: String(item?.title || 'Notification'),
+          description: String(item?.description || ''),
+          time: item?.time ? String(item.time) : new Date(item?.createdAt || Date.now()).toLocaleString(),
+          icon: iconByType[type] || Info,
+          color: colorByType[type] || 'slate',
+          read: Boolean(item?.read),
+        };
+      });
+      setNotifications(mapped);
+    };
+    void load();
+  }, []);
 
   const getColorClasses = (color: string) => {
     const colors: Record<string, { bg: string; text: string; badge: string }> = {
@@ -152,7 +138,7 @@ export default function MediaNotificationsPage() {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0 text-slate-400 hover:text-red-400 flex-shrink-0"
-                    onClick={() => setNotifications((prev) => prev.filter((item) => item.id !== notif.id))}
+                    onClick={() => setNotifications((prev) => prev.filter((item) => String(item.id) !== String(notif.id)))}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

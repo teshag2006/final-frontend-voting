@@ -13,7 +13,7 @@ import {
   filterCategoriesByEvent,
   sortCategories,
   generateMockEvents,
-} from '@/lib/categories-management-mock';
+} from '@/lib/categories-management-data';
 
 export default function AdminCategoriesPage() {
   const [allCategories, setAllCategories] = useState<CategoryData[]>([]);
@@ -27,20 +27,21 @@ export default function AdminCategoriesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize mock data
+  // Initialize categories data from backend
   useEffect(() => {
-    setTimeout(() => {
-      const mockEvents = generateMockEvents();
-      setEvents(mockEvents);
-      const mockCategories = generateMockCategories();
-      setAllCategories(mockCategories);
-      // Pre-select first active event
-      const firstEvent = mockEvents.find((e) => e.status === 'ACTIVE');
+    const loadData = async () => {
+      setIsLoading(true);
+      const loadedEvents = await generateMockEvents();
+      setEvents(loadedEvents);
+      const loadedCategories = await generateMockCategories();
+      setAllCategories(loadedCategories);
+      const firstEvent = loadedEvents.find((e) => e.status === 'ACTIVE') || loadedEvents[0];
       if (firstEvent) {
         setSelectedEventId(firstEvent.id);
       }
       setIsLoading(false);
-    }, 500);
+    };
+    void loadData();
   }, []);
 
   // Apply filters and sorting when event selection or data changes
@@ -255,4 +256,5 @@ export default function AdminCategoriesPage() {
     </ProtectedRouteWrapper>
   );
 }
+
 

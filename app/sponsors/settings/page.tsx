@@ -7,16 +7,52 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useEffect } from 'react';
 import { getSponsorAuditTrail, getSponsorProfileSettings, saveSponsorProfileSettings } from '@/lib/api';
-import type { SponsorAuditEntry } from '@/lib/sponsor-runtime-store';
-import { mockSponsorProfileSettings, type SponsorProfileSettings } from '@/lib/sponsorship-mock';
+import type { SponsorProfileSettings } from '@/lib/types';
 import { uploadMediaFile } from '@/lib/client/upload-media';
 
 type SettingsTab = 'general' | 'contact' | 'legal' | 'security';
+type SponsorAuditEntry = {
+  id: string;
+  at: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  detail: string;
+};
+
+const EMPTY_SPONSOR_SETTINGS: SponsorProfileSettings = {
+  general: {
+    companyName: '',
+    logoUrl: '',
+    description: '',
+    industry: '',
+  },
+  contact: {
+    contactPerson: '',
+    email: '',
+    emailVerified: false,
+    phone: '',
+    phoneVerified: false,
+    address: '',
+    country: '',
+    city: '',
+  },
+  legal: {
+    taxId: '',
+    registrationNumber: '',
+    documents: [],
+    termsAccepted: false,
+  },
+  security: {
+    accountActivity: [],
+  },
+  profileCompletion: 0,
+};
 
 export default function SponsorProfileSettingsPage() {
   const [tab, setTab] = useState<SettingsTab>('general');
-  const [settings, setSettings] = useState<SponsorProfileSettings>(mockSponsorProfileSettings);
-  const [draftSettings, setDraftSettings] = useState<SponsorProfileSettings>(mockSponsorProfileSettings);
+  const [settings, setSettings] = useState<SponsorProfileSettings>(EMPTY_SPONSOR_SETTINGS);
+  const [draftSettings, setDraftSettings] = useState<SponsorProfileSettings>(EMPTY_SPONSOR_SETTINGS);
   const [auditTrail, setAuditTrail] = useState<SponsorAuditEntry[]>([]);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
   const [logoError, setLogoError] = useState<string | null>(null);

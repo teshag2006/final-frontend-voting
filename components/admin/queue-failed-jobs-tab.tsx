@@ -26,7 +26,7 @@ import {
   formatDate,
   getQueueDisplayName,
   getJobTypeDisplayName,
-} from '@/lib/queue-job-mock';
+} from '@/lib/queue-job-data';
 
 interface FailedJobsTabProps {
   jobs: FailedJob[];

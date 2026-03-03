@@ -1,14 +1,13 @@
-import { NextResponse } from 'next/server';
-import { getContestantSponsorContract } from '@/lib/contestant-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
+
+function resolvePath(params: { campaignId: string }) {
+  return `/contestant/sponsors/contracts/${encodeURIComponent(params.campaignId)}`;
+}
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ campaignId: string }> }
 ) {
-  const { campaignId } = await context.params;
-  const contract = getContestantSponsorContract(campaignId);
-  if (!contract) {
-    return NextResponse.json({ message: 'Contract not found' }, { status: 404 });
-  }
-  return NextResponse.json(contract);
+  const params = await context.params;
+  return proxyRequest(request, resolvePath(params));
 }

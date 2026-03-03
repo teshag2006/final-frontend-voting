@@ -1,6 +1,6 @@
 'use client';
 
-import type { ContestantProfileComposerData } from '@/lib/contestant-runtime-store';
+import type { ContestantProfileComposerData } from '@/lib/contestant-types';
 
 function getYouTubeEmbedUrl(raw: string): string {
   const input = raw.trim();
@@ -60,3 +60,4 @@ export function ProfilePreviewPane({
     </aside>
   );
 }
+

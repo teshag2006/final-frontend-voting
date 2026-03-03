@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import type { ContestantMediaItem } from '@/lib/contestant-runtime-store';
+import type { ContestantMediaItem } from '@/lib/contestant-types';
 
 export function MediaUploadForm({
   items,
@@ -69,3 +69,4 @@ export function MediaUploadForm({
     </section>
   );
 }
+

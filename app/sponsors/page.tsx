@@ -27,16 +27,19 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getSponsorCampaignTracking, getSponsorDashboardOverview } from '@/lib/api';
-import {
-  mockSponsorCampaignTracking,
-  mockSponsorDashboardOverview,
-  type SponsorCampaignTracking,
-  type SponsorDashboardOverview,
-} from '@/lib/sponsorship-mock';
+import type { SponsorCampaignTracking, SponsorDashboardOverview } from '@/lib/types';
+import { authService } from '@/lib/services/authService';
 
 export default function SponsorsOverviewPage() {
-  const [overview, setOverview] = useState<SponsorDashboardOverview>(mockSponsorDashboardOverview);
-  const [campaigns, setCampaigns] = useState<SponsorCampaignTracking[]>(mockSponsorCampaignTracking);
+  const [overview, setOverview] = useState<SponsorDashboardOverview>({
+    sponsorName: 'Sponsor',
+    trustScore: 0,
+    verificationStatus: 'pending',
+    activeCampaigns: 0,
+    pendingPayments: 0,
+    campaignPerformanceSummary: { impressions: 0, clicks: 0, ctr: 0, conversions: 0 },
+  } as SponsorDashboardOverview);
+  const [campaigns, setCampaigns] = useState<SponsorCampaignTracking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadMessage, setLoadMessage] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -45,7 +48,11 @@ export default function SponsorsOverviewPage() {
     setIsLoading(true);
     setLoadMessage(null);
 
-    const [overviewRes, campaignsRes] = await Promise.all([getSponsorDashboardOverview(), getSponsorCampaignTracking()]);
+    const token = authService.getToken() || undefined;
+    const [overviewRes, campaignsRes] = await Promise.all([
+      getSponsorDashboardOverview(token),
+      getSponsorCampaignTracking(undefined, token),
+    ]);
     const hasOverview = Boolean(overviewRes);
     const hasCampaigns = Boolean(campaignsRes);
 
@@ -53,9 +60,9 @@ export default function SponsorsOverviewPage() {
     if (campaignsRes) setCampaigns(campaignsRes);
 
     if (!hasOverview && !hasCampaigns) {
-      setLoadMessage('Could not reach sponsor API. Showing mock data.');
+      setLoadMessage('Could not reach sponsor API.');
     } else if (!hasOverview || !hasCampaigns) {
-      setLoadMessage('Partially updated from API. Remaining values are from mock data.');
+      setLoadMessage('Partially updated from API.');
     }
 
     setLastUpdated(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));

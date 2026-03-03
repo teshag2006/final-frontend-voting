@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import type { UserRole } from '@/lib/mock-users';
+import type { UserRole } from '@/lib/types';
 
 interface ProtectedRouteWrapperProps {
   children: ReactNode;

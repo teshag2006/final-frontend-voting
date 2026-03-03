@@ -17,7 +17,7 @@ import { RoleAuditTable, type AuditEntry } from '@/components/admin/role-audit-t
 import {
   generateMockAdminUsers,
   generateMockAuditEntries,
-} from '@/lib/users-roles-mock';
+} from '@/lib/users-roles-data';
 
 const CREATE_ROLE_OPTIONS: RoleType[] = [
   'ADMIN',
@@ -153,7 +153,7 @@ export default function AdminUsersAndRolesPage() {
     return true;
   };
 
-  // Initialize data from backend, fallback to mock in dev
+  // Initialize data from backend with safe fallback defaults
   useEffect(() => {
     const loadData = async () => {
       let users: AdminUserData[] = [];
@@ -207,8 +207,8 @@ export default function AdminUsersAndRolesPage() {
         // Fallback below
       }
 
-      if (users.length === 0) users = generateMockAdminUsers(25);
-      if (loadedAudit.length === 0) loadedAudit = generateMockAuditEntries(50);
+      if (users.length === 0) users = await generateMockAdminUsers(25);
+      if (loadedAudit.length === 0) loadedAudit = await generateMockAuditEntries(50);
       if (loadedRoles.length === 0) {
         loadedRoles = [];
         const counts = users.reduce<Record<RoleType, number>>((acc, user) => {
@@ -964,3 +964,4 @@ export default function AdminUsersAndRolesPage() {
     </ProtectedRouteWrapper>
   );
 }
+

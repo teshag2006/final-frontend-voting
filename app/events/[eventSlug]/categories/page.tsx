@@ -1,13 +1,17 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { CheckCircle2, Clock3, ShieldCheck, ShieldAlert, BarChart3 } from 'lucide-react';
+import { CheckCircle2, Clock3, ShieldAlert, ShieldCheck, BarChart3 } from 'lucide-react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { EventCountdown } from '@/components/events/event-countdown';
 import { CategoriesControls } from '@/components/category/categories-controls';
-import { getEventBySlug, getCategoriesForEvent, getContestantsForEvent } from '@/lib/mock-data-generator';
-import { getEventSponsors } from '@/lib/sponsorship-mock';
+import {
+  getEventBySlug,
+  getEventCategories,
+  getEventContestants,
+  getEventSponsorsPublic,
+} from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,14 +25,12 @@ export async function generateMetadata({
   params: Promise<{ eventSlug: string }>;
 }): Promise<Metadata> {
   const { eventSlug } = await params;
-  const event = getEventBySlug(eventSlug);
+  const event = await getEventBySlug(eventSlug);
 
   return {
     title: `${event?.name || 'Event'} Categories | Vote Online`,
     description: `Explore category leaders and ranked contestants in ${event?.name || 'this event'}.`,
-    alternates: {
-      canonical: `/events/${eventSlug}/categories`,
-    },
+    alternates: { canonical: `/events/${eventSlug}/categories` },
   };
 }
 
@@ -45,10 +47,12 @@ export default async function CategoriesPage({
 }) {
   const { eventSlug } = await params;
   const rawSearch = (await searchParams) || {};
-  const event = getEventBySlug(eventSlug);
-  const categories = getCategoriesForEvent(eventSlug);
-  const contestants = getContestantsForEvent(eventSlug);
-  const eventSponsors = getEventSponsors(eventSlug);
+  const [event, categories, contestants, eventSponsors] = await Promise.all([
+    getEventBySlug(eventSlug),
+    getEventCategories(eventSlug, { limit: 200 }),
+    getEventContestants(eventSlug, { limit: 500 }),
+    getEventSponsorsPublic(eventSlug),
+  ]);
 
   if (!event) {
     return (
@@ -80,36 +84,38 @@ export default async function CategoriesPage({
   const countryOptions = Array.from(
     new Set(
       contestants
-        .map((contestant) => (contestant as { country?: string }).country || 'N/A')
+        .map((contestant) => contestant.country || 'N/A')
         .filter((country) => country !== 'N/A')
     )
   ).sort((a, b) => a.localeCompare(b));
 
   const visibleContestants = contestants.filter((contestant) => {
     if (currentSearch) {
-      const haystack = `${String(contestant.name || '')} ${String(contestant.category || '')}`.toLowerCase();
+      const haystack =
+        `${String(contestant.name || '')} ${String(contestant.category || '')}`.toLowerCase();
       if (!haystack.includes(currentSearch.toLowerCase())) return false;
     }
     if (!selectedCategory) return true;
     const categoryMatch =
-      String(contestant.category || '').toLowerCase() === String(selectedCategory.name || '').toLowerCase();
+      String(contestant.category || '').toLowerCase() ===
+      String(selectedCategory.name || '').toLowerCase();
     if (!categoryMatch) return false;
     if (currentCountry === 'all') return true;
-    return String((contestant as { country?: string }).country || 'N/A') === currentCountry;
+    return String(contestant.country || 'N/A') === currentCountry;
   });
 
   const visibleContestantsWithCountry = selectedCategory
     ? visibleContestants
     : visibleContestants.filter((contestant) => {
         if (currentCountry === 'all') return true;
-        return String((contestant as { country?: string }).country || 'N/A') === currentCountry;
+        return String(contestant.country || 'N/A') === currentCountry;
       });
 
   const withScopedRank = visibleContestantsWithCountry
     .map((contestant) => ({
       ...contestant,
       votesNumber: Number(contestant.votes || 0),
-      country: (contestant as { country?: string }).country || 'N/A',
+      country: contestant.country || 'N/A',
     }))
     .sort((a, b) => b.votesNumber - a.votesNumber)
     .map((contestant, index) => ({
@@ -126,10 +132,7 @@ export default async function CategoriesPage({
     ? Math.min(totalPages, Math.max(1, Math.floor(requestedPage)))
     : 1;
   const startIndex = (currentPage - 1) * CONTESTANTS_PER_PAGE;
-  const paginatedContestants = rankedContestants.slice(
-    startIndex,
-    startIndex + CONTESTANTS_PER_PAGE
-  );
+  const paginatedContestants = rankedContestants.slice(startIndex, startIndex + CONTESTANTS_PER_PAGE);
   const buildPageHref = (page: number) => {
     const params = new URLSearchParams();
     if (currentCategorySlug !== 'all') params.set('category', currentCategorySlug);
@@ -146,10 +149,10 @@ export default async function CategoriesPage({
     rankedContestants.map((item) => String(item.country || 'N/A')).filter((country) => country !== 'N/A')
   ).size;
   const sidebarSponsor = eventSponsors[0];
-  const mockSidebarBannerImage =
-    'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&h=1200&fit=crop';
-  const sidebarSponsorBannerImage = mockSidebarBannerImage || sidebarSponsor?.logo_url || sidebarSponsor?.logoUrl || '/favicon.ico';
+  const sidebarSponsorBannerImage: string =
+    sidebarSponsor?.logo_url || sidebarSponsor?.logoUrl || '/favicon.ico';
   const isLive = event.status === 'LIVE' || event.status === 'active';
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_10%_0%,#f4f2ff_0%,#f8f8fc_35%,#f4f5fb_100%)]">
       <Navbar variant="topbar-dark" />
@@ -230,7 +233,7 @@ export default async function CategoriesPage({
                 </article>
               ) : null}
 
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {paginatedContestants.map((contestant) => (
                   <article
                     key={contestant.id}
@@ -264,7 +267,7 @@ export default async function CategoriesPage({
                       </div>
                       <div className="mt-3 flex justify-end">
                         <Link
-                          href={`/events/${eventSlug}/contestant/${contestant.slug || contestant.id}`}
+                          href={`/events/${eventSlug}/contestant/${contestant.slug}`}
                           className="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-800"
                         >
                           View
@@ -337,8 +340,8 @@ export default async function CategoriesPage({
                 <h3 className="text-xl font-semibold text-slate-900">Event Window</h3>
                 <div className="mt-3">
                   <EventCountdown
-                    startDate={event.start_date}
-                    endDate={event.end_date}
+                    startDate={event.start_date || ''}
+                    endDate={event.end_date || ''}
                     eventStatus={event.status}
                   />
                 </div>

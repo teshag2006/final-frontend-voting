@@ -8,7 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit",
+    "check:no-mock-pages": "node scripts/check-no-mock-pages.mjs",
+    "type-check": "npm run type-check:frontend",
+    "type-check:frontend": "tsc --noEmit --project tsconfig.json",
+    "type-check:backend": "npm --prefix backend run type-check",
+    "type-check:all": "npm run type-check:frontend && npm run type-check:backend",
     "scraper:api": "npm --prefix scraper run dev:api",
     "scraper:worker": "npm --prefix scraper run dev:worker"
   },

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { ContestantShareKitLink } from '@/lib/contestant-runtime-store';
+import type { ContestantShareKitLink } from '@/lib/contestant-types';
 
 const channelOptions: Array<ContestantShareKitLink['channel']> = [
   'instagram',
@@ -99,3 +99,4 @@ export function ShareKitPanel({
     </section>
   );
 }
+

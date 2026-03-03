@@ -1,99 +1,78 @@
-import { getUserById } from '@/lib/mock-users';
-
-/**
- * Auth Service Layer
- * Separates authentication business logic from UI components
- * Enables easier testing, reusability, and migration
- */
+import type { AuthUser, UserRole } from '@/lib/types';
+import { getAuthProfile, loginWithBackend, registerWithBackend } from '@/lib/api';
 
 export interface AuthResponse {
   success: boolean;
-  user?: AuthTokenPayload;
+  user?: AuthUser;
   token?: string;
   refreshToken?: string;
-  expiresIn?: number;
   error?: string;
 }
 
-export interface AuthTokenPayload {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  avatar?: string;
-}
-
-export interface TokenData {
-  token: string;
-  refreshToken: string;
-  expiresAt: number;
-}
-
 class AuthService {
-  private tokenRefreshInterval: NodeJS.Timeout | null = null;
-  private readonly TOKEN_EXPIRY_BUFFER = 5 * 60 * 1000; // 5 minutes
+  getToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('auth_token');
+  }
 
-  /**
-   * Login with email and password
-   * Separates validation, authentication, and session management
-   */
-  async login(email: string, password: string): Promise<AuthResponse> {
+  getUserRole(): UserRole | null {
+    if (typeof window === 'undefined') return null;
+    return (localStorage.getItem('auth_user_role') as UserRole | null) || null;
+  }
+
+  isAuthenticated(): boolean {
+    return Boolean(this.getToken());
+  }
+
+  async validateToken(): Promise<boolean> {
+    return this.isAuthenticated();
+  }
+
+  async refreshToken(): Promise<boolean> {
+    const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null;
+    if (!refreshToken) return false;
     try {
-      // Validate inputs
-      if (!this.validateEmail(email)) {
-        return { success: false, error: 'Invalid email format' };
-      }
-
-      if (!this.validatePassword(password)) {
-        return { success: false, error: 'Password must be at least 8 characters' };
-      }
-
-      // Authenticate via backend route so server session cookie is set.
-      const response = await fetch('/api/auth/signin', {
+      const baseUrl =
+        process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
+      if (!baseUrl) return false;
+      const res = await fetch(`${baseUrl}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ refresh_token: refreshToken }),
+        cache: 'no-store',
       });
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        return { success: false, error: payload?.message || 'Invalid email or password' };
+      const payload = await res.json().catch(() => null);
+      const accessToken = payload?.data?.access_token;
+      if (!accessToken) return false;
+      localStorage.setItem('auth_token', accessToken);
+      const nextRefreshToken = payload?.data?.refresh_token;
+      if (nextRefreshToken) {
+        localStorage.setItem('refresh_token', nextRefreshToken);
       }
+      return true;
+    } catch {
+      this.logout();
+      return false;
+    }
+  }
 
-      const payload = await response.json();
-      const apiUser = payload?.user as AuthTokenPayload | undefined;
-      if (!apiUser) {
-        return { success: false, error: 'No user data returned' };
-      }
-
-      const tokenPayload: AuthTokenPayload = {
-        id: apiUser.id,
-        email: apiUser.email,
-        name: apiUser.name,
-        role: apiUser.role,
-        avatar: apiUser.avatar,
+  async login(email: string, password: string): Promise<AuthResponse> {
+    try {
+      const data = await loginWithBackend(email, password);
+      const user: AuthUser = {
+        id: String(data.user.id),
+        email: data.user.email,
+        name: data.user.full_name || data.user.email,
+        role: data.user.role,
+        avatar: data.user.avatar_url || undefined,
       };
 
-      // Generate tokens (in production, call backend)
-      const tokens = this.generateTokens(tokenPayload);
-
-      // Persist user identity metadata for middleware and session restoration.
-      localStorage.setItem('auth_user_id', tokenPayload.id);
-      localStorage.setItem('auth_user_role', tokenPayload.role);
-
-      // Store tokens securely
-      this.storeTokens(tokens);
-
-      // Set up automatic token refresh
-      this.setupTokenRefresh();
-
+      this.persistSession(data.access_token, data.refresh_token, user);
       return {
         success: true,
-        user: tokenPayload,
-        token: tokens.token,
-        refreshToken: tokens.refreshToken,
-        expiresIn: 3600, // 1 hour
+        user,
+        token: data.access_token,
+        refreshToken: data.refresh_token,
       };
     } catch (error) {
       return {
@@ -103,239 +82,80 @@ class AuthService {
     }
   }
 
-  /**
-   * Logout - Clear tokens and cleanup
-   */
+  async signup(payload: {
+    name: string;
+    email: string;
+    password: string;
+    role: Exclude<UserRole, 'admin' | 'media' | 'public'>;
+    gender?: string;
+  }): Promise<AuthResponse> {
+    try {
+      const data = await registerWithBackend({
+        full_name: payload.name,
+        email: payload.email,
+        password: payload.password,
+        role: payload.role,
+        gender: payload.gender,
+      });
+
+      const user: AuthUser = {
+        id: String(data.user.id),
+        email: data.user.email,
+        name: data.user.full_name || data.user.email,
+        role: data.user.role,
+        avatar: data.user.avatar_url || undefined,
+      };
+
+      this.persistSession(data.access_token, data.refresh_token, user);
+      return {
+        success: true,
+        user,
+        token: data.access_token,
+        refreshToken: data.refresh_token,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Signup failed',
+      };
+    }
+  }
+
+  async getProfile(): Promise<AuthUser | null> {
+    const token = this.getToken() || undefined;
+    if (!token) return null;
+    return getAuthProfile(token);
+  }
+
   logout(): void {
-    // Clear tokens
+    if (typeof window === 'undefined') return;
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
-    localStorage.removeItem('token_expires_at');
-
-    // Clear cookies (in production)
-    this.clearAuthCookies();
-
-    // Stop token refresh
-    this.stopTokenRefresh();
-
-    // Clear user session
     localStorage.removeItem('auth_user_id');
     localStorage.removeItem('auth_user_role');
     localStorage.removeItem('auth_user_cache');
     localStorage.removeItem('auth_impersonation_user');
 
-    // Invalidate server session cookie (best effort). Guard against
-    // sync fetch errors and navigation-race aborts in dev.
-    try {
-      void fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin', keepalive: true })
-        .catch(() => undefined);
-    } catch {
-      // Ignore logout network issues; local auth state is already cleared.
-    }
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
   }
 
-  /**
-   * Validate token expiry and refresh if needed
-   */
-  async validateToken(): Promise<boolean> {
-    const expiresAt = localStorage.getItem('token_expires_at');
-    if (!expiresAt) return false;
+  private persistSession(
+    accessToken: string,
+    refreshToken: string,
+    user: AuthUser
+  ) {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('auth_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
+    localStorage.setItem('auth_user_id', user.id);
+    localStorage.setItem('auth_user_role', user.role);
+    localStorage.setItem('auth_user_cache', JSON.stringify(user));
 
-    const expirationTime = parseInt(expiresAt, 10);
-    const now = Date.now();
-
-    // Token expired
-    if (now > expirationTime) {
-      this.logout();
-      return false;
-    }
-
-    // Token expiring soon, refresh proactively
-    if (now > expirationTime - this.TOKEN_EXPIRY_BUFFER) {
-      await this.refreshToken();
-    }
-
-    return true;
-  }
-
-  /**
-   * Refresh access token using refresh token
-   */
-  async refreshToken(): Promise<boolean> {
-    try {
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (!refreshToken) return false;
-
-      // In production, call backend refresh endpoint
-      // const response = await fetch('/api/auth/refresh', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ refreshToken }),
-      // });
-
-      // For now, generate new token (mock)
-      const userId = localStorage.getItem('auth_user_id');
-      if (!userId) return false;
-
-      const user = getUserById(userId);
-      if (!user) return false;
-
-      const tokenPayload: AuthTokenPayload = {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        avatar: user.avatar,
-      };
-
-      const newTokens = this.generateTokens(tokenPayload);
-      this.storeTokens(newTokens);
-
-      return true;
-    } catch (error) {
-      this.logout();
-      return false;
-    }
-  }
-
-  /**
-   * Get current auth token
-   */
-  getToken(): string | null {
-    return localStorage.getItem('auth_token');
-  }
-
-  /**
-   * Get stored user role
-   */
-  getUserRole(): string | null {
-    return localStorage.getItem('auth_user_role');
-  }
-
-  /**
-   * Check if user is authenticated
-   */
-  isAuthenticated(): boolean {
-    return !!this.getToken();
-  }
-
-  /**
-   * Validate token with backend (optional - for added security)
-   */
-  async validateTokenWithBackend(token: string): Promise<boolean> {
-    // In production:
-    // const response = await fetch('/api/auth/validate', {
-    //   headers: { Authorization: `Bearer ${token}` },
-    // });
-    // return response.ok;
-
-    return true; // Mock
-  }
-
-  // ============ Private Helper Methods ============
-
-  /**
-   * Validate email format
-   */
-  private validateEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }
-
-  /**
-   * Validate password strength
-   */
-  private validatePassword(password: string): boolean {
-    return password.length >= 8;
-  }
-
-  /**
-   * Generate JWT-like tokens (mock)
-   */
-  private generateTokens(payload: AuthTokenPayload): TokenData {
-    // In production, call backend to generate JWT
-    const expiresAt = Date.now() + 3600 * 1000; // 1 hour
-    const token = this.createMockToken(payload);
-    const refreshToken = this.createMockRefreshToken();
-
-    return {
-      token,
-      refreshToken,
-      expiresAt,
-    };
-  }
-
-  /**
-   * Create mock JWT token (for development)
-   */
-  private createMockToken(payload: AuthTokenPayload): string {
-    // In production, backend returns real JWT
-    return btoa(JSON.stringify(payload)) + '.' + Date.now();
-  }
-
-  /**
-   * Create mock refresh token
-   */
-  private createMockRefreshToken(): string {
-    return Math.random().toString(36).substring(2) + Date.now().toString(36);
-  }
-
-  /**
-   * Store tokens in secure storage
-   */
-  private storeTokens(tokens: TokenData): void {
-    // Use localStorage for now (in production, use HttpOnly cookies)
-    localStorage.setItem('auth_token', tokens.token);
-    localStorage.setItem('refresh_token', tokens.refreshToken);
-    localStorage.setItem('token_expires_at', tokens.expiresAt.toString());
-
-    // Mirror auth state in cookies so Next.js middleware can authorize routes.
-    if (typeof document !== 'undefined') {
-      const expires = new Date(tokens.expiresAt).toUTCString();
-      document.cookie = `auth_token=${encodeURIComponent(tokens.token)}; path=/; expires=${expires}; SameSite=Lax`;
-
-      const role = localStorage.getItem('auth_user_role');
-      if (role) {
-        document.cookie = `user_role=${encodeURIComponent(role)}; path=/; expires=${expires}; SameSite=Lax`;
-      }
-    }
-  }
-
-  /**
-   * Clear auth cookies (for production with HttpOnly cookies)
-   */
-  private clearAuthCookies(): void {
-    // This would be handled by backend setting SameSite=Strict, Secure, HttpOnly
-    if (typeof document !== 'undefined') {
-      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-      document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-    }
-  }
-
-  /**
-   * Set up automatic token refresh before expiry
-   */
-  private setupTokenRefresh(): void {
-    if (this.tokenRefreshInterval) {
-      clearInterval(this.tokenRefreshInterval);
-    }
-
-    // Refresh token every 50 minutes (token expires in 60)
-    this.tokenRefreshInterval = setInterval(() => {
-      this.refreshToken();
-    }, 50 * 60 * 1000);
-  }
-
-  /**
-   * Stop automatic token refresh
-   */
-  private stopTokenRefresh(): void {
-    if (this.tokenRefreshInterval) {
-      clearInterval(this.tokenRefreshInterval);
-      this.tokenRefreshInterval = null;
-    }
+    const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `auth_token=${encodeURIComponent(accessToken)}; path=/; SameSite=Lax${secureFlag}`;
+    document.cookie = `user_role=${encodeURIComponent(user.role)}; path=/; SameSite=Lax${secureFlag}`;
   }
 }
 
-// Export singleton instance
 export const authService = new AuthService();

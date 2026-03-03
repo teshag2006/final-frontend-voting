@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ProtectedRouteWrapper } from '@/components/auth/protected-route-wrapper';
@@ -20,6 +20,7 @@ function SecurityContent() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'password' | 'sessions' | 'login'>('password');
 
   if (!user) {
@@ -36,60 +37,64 @@ function SecurityContent() {
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaveError(null);
+    setSaveSuccess(false);
 
     if (passwordData.new !== passwordData.confirm) {
-      alert('Passwords do not match');
+      setSaveError('Passwords do not match');
+      return;
+    }
+
+    if (!passwordData.current || !passwordData.new) {
+      setSaveError('Current and new password are required');
       return;
     }
 
     setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setIsSaving(false);
-    setSaveSuccess(true);
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          current_password: passwordData.current,
+          new_password: passwordData.new,
+        }),
+      });
 
-    setTimeout(() => {
-      setSaveSuccess(false);
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { message?: string }
+          | null;
+        setSaveError(payload?.message || 'Password change failed');
+        return;
+      }
+
+      setSaveSuccess(true);
       setPasswordData({ current: '', new: '', confirm: '' });
-    }, 2000);
+    } catch {
+      setSaveError('Network error while changing password');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const mockActiveSessions = [
+  const activeSessions = useMemo(() => [
     {
       id: '1',
-      device: 'Chrome on MacOS',
-      location: 'Toronto, Canada',
-      lastActive: '2 minutes ago',
+      device: typeof navigator !== 'undefined' ? navigator.userAgent : 'Current Device',
+      location: 'Current session',
+      lastActive: 'Just now',
       current: true,
     },
-    {
-      id: '2',
-      device: 'Safari on iPhone',
-      location: 'Toronto, Canada',
-      lastActive: '1 hour ago',
-      current: false,
-    },
-  ];
+  ], []);
 
-  const mockLoginHistory = [
+  const loginHistory = [
     {
       id: '1',
-      timestamp: 'Today at 2:30 PM',
-      device: 'Chrome on MacOS',
-      location: 'Toronto, Canada',
-      success: true,
-    },
-    {
-      id: '2',
-      timestamp: 'Yesterday at 9:15 AM',
-      device: 'Safari on iPhone',
-      location: 'Toronto, Canada',
-      success: true,
-    },
-    {
-      id: '3',
-      timestamp: '2 days ago at 4:45 PM',
-      device: 'Firefox on Windows',
-      location: 'New York, USA',
+      timestamp: new Date().toLocaleString(),
+      device: typeof navigator !== 'undefined' ? navigator.userAgent : 'Current Device',
+      location: 'Current session',
       success: true,
     },
   ];
@@ -219,6 +224,12 @@ function SecurityContent() {
                     <span>Password changed successfully!</span>
                   </div>
                 )}
+                {saveError && (
+                  <div className="p-4 bg-red-950 border border-red-700 rounded-lg text-red-300 flex gap-2 items-start">
+                    <X className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                    <span>{saveError}</span>
+                  </div>
+                )}
 
                 {/* Submit */}
                 <Button
@@ -244,7 +255,7 @@ function SecurityContent() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {mockActiveSessions.map((session) => (
+                {activeSessions.map((session) => (
                   <div
                     key={session.id}
                     className="p-4 bg-slate-700/50 border border-slate-600 rounded-lg flex items-start justify-between"
@@ -308,7 +319,7 @@ function SecurityContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockLoginHistory.map((login) => (
+                {loginHistory.map((login) => (
                   <div
                     key={login.id}
                     className="p-4 bg-slate-700/50 border border-slate-600 rounded-lg"

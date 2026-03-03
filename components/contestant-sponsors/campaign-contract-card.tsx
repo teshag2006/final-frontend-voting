@@ -1,6 +1,6 @@
 'use client';
 
-import type { ContestantSponsorContract } from '@/lib/contestant-runtime-store';
+import type { ContestantSponsorContract } from '@/lib/contestant-types';
 
 export function CampaignContractCard({ contract }: { contract: ContestantSponsorContract | null }) {
   if (!contract) {
@@ -33,3 +33,4 @@ export function CampaignContractCard({ contract }: { contract: ContestantSponsor
     </article>
   );
 }
+

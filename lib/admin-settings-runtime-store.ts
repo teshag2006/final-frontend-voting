@@ -1,13 +1,3 @@
-import {
-  getDefaultBlockchainSettings,
-  getDefaultEventSettings,
-  getDefaultFraudDetectionSettings,
-  getDefaultGeneralSettings,
-  getDefaultNotificationSettings,
-  getDefaultPaymentSettings,
-  getDefaultSecuritySettings,
-} from '@/lib/settings-mock';
-
 export type SettingsCategory =
   | 'general'
   | 'event'
@@ -26,24 +16,147 @@ export interface SettingsAuditEntry {
   version: number;
 }
 
+export interface GeneralSettings {
+  [key: string]: unknown;
+  platformName?: string;
+  systemName?: string;
+  siteTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
+  canonicalBaseUrl?: string;
+  defaultOgImageUrl?: string;
+  defaultLanguage?: string;
+  supportEmail: string;
+  timezone: string;
+  defaultLocale?: string;
+  currency?: string;
+  termsConditionsUrl?: string;
+  logoUrl?: string;
+  faviconUrl?: string;
+}
+
+export interface EventSettings {
+  [key: string]: unknown;
+  autoPublishResults: boolean;
+  allowScheduleEditsAfterLaunch: boolean;
+  defaultVotingDurationHours: number;
+  maxContestantsPerCategory: number;
+  maxGalleryPhotosPerContestant: number;
+}
+
+export interface PaymentSettings {
+  [key: string]: unknown;
+  primaryProvider: string;
+  fallbackProvider: string;
+  currency: string;
+  retryFailedPayments: boolean;
+}
+
+export interface SecuritySettings {
+  [key: string]: unknown;
+  require2FAForAdmins?: boolean;
+  enforceStrongPasswords?: boolean;
+  sessionTimeoutMinutes?: number;
+  jwtExpirationTime?: number;
+  refreshTokenExpiration?: number;
+  passwordStrengthPolicy?: string;
+  maxLoginAttempts?: number;
+  rateLimitPerIP?: number;
+  enable2FA?: boolean;
+  enableIPWhitelisting?: boolean;
+}
+
+export interface FraudSettings {
+  [key: string]: unknown;
+  velocityThresholdPerMinute: number;
+  autoBlockCriticalRisk: boolean;
+  trustScoreThreshold: number;
+}
+
+export interface BlockchainSettings {
+  [key: string]: unknown;
+  network: string;
+  autoAnchorIntervalMinutes: number;
+  retries: number;
+}
+
+export interface NotificationSettings {
+  [key: string]: unknown;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  inAppEnabled: boolean;
+  criticalAlertsOnly: boolean;
+}
+
 export interface AdminSettingsBundle {
-  general: ReturnType<typeof getDefaultGeneralSettings>;
-  event: ReturnType<typeof getDefaultEventSettings>;
-  payment: ReturnType<typeof getDefaultPaymentSettings>;
-  security: ReturnType<typeof getDefaultSecuritySettings>;
-  fraud: ReturnType<typeof getDefaultFraudDetectionSettings>;
-  blockchain: ReturnType<typeof getDefaultBlockchainSettings>;
-  notifications: ReturnType<typeof getDefaultNotificationSettings>;
+  general: GeneralSettings;
+  event: EventSettings;
+  payment: PaymentSettings;
+  security: SecuritySettings;
+  fraud: FraudSettings;
+  blockchain: BlockchainSettings;
+  notifications: NotificationSettings;
 }
 
 let settingsStore: AdminSettingsBundle = {
-  general: getDefaultGeneralSettings(),
-  event: getDefaultEventSettings(),
-  payment: getDefaultPaymentSettings(),
-  security: getDefaultSecuritySettings(),
-  fraud: getDefaultFraudDetectionSettings(),
-  blockchain: getDefaultBlockchainSettings(),
-  notifications: getDefaultNotificationSettings(),
+  general: {
+    platformName: 'Campus Star',
+    systemName: 'Campus Star',
+    siteTitle: 'Campus Star Voting',
+    metaDescription: '',
+    metaKeywords: '',
+    canonicalBaseUrl: '',
+    defaultOgImageUrl: '',
+    defaultLanguage: 'en',
+    supportEmail: 'support@campusstar.com',
+    timezone: 'UTC',
+    defaultLocale: 'en',
+    currency: 'USD',
+    termsConditionsUrl: '',
+    logoUrl: '',
+    faviconUrl: '',
+  },
+  event: {
+    autoPublishResults: false,
+    allowScheduleEditsAfterLaunch: false,
+    defaultVotingDurationHours: 72,
+    maxContestantsPerCategory: 100,
+    maxGalleryPhotosPerContestant: 10,
+  },
+  payment: {
+    primaryProvider: 'stripe',
+    fallbackProvider: 'paypal',
+    currency: 'USD',
+    retryFailedPayments: true,
+  },
+  security: {
+    require2FAForAdmins: true,
+    enforceStrongPasswords: true,
+    sessionTimeoutMinutes: 60,
+    jwtExpirationTime: 3600,
+    refreshTokenExpiration: 604800,
+    passwordStrengthPolicy: 'strong',
+    maxLoginAttempts: 5,
+    rateLimitPerIP: 120,
+    enable2FA: true,
+    enableIPWhitelisting: false,
+  },
+  fraud: {
+    velocityThresholdPerMinute: 20,
+    autoBlockCriticalRisk: true,
+    trustScoreThreshold: 30,
+  },
+  blockchain: {
+    network: 'POLYGON',
+    autoAnchorIntervalMinutes: 30,
+    retries: 3,
+  },
+  notifications: {
+    emailEnabled: true,
+    smsEnabled: false,
+    inAppEnabled: true,
+    criticalAlertsOnly: false,
+  },
 };
 
 let settingsVersion = 1;
@@ -53,7 +166,7 @@ let auditLogStore: SettingsAuditEntry[] = [
     at: new Date().toISOString(),
     category: 'general',
     action: 'update',
-    summary: 'Initialized admin settings with default mock values.',
+    summary: 'Initialized admin settings with default values.',
     version: settingsVersion,
   },
 ];
@@ -72,7 +185,7 @@ export function getAdminSettingsAuditLog() {
 
 export function updateAdminSettingsCategory(
   category: SettingsCategory,
-  patch: Record<string, unknown>
+  patch: object
 ) {
   const current = settingsStore[category];
   settingsStore = {

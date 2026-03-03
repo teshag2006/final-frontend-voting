@@ -1,4 +1,4 @@
-import { getVerificationData } from '@/lib/verify-mock'
+import { getPublicVerification } from '@/lib/api'
 import { VerificationResult } from '@/components/verify/verification-result'
 import { VerificationError } from '@/components/verify/verification-error'
 import { VerifyForm } from '@/components/verify/verify-form'
@@ -31,7 +31,7 @@ export default async function VerifyDetailPage({
   const { receiptNumber } = await params
   const decodedReceiptNumber = decodeURIComponent(receiptNumber)
 
-  const result = await getVerificationData(decodedReceiptNumber)
+  const result = await getPublicVerification(decodedReceiptNumber)
   const isError = 'error' in result
 
   return (

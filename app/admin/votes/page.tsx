@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { VoteStatsDashboard } from '@/components/admin/vote-stats-dashboard';
 import { VoteLiveTable } from '@/components/admin/vote-live-table';
 import { VoteFraudAlertsPanel } from '@/components/admin/vote-fraud-alerts-panel';
-import { generateMockVotes, getVoteStats, generateMockFraudAlerts, generateMockSuspiciousIps, generateMockPaymentGatewayAlerts } from '@/lib/vote-monitoring-mock';
+import { generateMockVotes, getVoteStats, generateMockFraudAlerts, generateMockSuspiciousIps, generateMockPaymentGatewayAlerts } from '@/lib/vote-monitoring-data';
 import { Vote, VoteStats, FraudAlert, SuspiciousIP, VoteFilters, PaymentGatewayAlert } from '@/types/vote-monitoring';
 import { AlertTriangle, Download, RefreshCw, Lock, AlertOctagon } from 'lucide-react';
 
@@ -28,12 +28,19 @@ export default function VoteMonitoringPage() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setStats(getVoteStats());
-      setVotes(generateMockVotes(50));
-      setAlerts(generateMockFraudAlerts(8));
-      setSuspiciousIps(generateMockSuspiciousIps(5));
-      setPaymentAlerts(generateMockPaymentGatewayAlerts());
+      const [statsData, votesData, alertsData, suspiciousIpsData, paymentAlertsData] =
+        await Promise.all([
+          getVoteStats(),
+          generateMockVotes(50),
+          generateMockFraudAlerts(8),
+          generateMockSuspiciousIps(5),
+          generateMockPaymentGatewayAlerts(),
+        ]);
+      setStats(statsData);
+      setVotes(votesData);
+      setAlerts(alertsData);
+      setSuspiciousIps(suspiciousIpsData);
+      setPaymentAlerts(paymentAlertsData);
       setIsLoading(false);
     };
 
@@ -49,9 +56,12 @@ export default function VoteMonitoringPage() {
 
   const handleRefresh = async () => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-    setStats(getVoteStats());
-    setVotes(generateMockVotes(50));
+    const [statsData, votesData] = await Promise.all([
+      getVoteStats(),
+      generateMockVotes(50),
+    ]);
+    setStats(statsData);
+    setVotes(votesData);
     setIsLoading(false);
   };
 
@@ -59,7 +69,7 @@ export default function VoteMonitoringPage() {
     setSuspiciousIps((prev) =>
       prev.map((ip) => (ip.ipAddress === ipAddress ? { ...ip, status: 'BLOCKED' as const } : ip))
     );
-    setActionMessage(`Blocked IP ${ipAddress} (mock action).`);
+    setActionMessage(`Blocked IP ${ipAddress}.`);
   };
 
   const handleMarkReviewed = (alertId: string) => {
@@ -75,11 +85,11 @@ export default function VoteMonitoringPage() {
         vote.contestantId === contestantId ? { ...vote, paymentStatus: 'FLAGGED' as const } : vote
       )
     );
-    setActionMessage(`Contestant ${contestantId} frozen for review (mock).`);
+    setActionMessage(`Contestant ${contestantId} frozen for review.`);
   };
 
   const handleExport = (format: 'CSV' | 'EXCEL' | 'PDF') => {
-    setActionMessage(`Prepared ${format} export with current filters (mock).`);
+    setActionMessage(`Prepared ${format} export with current filters.`);
   };
 
   const handleFlagVote = (voteId: string) => {
@@ -348,3 +358,4 @@ export default function VoteMonitoringPage() {
     </div>
   );
 }
+

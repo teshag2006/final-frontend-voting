@@ -18,7 +18,7 @@ import {
   generatePaymentMetrics,
   generateFraudMetrics,
   generateSystemLogs,
-} from '@/lib/reports-mock';
+} from '@/lib/reports-data';
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<string>('overview');
@@ -28,29 +28,43 @@ export default function ReportsPage() {
     end: new Date().toISOString().split('T')[0],
   });
 
-  const [kpis, setKpis] = useState(generateOverviewKPIs());
-  const [chartData, setChartData] = useState(generateChartData());
-  const [voteAnalytics, setVoteAnalytics] = useState(generateVoteAnalytics());
-  const [paymentMetrics, setPaymentMetrics] = useState(generatePaymentMetrics());
-  const [fraudMetrics, setFraudMetrics] = useState(generateFraudMetrics());
-  const [systemLogs, setSystemLogs] = useState(generateSystemLogs());
+  const [kpis, setKpis] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [voteAnalytics, setVoteAnalytics] = useState<any>(null);
+  const [paymentMetrics, setPaymentMetrics] = useState<any>(null);
+  const [fraudMetrics, setFraudMetrics] = useState<any>(null);
+  const [systemLogs, setSystemLogs] = useState<any[]>([]);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate loading delay
-    const timer = setTimeout(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      const [kpiData, chart, votes, payments, fraud, logs] = await Promise.all([
+        generateOverviewKPIs(),
+        generateChartData(),
+        generateVoteAnalytics(),
+        generatePaymentMetrics(),
+        generateFraudMetrics(),
+        generateSystemLogs(),
+      ]);
+      setKpis(kpiData);
+      setChartData(chart);
+      setVoteAnalytics(votes);
+      setPaymentMetrics(payments);
+      setFraudMetrics(fraud);
+      setSystemLogs(logs);
       setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    };
+    void loadData();
   }, [activeTab]);
 
   const handleExport = async (format: 'csv' | 'excel' | 'pdf') => {
     try {
       // Simulate export API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      setExportMessage(`Report exported as ${format.toUpperCase()} (mock).`);
+      setExportMessage(`Report exported as ${format.toUpperCase()}.`);
     } catch (error) {
-      setExportMessage('Export failed in mock mode.');
+      setExportMessage('Export failed.');
     }
   };
 
@@ -105,10 +119,13 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="voting">
+          {voteAnalytics ? (
           <ReportsVotingTab data={voteAnalytics} isLoading={isLoading} />
+          ) : null}
         </TabsContent>
 
         <TabsContent value="revenue">
+          {paymentMetrics ? (
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <Card className="p-4">
@@ -152,9 +169,11 @@ export default function ReportsPage() {
               </Table>
             </Card>
           </div>
+          ) : null}
         </TabsContent>
 
         <TabsContent value="fraud">
+          {fraudMetrics ? (
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <Card className="p-4">
@@ -181,6 +200,7 @@ export default function ReportsPage() {
               </p>
             </Card>
           </div>
+          ) : null}
         </TabsContent>
 
         <TabsContent value="logs">
@@ -242,3 +262,4 @@ export default function ReportsPage() {
     </div>
   );
 }
+

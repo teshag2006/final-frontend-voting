@@ -1,7 +1,7 @@
 'use client';
 
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import type { InfluencePoint } from '@/lib/sponsorship-mock';
+import type { InfluencePoint } from '@/lib/types';
 
 interface LazyTrendChartProps {
   data: InfluencePoint[];
@@ -29,4 +29,3 @@ export function LazyTrendChart({ data, color = '#2563eb' }: LazyTrendChartProps)
     </div>
   );
 }
-

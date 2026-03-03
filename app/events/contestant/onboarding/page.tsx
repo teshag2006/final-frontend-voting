@@ -9,7 +9,7 @@ import type {
   ContestantPublishingState,
   ContestantReadiness,
   ContestantSubmissionStatus,
-} from '@/lib/contestant-runtime-store';
+} from '@/lib/contestant-types';
 
 interface OnboardingBundle {
   onboarding: ContestantOnboardingData;
@@ -140,3 +140,5 @@ export default function ContestantOnboardingPage() {
     </div>
   );
 }
+
+

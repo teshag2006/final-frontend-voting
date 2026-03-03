@@ -18,9 +18,9 @@ import {
   TrendingUp,
   Trophy,
 } from 'lucide-react';
-import { mockArchivedEvents, mockEvents } from '@/lib/events-mock';
 import { Button } from '@/components/ui/button';
-import type { AdminContentState } from '@/lib/admin-content-runtime-store';
+import type { AdminContentState } from '@/lib/admin-content-types';
+import type { UiEvent } from '@/lib/types';
 
 type CounterMetric = {
   label: string;
@@ -184,6 +184,7 @@ export function PublicEventsHomepage() {
   const [navCollapsed, setNavCollapsed] = useState(false);
   const [bannerIndex, setBannerIndex] = useState(0);
   const [cmsContent, setCmsContent] = useState<AdminContentState | null>(null);
+  const [events, setEvents] = useState<UiEvent[]>([]);
 
   useEffect(() => {
     const onScroll = () => setNavCollapsed(window.scrollY > 18);
@@ -203,6 +204,27 @@ export function PublicEventsHomepage() {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+    fetch('/api/public/events', { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (!mounted || !payload) return;
+        const rows = Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload)
+            ? payload
+            : [];
+        setEvents(rows as UiEvent[]);
+      })
+      .catch(() => {
+        if (mounted) setEvents([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       const activeBannerCount =
         (cmsContent?.sponsorBanners || []).filter((item) => item.active && item.placement === 'homepage_top').length ||
@@ -213,20 +235,33 @@ export function PublicEventsHomepage() {
   }, [cmsContent]);
 
   const liveEvents = useMemo(
-    () => mockEvents.filter((event) => event.status === 'LIVE' || event.status === 'active'),
-    []
+    () =>
+      events.filter(
+        (event) =>
+          String(event.status || '').toUpperCase() === 'LIVE' ||
+          String(event.status || '').toLowerCase() === 'active'
+      ),
+    [events]
   );
   const upcomingEvents = useMemo(
-    () => mockEvents.filter((event) => event.status === 'UPCOMING' || event.status === 'coming_soon'),
-    []
+    () =>
+      events.filter(
+        (event) =>
+          String(event.status || '').toUpperCase() === 'UPCOMING' ||
+          String(event.status || '').toLowerCase() === 'coming_soon'
+      ),
+    [events]
   );
   const archivedEvents = useMemo(
-    () => [...mockEvents, ...mockArchivedEvents].filter(
-      (event) => event.status === 'ARCHIVED' || event.status === 'cancelled'
-    ),
-    []
+    () =>
+      events.filter(
+        (event) =>
+          String(event.status || '').toUpperCase() === 'ARCHIVED' ||
+          String(event.status || '').toLowerCase() === 'cancelled'
+      ),
+    [events]
   );
-  const primaryEventSlug = liveEvents[0]?.slug || upcomingEvents[0]?.slug || mockEvents[0]?.slug;
+  const primaryEventSlug = liveEvents[0]?.slug || upcomingEvents[0]?.slug || events[0]?.slug;
   const primaryEventHref = primaryEventSlug ? `/events/${primaryEventSlug}` : '/events';
   const primaryLeaderboardHref = primaryEventSlug
     ? `/events/${primaryEventSlug}/leaderboard`
@@ -291,7 +326,7 @@ export function PublicEventsHomepage() {
       startDate: event.start_date,
       endDate: event.end_date,
       eventStatus: event.status,
-      image: event.banner_url,
+      image: event.banner_url || '/placeholder.svg',
       description: event.description,
       location: {
         '@type': 'Place',
@@ -424,7 +459,7 @@ export function PublicEventsHomepage() {
                 className="group overflow-hidden rounded-2xl border border-white/10 bg-[#0d1738] shadow-[0_10px_35px_rgba(2,8,23,0.45)] transition duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(15,23,42,0.6)]"
               >
                 <div className="relative h-56">
-                  <Image src={event.banner_url} alt={event.name} fill className="object-cover transition group-hover:scale-105" />
+                  <Image src={event.banner_url || '/placeholder.svg'} alt={event.name} fill className="object-cover transition group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#030617] via-[#03061766] to-transparent" />
                   <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-500/90 px-2 py-1 text-xs font-semibold text-white">
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
@@ -437,7 +472,7 @@ export function PublicEventsHomepage() {
                   )}
                   <div className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/40 px-2 py-1 text-xs text-slate-100">
                     <Clock3 className="h-3.5 w-3.5" />
-                    {getCountdownLabel(event.end_date)}
+                    {getCountdownLabel(event.end_date || event.start_date || new Date().toISOString())}
                   </div>
                 </div>
                 <div className="p-4">
@@ -579,12 +614,12 @@ export function PublicEventsHomepage() {
             {upcomingEvents.map((event) => (
               <article key={event.id} className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d1738]">
                 <div className="relative h-48">
-                  <Image src={event.banner_url} alt={event.name} fill className="object-cover" />
+                  <Image src={event.banner_url || '/placeholder.svg'} alt={event.name} fill className="object-cover" />
                 </div>
                 <div className="p-4">
                   <p className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 text-xs text-slate-200">
                     <Calendar className="h-3.5 w-3.5" />
-                    {getCountdownLabel(event.start_date)}
+                    {getCountdownLabel(event.start_date || new Date().toISOString())}
                   </p>
                   <h3 className="mt-3 font-serif text-2xl text-white">{event.name}</h3>
                   <div className="mt-4 flex items-center gap-2">
@@ -631,7 +666,7 @@ export function PublicEventsHomepage() {
             {archivedEvents.slice(0, 3).map((event) => (
               <article key={event.id} className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d1738]">
                 <div className="relative h-44">
-                  <Image src={event.banner_url} alt={event.name} fill className="object-cover opacity-90" />
+                  <Image src={event.banner_url || '/placeholder.svg'} alt={event.name} fill className="object-cover opacity-90" />
                 </div>
                 <div className="p-4">
                   <h3 className="font-serif text-2xl text-white">{event.name}</h3>
@@ -749,6 +784,7 @@ export function PublicEventsHomepage() {
     </div>
   );
 }
+
 
 
 

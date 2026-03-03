@@ -25,11 +25,11 @@ import {
   paginateContestants,
   getCategories,
   type CategoryOption,
-} from '@/lib/contestants-management-mock';
+} from '@/lib/contestants-management-data';
 import type {
   ContestantChangeRequest,
   ContestantPublishingState,
-} from '@/lib/contestant-runtime-store';
+} from '@/lib/contestant-types';
 
 export default function AdminContestantsPage() {
   const [allContestants, setAllContestants] = useState<ContestantData[]>([]);
@@ -56,19 +56,6 @@ export default function AdminContestantsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [publishingState, setPublishingState] = useState<ContestantPublishingState | null>(null);
   const [changeRequests, setChangeRequests] = useState<ContestantChangeRequest[]>([]);
-
-  const loadContestantsFromApi = async (): Promise<ContestantData[] | null> => {
-    try {
-      const response = await fetch('/api/admin/contestants');
-      if (!response.ok) {
-        return null;
-      }
-      const payload = (await response.json()) as ContestantData[];
-      return Array.isArray(payload) ? payload : [];
-    } catch {
-      return null;
-    }
-  };
 
   const syncContestantCreate = async (contestant: ContestantData): Promise<ContestantData | null> => {
     try {
@@ -124,18 +111,13 @@ export default function AdminContestantsPage() {
     }
   };
 
-  // Initialize contestants data with backend-first + mock fallback
+  // Initialize contestants data from backend
   useEffect(() => {
     const loadContestantsData = async () => {
-      const mockCategories = getCategories();
-      setCategories(mockCategories);
-      const data = await loadContestantsFromApi();
-      if (data === null) {
-        const mockContestants = generateMockContestants(120);
-        setAllContestants(mockContestants);
-      } else {
-        setAllContestants(data);
-      }
+      const data = await generateMockContestants(120);
+      const resolvedCategories = await getCategories(data);
+      setCategories(resolvedCategories);
+      setAllContestants(data);
       setIsLoading(false);
     };
     void loadContestantsData();
@@ -251,6 +233,8 @@ export default function AdminContestantsPage() {
       }
 
       const payload = (await response.json()) as {
+        access_token?: string;
+        refresh_token?: string;
         user?: { id: string; email: string; name: string; role: 'contestant'; avatar?: string };
       };
       if (!payload.user) {
@@ -261,19 +245,12 @@ export default function AdminContestantsPage() {
       localStorage.setItem('auth_user_id', payload.user.id);
       localStorage.setItem('auth_user_role', payload.user.role);
       localStorage.setItem('auth_impersonation_user', JSON.stringify(payload.user));
-
-      const expiresAt = Date.now() + 60 * 60 * 1000;
-      const token = btoa(
-        JSON.stringify({
-          id: payload.user.id,
-          email: payload.user.email,
-          role: payload.user.role,
-          name: payload.user.name,
-        })
-      );
-      localStorage.setItem('auth_token', `${token}.${Date.now()}`);
-      localStorage.setItem('refresh_token', Math.random().toString(36).slice(2));
-      localStorage.setItem('token_expires_at', String(expiresAt));
+      if (payload.access_token) {
+        localStorage.setItem('auth_token', payload.access_token);
+      }
+      if (payload.refresh_token) {
+        localStorage.setItem('refresh_token', payload.refresh_token);
+      }
 
       window.location.href = '/events/contestant/dashboard';
     } catch {
@@ -342,8 +319,7 @@ export default function AdminContestantsPage() {
         }
       } else {
         // Create new contestant
-        const fallbackContestant: ContestantData = {
-          id: `#${Date.now()}`,
+        const createPayload = {
           ...data,
           category: categories.find((cat) => cat.id === data.category)?.name || '',
           categoryId: data.category,
@@ -351,9 +327,14 @@ export default function AdminContestantsPage() {
           totalVotes: 0,
           revenue: 0,
           createdAt: new Date().toISOString(),
-        };
-        const created = await syncContestantCreate(fallbackContestant);
-        setAllContestants((prev) => [created ?? fallbackContestant, ...prev]);
+        } as ContestantData;
+        const created = await syncContestantCreate(createPayload);
+        if (!created) {
+          window.alert('Could not create contestant. No local fallback was applied.');
+          setIsSubmitting(false);
+          return;
+        }
+        setAllContestants((prev) => [created, ...prev]);
       }
       setIsSubmitting(false);
     } catch (error) {
@@ -638,4 +619,6 @@ export default function AdminContestantsPage() {
     </ProtectedRouteWrapper>
   );
 }
+
+
 

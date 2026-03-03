@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
-import { getSecurityData } from '@/lib/api';
-import { mockSecurityData } from '@/lib/dashboard-mock';
+import { getSecurityDataSafe } from '@/lib/dashboard-data';
 import { SecurityRemediationBoard } from '@/components/dashboard/security-remediation-board';
-import { getContestantSecurityCases } from '@/lib/contestant-runtime-store';
 
 export const metadata: Metadata = {
   title: 'Trust & Security | Contestant Portal',
@@ -10,9 +8,14 @@ export const metadata: Metadata = {
 };
 
 export default async function SecurityPage() {
-  const data = (await getSecurityData()) || mockSecurityData;
+  const data = await getSecurityDataSafe();
   const { metrics, alerts } = data;
-  const securityCases = getContestantSecurityCases();
+  const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
+  const securityCasesRes = await fetch(
+    `${appBaseUrl}/api/contestant/security-cases`,
+    { cache: 'no-store' }
+  ).catch(() => null);
+  const securityCases = securityCasesRes?.ok ? await securityCasesRes.json() : [];
 
   return (
     <div className="p-6">
@@ -79,3 +82,4 @@ function Tile({
     </div>
   );
 }
+

@@ -1,12 +1,24 @@
 import Link from 'next/link';
-import { LEADERBOARD_CONTESTANTS } from '@/lib/public-pages-mock';
+import { getAllEvents, getEventContestants } from '@/lib/api';
 
 export const metadata = {
   title: 'Contestants | Enterprise Voting Platform',
   description: 'Discover verified contestants and open their voting profiles.',
 };
 
-export default function ContestantsPage() {
+export default async function ContestantsPage() {
+  const events = await getAllEvents({ page: 1, limit: 6 });
+  const contestantsByEvent = await Promise.all(
+    events.items.slice(0, 3).map(async (event) => {
+      const contestants = await getEventContestants(event.slug, { page: 1, limit: 20 });
+      return contestants.map((contestant) => ({
+        ...contestant,
+        event_slug: event.slug,
+      }));
+    })
+  );
+  const contestants = contestantsByEvent.flat().slice(0, 30);
+
   return (
     <main className="min-h-screen bg-background">
       <section className="border-b border-border bg-card/50">
@@ -22,7 +34,7 @@ export default function ContestantsPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {LEADERBOARD_CONTESTANTS.map((contestant) => (
+          {contestants.map((contestant) => (
             <article
               key={contestant.id}
               className="rounded-xl border border-border bg-card p-5 shadow-sm"
@@ -59,3 +71,4 @@ export default function ContestantsPage() {
     </main>
   );
 }
+

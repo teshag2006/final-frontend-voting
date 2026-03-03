@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { EventProvider } from '@/context/EventContext';
-import { mockEvents } from '@/lib/events-mock';
+import { getAllEvents, getEventBySlug } from '@/lib/api';
 
 interface EventLayoutProps {
   children: ReactNode;
@@ -10,9 +10,8 @@ interface EventLayoutProps {
 }
 
 export async function generateStaticParams() {
-  return mockEvents.map((event) => ({
-    eventSlug: event.slug,
-  }));
+  const events = await getAllEvents({ limit: 200 });
+  return events.items.map((event) => ({ eventSlug: event.slug }));
 }
 
 export default async function EventLayout({
@@ -21,8 +20,7 @@ export default async function EventLayout({
 }: EventLayoutProps) {
   const { eventSlug } = await params;
 
-  // Find the event by slug
-  const event = mockEvents.find((e) => e.slug === eventSlug);
+  const event = await getEventBySlug(eventSlug);
 
   if (!event) {
     return (

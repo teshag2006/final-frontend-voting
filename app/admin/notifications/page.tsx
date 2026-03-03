@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,25 +16,57 @@ import {
   generateTemplates,
   generateWebhookIntegrations,
   getNotificationStats,
-} from '@/lib/notifications-mock';
+} from '@/lib/notifications-data';
 import { type Notification, type AlertRule, type DeliveryLog } from '@/types/notifications';
 import { Bell, AlertCircle, CheckCircle2, RefreshCw, Settings } from 'lucide-react';
 
 export default function NotificationCenterPage() {
-  const [notifications, setNotifications] = useState(generateNotifications(50));
-  const [alertRules, setAlertRules] = useState(generateAlertRules(10));
-  const [deliveryLogs, setDeliveryLogs] = useState(generateDeliveryLogs(30));
-  const [templates, setTemplates] = useState(generateTemplates());
-  const [webhooks, setWebhooks] = useState(generateWebhookIntegrations());
-  const [stats, setStats] = useState(getNotificationStats());
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [alertRules, setAlertRules] = useState<any[]>([]);
+  const [deliveryLogs, setDeliveryLogs] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [webhooks, setWebhooks] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalToday: 0,
+    newCount: 0,
+    criticalCount: 0,
+    unresolvedCount: 0,
+    failedDeliveries: 0,
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      const [loadedNotifications, loadedRules, loadedLogs, loadedTemplates, loadedWebhooks, loadedStats] =
+        await Promise.all([
+          generateNotifications(50),
+          generateAlertRules(10),
+          generateDeliveryLogs(30),
+          generateTemplates(),
+          generateWebhookIntegrations(),
+          getNotificationStats(),
+        ]);
+      setNotifications(loadedNotifications);
+      setAlertRules(loadedRules);
+      setDeliveryLogs(loadedLogs);
+      setTemplates(loadedTemplates);
+      setWebhooks(loadedWebhooks);
+      setStats(loadedStats);
+      setIsLoading(false);
+    };
+    void loadData();
+  }, []);
+
   const handleRefresh = useCallback(async () => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setNotifications(generateNotifications(50));
-    setStats(getNotificationStats());
+    const [loadedNotifications, loadedStats] = await Promise.all([
+      generateNotifications(50),
+      getNotificationStats(),
+    ]);
+    setNotifications(loadedNotifications);
+    setStats(loadedStats);
     setIsLoading(false);
   }, []);
 
@@ -298,3 +330,4 @@ export default function NotificationCenterPage() {
     </div>
   );
 }
+

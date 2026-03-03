@@ -2,12 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/lib/server/api-auth';
 import { buildSigninResponse } from '@/lib/server/auth-route-utils';
 
-function toSlug(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 48);
+function resolveApiUrl(): string | null {
+  const base = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (!base) return null;
+  return base.replace(/\/$/, '');
+}
+
+function parseNumericId(raw: string): number | null {
+  const digits = String(raw || '').replace(/\D+/g, '');
+  if (!digits) return null;
+  const value = Number(digits);
+  if (!Number.isFinite(value) || value <= 0) return null;
+  return value;
+}
+
+function extractEnvelopeData(payload: any): any {
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    return payload.data;
+  }
+  return payload;
 }
 
 export async function POST(request: NextRequest) {
@@ -18,31 +31,94 @@ export async function POST(request: NextRequest) {
 
   const payload = (await request.json()) as {
     sponsorId?: string;
-    name?: string;
-    email?: string;
-    avatar?: string;
   };
 
-  const sponsorId = String(payload.sponsorId || '').trim();
-  const name = String(payload.name || '').trim();
-  const email = String(payload.email || '').trim().toLowerCase();
-  const avatar = payload.avatar ? String(payload.avatar) : undefined;
+  const sponsorId = parseNumericId(String(payload.sponsorId || '').trim());
+  if (!sponsorId) {
+    return NextResponse.json({ message: 'A valid sponsorId is required' }, { status: 400 });
+  }
 
-  if (!sponsorId || !name) {
+  const apiBase = resolveApiUrl();
+  if (!apiBase) {
     return NextResponse.json(
-      { message: 'sponsorId and name are required' },
-      { status: 400 }
+      { message: 'NEXT_PUBLIC_BACKEND_URL (or NEXT_PUBLIC_API_URL) is not configured' },
+      { status: 500 }
     );
   }
 
-  const fallbackEmail = `${toSlug(name) || 'sponsor'}@sponsor.local`;
+  const adminToken = request.cookies.get('auth_token')?.value;
+  if (!adminToken) {
+    return NextResponse.json({ message: 'Missing admin auth token' }, { status: 401 });
+  }
+
+  const impersonate = await fetch(`${apiBase}/auth/admin/impersonate`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${adminToken}` },
+    body: JSON.stringify({
+      target_type: 'sponsor',
+      target_id: sponsorId,
+    }),
+    cache: 'no-store',
+  });
+
+  if (!impersonate.ok) {
+    return NextResponse.json(
+      { message: 'Sponsor impersonation failed', statusCode: impersonate.status },
+      { status: impersonate.status }
+    );
+  }
+
+  const backendPayload = await impersonate.json().catch(() => null);
+  const data = extractEnvelopeData(backendPayload) as
+    | {
+        access_token?: string;
+        refresh_token?: string;
+        user?: {
+          id: number;
+          email: string;
+          full_name?: string;
+          avatar_url?: string | null;
+        };
+      }
+    | null;
+
+  const accessToken = String(data?.access_token || '');
+  const refreshToken = String(data?.refresh_token || '');
+  const backendUser = data?.user;
+
+  if (!accessToken || !backendUser?.email) {
+    return NextResponse.json(
+      { message: 'Impersonation tokens are missing from backend response' },
+      { status: 502 }
+    );
+  }
+  const name = String(backendUser.full_name || '').trim() || `Sponsor ${sponsorId}`;
+  const avatar = String(backendUser.avatar_url || '').trim() || undefined;
+
   const user = {
-    id: `sponsor-imp-${toSlug(sponsorId || name)}`,
-    email: email || fallbackEmail,
+    id: String(backendUser.id),
+    email: String(backendUser.email).toLowerCase(),
     name,
     role: 'sponsor' as const,
     avatar,
   };
 
-  return buildSigninResponse(user);
+  const response = buildSigninResponse(user, {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+  const secure = process.env.NODE_ENV === 'production';
+  response.cookies.set('auth_token', accessToken, {
+    path: '/',
+    sameSite: 'lax',
+    secure,
+  });
+  if (refreshToken) {
+    response.cookies.set('refresh_token', refreshToken, {
+      path: '/',
+      sameSite: 'lax',
+      secure,
+    });
+  }
+  return response;
 }

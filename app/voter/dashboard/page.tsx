@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,56 +10,103 @@ import { VoterSidebarNav } from '@/components/voter/voter-sidebar-nav';
 import { VerificationBanner } from '@/components/wallet/verification-banner';
 import { WalletSummary } from '@/components/wallet/wallet-summary';
 import { CategoryVoteCard } from '@/components/wallet/category-vote-card';
-import { mockVoterDashboard } from '@/lib/voter-dashboard-mock';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getVoterDashboard, getVoterWallet, submitVoterVote } from '@/lib/api';
+import { authService } from '@/lib/services/authService';
 
 const QUICK_PACKAGE_OPTIONS = [10, 25, 50, 100] as const;
+
+function normalizeWallet(raw: any) {
+  const freeVotes = Array.isArray(raw?.freeVotes)
+    ? raw.freeVotes.map((item: any) => ({
+        categoryId: String(item.categoryId || item.category_id || ''),
+        categoryName: String(item.categoryName || item.category_name || 'Category'),
+        isEligible: Boolean(item.isEligible ?? item.is_eligible ?? true),
+        isAvailable: Number(item.remaining ?? item.remaining_votes ?? 0) > 0,
+        isUsed: Number(item.remaining ?? item.remaining_votes ?? 0) <= 0,
+      }))
+    : [];
+
+  return {
+    paidVotesRemaining: Number(raw?.paidVotesRemaining || raw?.paid_votes_remaining || 0),
+    totalPaidVotesPurchased: Number(raw?.totalPaidVotesPurchased || raw?.total_paid_votes_purchased || 0),
+    totalVotesUsed: Number(raw?.totalVotesUsed || raw?.total_votes_used || 0),
+    freeVotes,
+  };
+}
+
+function normalizeDashboard(raw: any) {
+  return {
+    eventName: String(raw?.eventName || raw?.event_name || 'Voter Workspace'),
+    recentActivities: Array.isArray(raw?.recentActivities)
+      ? raw.recentActivities
+      : Array.isArray(raw?.recent_activities)
+        ? raw.recent_activities
+        : [],
+    device: String(raw?.device || raw?.security?.device || 'Unknown'),
+    lastLogin: String(raw?.lastLogin || raw?.security?.last_login || '-'),
+    location: String(raw?.location || raw?.security?.location || '-'),
+    riskStatus: (raw?.riskStatus || raw?.security?.risk_status || 'low') as 'low' | 'review' | 'blocked',
+  };
+}
 
 export default function VoterDashboard() {
   const router = useRouter();
   const { logout } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [runtimeState, setRuntimeState] = useState(() => ({
-    isVerified: false,
-    maskedPhone: 'Not verified',
-    walletData: mockVoterDashboard.walletData,
-  }));
+  const [dashboard, setDashboard] = useState(() =>
+    normalizeDashboard({
+      event_name: 'Voter Workspace',
+      recent_activities: [],
+      security: {},
+    })
+  );
+  const [wallet, setWallet] = useState(() =>
+    normalizeWallet({ paid_votes_remaining: 0, freeVotes: [] })
+  );
+  const [isVerified, setIsVerified] = useState(false);
+  const [maskedPhone, setMaskedPhone] = useState('Not verified');
 
-  const loadWallet = async () => {
-    try {
-      const response = await fetch('/api/voter/wallet', { cache: 'no-store' });
-      if (!response.ok) return;
-      const wallet = await response.json();
-      const phone = String(wallet?.phoneNumber || '');
+  const getAccessToken = () => authService.getToken() || undefined;
+
+  const loadData = async () => {
+    const token = getAccessToken();
+    const [dashboardRes, walletRes] = await Promise.all([
+      getVoterDashboard(token),
+      getVoterWallet(token),
+    ]);
+
+    if (dashboardRes) {
+      setDashboard(normalizeDashboard(dashboardRes));
+    }
+
+    if (walletRes) {
+      const phone = String(walletRes?.phoneNumber || '');
       const digits = phone.replace(/\D/g, '');
-      const maskedPhone =
+      setMaskedPhone(
         digits.length >= 7
           ? `+${digits.slice(0, 3)} ${digits.slice(3, 4)}XX XXX ${digits.slice(-3)}`
-          : 'Not verified';
-      setRuntimeState({
-        isVerified: Boolean(wallet?.isPhoneVerified),
-        maskedPhone,
-        walletData: wallet,
-      });
-    } catch {
-      // Keep fallback mock data in dev mode.
+          : 'Not verified'
+      );
+      setIsVerified(Boolean(walletRes?.isPhoneVerified));
+      setWallet(normalizeWallet(walletRes));
     }
   };
 
   useEffect(() => {
-    void loadWallet();
+    void loadData();
   }, []);
 
   const data = useMemo(
     () => ({
-      ...mockVoterDashboard,
-      isVerified: runtimeState.isVerified,
-      maskedPhone: runtimeState.maskedPhone,
-      walletData: runtimeState.walletData,
+      ...dashboard,
+      walletData: wallet,
+      isVerified,
+      maskedPhone,
     }),
-    [runtimeState]
+    [dashboard, wallet, isVerified, maskedPhone]
   );
 
   const handleLogout = () => {
@@ -83,7 +130,7 @@ export default function VoterDashboard() {
     router.push('/verify-phone');
   };
 
-  const handleUseVote = async (categoryId: string, categoryName: string, isPaid: boolean) => {
+  const handleUseVote = async (categoryId: string, isPaid: boolean) => {
     if (!isPaid && !data.isVerified) {
       router.push('/verify-phone');
       return;
@@ -92,26 +139,51 @@ export default function VoterDashboard() {
     setIsLoading(true);
     setFeedback(null);
     try {
-      const response = await fetch('/api/voter/vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const token = getAccessToken();
+      const walletSnapshot = await getVoterWallet(token);
+      if (!walletSnapshot) {
+        setFeedback('Unable to verify wallet balance.');
+        return;
+      }
+      const paidVotesRemaining = Number(
+        walletSnapshot.paidVotesRemaining || walletSnapshot.paid_votes_remaining || 0
+      );
+      if (isPaid && paidVotesRemaining <= 0) {
+        setFeedback('Insufficient paid votes. Please buy a package.');
+        router.push('/vote/checkout?quantity=10');
+        return;
+      }
+
+      if (!isPaid) {
+        const freeVoteRow = Array.isArray(walletSnapshot.freeVotes)
+          ? walletSnapshot.freeVotes.find(
+              (row: any) =>
+                String(row.categoryId || row.category_id || '') === String(categoryId)
+            )
+          : null;
+        const remaining = Number(freeVoteRow?.remaining || freeVoteRow?.remaining_votes || 0);
+        if (freeVoteRow && remaining <= 0) {
+          setFeedback('Free vote already used for this category.');
+          return;
+        }
+      }
+
+      const voteRes = await submitVoterVote(
+        {
           categoryId,
-          categoryName,
-          contestantName: 'Dashboard Vote',
           isPaid,
           quantity: 1,
-        }),
-      });
+        },
+        token
+      );
 
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) {
-        setFeedback(payload?.message || 'Vote failed');
+      if (!voteRes) {
+        setFeedback('Vote failed');
         return;
       }
 
       setFeedback(isPaid ? 'Paid vote submitted.' : 'Free vote submitted.');
-      await loadWallet();
+      await loadData();
     } catch {
       setFeedback('Vote failed. Please try again.');
     } finally {
@@ -121,7 +193,6 @@ export default function VoterDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-200">
-      {/* Header */}
       <DashboardHeader
         eventName={data.eventName}
         isVerified={data.isVerified}
@@ -129,7 +200,6 @@ export default function VoterDashboard() {
         onLogout={handleLogout}
       />
 
-      {/* Main Content */}
       <main className="w-full">
         <div className="grid grid-cols-1 lg:grid-cols-[256px_minmax(0,1fr)]">
           <VoterSidebarNav />
@@ -140,12 +210,10 @@ export default function VoterDashboard() {
                 {feedback}
               </div>
             )}
-            {/* Verification Banner */}
             <div className="mb-6">
               <VerificationBanner isVerified={data.isVerified} />
             </div>
 
-            {/* Wallet Summary - 3 Card Overview */}
             {data.walletData && (
               <section className="mb-8">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -177,7 +245,6 @@ export default function VoterDashboard() {
               </div>
             </section>
 
-            {/* Voting by Category with Direct Vote Buttons */}
             <section className="mb-8">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-foreground">Voting by Category</h2>
@@ -190,31 +257,25 @@ export default function VoterDashboard() {
                 </Button>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {data.walletData?.freeVotes.slice(0, 6).map((category) => (
+                {data.walletData?.freeVotes?.slice(0, 6).map((category: any) => (
                   <CategoryVoteCard
                     key={category.categoryId}
                     category={category}
                     paidVotesAvailable={data.walletData?.paidVotesRemaining || 0}
                     isLoading={isLoading}
-                    onUseFreeVote={() => handleUseVote(String(category.categoryId), String(category.categoryName || ''), false)}
-                    onUsePaidVote={() => handleUseVote(String(category.categoryId), String(category.categoryName || ''), true)}
+                    onUseFreeVote={() => handleUseVote(String(category.categoryId), false)}
+                    onUsePaidVote={() => handleUseVote(String(category.categoryId), true)}
                     onBuyVotes={handleBuyMoreVotes}
                   />
                 ))}
               </div>
             </section>
 
-            {/* Activity & Security Section */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              {/* Recent Activity - Takes 2 columns on desktop */}
               <div className="lg:col-span-2">
-                <RecentActivityTable
-                  activities={data.recentActivities}
-                  isLoading={isLoading}
-                />
+                <RecentActivityTable activities={data.recentActivities} isLoading={isLoading} />
               </div>
 
-              {/* Security Panel - Takes 1 column on desktop */}
               <SecurityPanel
                 device={data.device}
                 lastLogin={data.lastLogin}
@@ -225,7 +286,6 @@ export default function VoterDashboard() {
               />
             </div>
 
-            {/* How the Hybrid Wallet Works */}
             <div className="mt-12 rounded-xl border border-blue-200 bg-blue-50 p-6">
               <h3 className="mb-3 font-semibold text-blue-900">How the Hybrid Wallet Works</h3>
               <ul className="space-y-1.5 text-sm text-blue-800">
@@ -239,7 +299,6 @@ export default function VoterDashboard() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-slate-300 bg-slate-100 py-6 sm:py-8">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center text-xs text-muted-foreground sm:text-sm">
@@ -263,5 +322,3 @@ export default function VoterDashboard() {
     </div>
   );
 }
-
-

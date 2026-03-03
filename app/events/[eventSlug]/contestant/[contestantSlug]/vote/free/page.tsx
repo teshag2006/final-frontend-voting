@@ -2,19 +2,18 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { mockContestantProfile } from "@/lib/contestant-profile-mock";
-import { mockEvents } from "@/lib/events-mock";
-import { getContestantsForEvent } from "@/lib/mock-data-generator";
-import { slugify } from "@/lib/slug";
 import { useAuth } from "@/context/AuthContext";
+import { getContestantProfile, getEventBySlug, getVoterWallet, submitVoterVote } from "@/lib/api";
+import { authService } from "@/lib/services/authService";
 
 interface WalletSnapshot {
   isPhoneVerified: boolean;
   phoneNumber?: string;
   freeVotes?: Array<{
-    eventSlug?: string;
     categoryId?: string;
+    category_id?: string;
     isUsed?: boolean;
+    remaining?: number;
   }>;
 }
 
@@ -29,15 +28,8 @@ export default function FreeVoteCheckoutPage() {
   const signupPath = `/signup/voter?next=${encodeURIComponent(currentPath)}`;
   const verifyPath = `/verify-phone?next=${encodeURIComponent(currentPath)}`;
 
-  const event = mockEvents.find((e) => e.slug === eventSlug);
-  const selectedContestant = getContestantsForEvent(eventSlug).find(
-    (item) => item.slug === contestantSlug
-  );
-  const contestant = selectedContestant || mockContestantProfile;
-  const categoryName = String(
-    selectedContestant?.category || (contestant as any).category_name || "General"
-  );
-  const categoryId = `${eventSlug}:${slugify(categoryName)}`;
+  const [event, setEvent] = useState<any | null>(null);
+  const [contestant, setContestant] = useState<any | null>(null);
 
   const [wallet, setWallet] = useState<WalletSnapshot | null>(null);
   const [walletLoading, setWalletLoading] = useState(true);
@@ -61,26 +53,18 @@ export default function FreeVoteCheckoutPage() {
     const loadWallet = async () => {
       setWalletLoading(true);
       try {
-        const response = await fetch("/api/voter/wallet", {
-          method: "GET",
-          credentials: "same-origin",
-        });
-        const payload = (await response.json().catch(() => null)) as WalletSnapshot | null;
+        const token = authService.getToken() || undefined;
+        const [eventRes, contestantRes, walletRes] = await Promise.all([
+          getEventBySlug(eventSlug),
+          getContestantProfile(eventSlug, contestantSlug),
+          getVoterWallet(token),
+        ]);
 
-        if (!response.ok) {
-          if (response.status === 401) {
-            router.replace(loginPath);
-            return;
-          }
-          if (response.status === 403) {
-            router.replace(signupPath);
-            return;
-          }
-          throw new Error("Unable to load voter wallet");
-        }
+        setEvent(eventRes);
+        setContestant(contestantRes);
+        setWallet((walletRes || null) as WalletSnapshot | null);
 
-        setWallet(payload);
-        if (!payload?.isPhoneVerified) {
+        if (!walletRes?.isPhoneVerified) {
           router.replace(verifyPath);
         }
       } catch (error) {
@@ -96,9 +80,17 @@ export default function FreeVoteCheckoutPage() {
   }, [isLoading, isAuthenticated, userRole, router, loginPath, signupPath, verifyPath]);
 
   const eligibility = useMemo(() => {
+    const categoryId = String(
+      contestant?.category_id ||
+        wallet?.freeVotes?.[0]?.categoryId ||
+        wallet?.freeVotes?.[0]?.category_id ||
+        ""
+    );
     const usedForCategory = Boolean(
       wallet?.freeVotes?.find(
-        (item) => item?.eventSlug === eventSlug && item?.categoryId === categoryId && item?.isUsed
+        (item) =>
+          String(item?.categoryId || "") === categoryId &&
+          (Boolean(item?.isUsed) || Number(item?.remaining || 0) <= 0)
       )
     );
 
@@ -106,7 +98,7 @@ export default function FreeVoteCheckoutPage() {
       freeEligible: Boolean(wallet?.isPhoneVerified),
       freeUsed: usedForCategory,
     };
-  }, [wallet, eventSlug, categoryId]);
+  }, [wallet, contestant?.category_id]);
 
   const handleClaimFreeVote = useCallback(async () => {
     if (!eligibility.freeEligible) {
@@ -116,32 +108,29 @@ export default function FreeVoteCheckoutPage() {
     setErrorMessage(null);
     setInfoMessage(null);
     try {
-      const voteResponse = await fetch("/api/voter/vote", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          eventSlug,
-          eventName: event?.name,
+      const token = authService.getToken() || undefined;
+      const walletSnapshot = await getVoterWallet(token);
+      const categoryId = String(
+        contestant?.category_id ||
+          walletSnapshot?.freeVotes?.[0]?.categoryId ||
+          walletSnapshot?.freeVotes?.[0]?.category_id ||
+          ''
+      );
+      if (!categoryId) {
+        throw new Error('Category ID is missing for free vote.');
+      }
+
+      const votePayload = await submitVoterVote(
+        {
           categoryId,
-          categoryName,
-          contestantName: contestant.name,
+          contestantId: String(contestant?.id || ""),
           isPaid: false,
           quantity: 1,
-        }),
-      });
-      const votePayload = await voteResponse.json().catch(() => null);
-      if (!voteResponse.ok) {
-        if (voteResponse.status === 401) {
-          router.replace(loginPath);
-          return;
-        }
-        if (voteResponse.status === 403) {
-          router.replace(signupPath);
-          return;
-        }
-        throw new Error(votePayload?.message || "Free vote failed");
-      }
+        },
+        token
+      );
+      if (!votePayload) throw new Error("Free vote failed");
+      await getVoterWallet(token);
 
       const targetPath = `/events/${eventSlug}/contestant/${contestantSlug}`;
       setInfoMessage("Free vote confirmed.");
@@ -165,16 +154,16 @@ export default function FreeVoteCheckoutPage() {
     eventSlug,
     contestantSlug,
     router,
-    categoryId,
-    categoryName,
-    contestant.name,
-    event?.name,
-    loginPath,
-    signupPath,
+    contestant?.id,
+    contestant?.category_id,
+    eligibility.freeEligible,
   ]
   );
 
-  if (!event) {
+  const categoryName =
+    contestant?.category_name || contestant?.category || "Category";
+
+  if (!event || !contestant) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <h1 className="text-2xl font-bold">Event not found</h1>

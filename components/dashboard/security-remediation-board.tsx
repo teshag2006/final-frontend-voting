@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { ContestantSecurityCase } from '@/lib/contestant-runtime-store';
+import type { ContestantSecurityCase } from '@/lib/contestant-types';
 
 export function SecurityRemediationBoard({
   cases: initialCases,
@@ -74,3 +74,4 @@ export function SecurityRemediationBoard({
     </div>
   );
 }
+

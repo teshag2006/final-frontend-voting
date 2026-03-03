@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { authService } from '@/lib/services/authService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -76,22 +77,16 @@ export function RoleSignupForm({ role }: { role: SignupRole }) {
     }
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          role,
-          ...(role === 'contestant' ? { gender } : {}),
-        }),
+      const response = await authService.signup({
+        name,
+        email,
+        password,
+        role,
+        ...(role === 'contestant' ? { gender } : {}),
       });
 
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(payload?.message || 'Signup failed');
+      if (!response.success) {
+        setError(response.error || 'Signup failed');
         return;
       }
 

@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { ExternalLink, CheckCircle, Clock } from 'lucide-react'
-import { shortenHash, getExplorerUrl } from '@/lib/verify-mock'
+import { shortenHash, getExplorerUrl } from '@/lib/verification-utils'
 
 interface BlockchainStatusProps {
   isAnchored: boolean

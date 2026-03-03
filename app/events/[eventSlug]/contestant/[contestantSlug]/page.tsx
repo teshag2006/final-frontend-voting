@@ -15,16 +15,23 @@ import { PublicVerificationBadges } from "@/components/contestant-profile/public
 import { EventStatusGuard } from "@/components/event-status-guard";
 
 import {
-  mockContestantProfile,
-  mockGeographicSupport,
-} from "@/lib/contestant-profile-mock";
-import { getEventBySlug, getContestantsForEvent } from "@/lib/mock-data-generator";
-import { getContestantSponsors, getEventSponsors } from "@/lib/sponsorship-mock";
-import { getAdminContentState } from "@/lib/admin-content-runtime-store";
-import {
-  getContestantPublicVerification,
-  isContestantPublicProfileVisible,
-} from "@/lib/contestant-runtime-store";
+  getContestantProfile,
+  getContestantSponsorsPublic,
+  getEventBySlug,
+  getEventContestants,
+  getEventSponsorsPublic,
+} from "@/lib/api";
+
+const FALLBACK_CONTESTANT_PROFILE = {
+  name: "Contestant",
+  category_name: "Category",
+  photo_url: "/placeholder.svg",
+  gallery_photos: ["/placeholder.svg"],
+  rank: 0,
+  rank_overall: 0,
+  status: "active",
+  bio: "",
+};
 
 function buildGalleryPhotos(source: any, eventContestants: any[]) {
   if (Array.isArray(source?.gallery_photos) && source.gallery_photos.length > 0) {
@@ -39,7 +46,7 @@ function buildGalleryPhotos(source: any, eventContestants: any[]) {
 
   const uniquePhotos = Array.from(new Set(candidatePhotos));
   if (uniquePhotos.length === 0) {
-    return mockContestantProfile.gallery_photos;
+    return FALLBACK_CONTESTANT_PROFILE.gallery_photos;
   }
 
   const desiredCount = Math.max(8, uniquePhotos.length);
@@ -73,10 +80,10 @@ function normalizeStats(contestant: any) {
 function normalizeContestant(source: any, eventSlug: string, eventName: string, eventContestants: any[]) {
   if (!source) {
     return {
-      ...mockContestantProfile,
+      ...FALLBACK_CONTESTANT_PROFILE,
       event_slug: eventSlug,
       event_name: eventName,
-      gallery_photos: buildGalleryPhotos(mockContestantProfile, eventContestants),
+      gallery_photos: buildGalleryPhotos(FALLBACK_CONTESTANT_PROFILE, eventContestants),
     };
   }
 
@@ -84,21 +91,21 @@ function normalizeContestant(source: any, eventSlug: string, eventName: string, 
   const rank = Number(source.rank ?? source.ranking ?? 0);
 
   return {
-    ...mockContestantProfile,
+    ...FALLBACK_CONTESTANT_PROFILE,
     ...source,
     event_slug: source.event_slug ?? eventSlug,
     event_name: source.event_name ?? eventName,
-    category_name: source.category_name ?? source.category ?? mockContestantProfile.category_name,
-    photo_url: source.photo_url ?? source.image_url ?? mockContestantProfile.photo_url,
+    category_name: source.category_name ?? source.category ?? FALLBACK_CONTESTANT_PROFILE.category_name,
+    photo_url: source.photo_url ?? source.image_url ?? FALLBACK_CONTESTANT_PROFILE.photo_url,
     total_votes: Number.isFinite(totalVotes) ? totalVotes : 0,
-    rank: Number.isFinite(rank) ? rank : mockContestantProfile.rank,
-    rank_overall: Number.isFinite(rank) ? rank : mockContestantProfile.rank_overall,
-    status: source.status ?? mockContestantProfile.status,
+    rank: Number.isFinite(rank) ? rank : FALLBACK_CONTESTANT_PROFILE.rank,
+    rank_overall: Number.isFinite(rank) ? rank : FALLBACK_CONTESTANT_PROFILE.rank_overall,
+    status: source.status ?? FALLBACK_CONTESTANT_PROFILE.status,
     is_verified: source.is_verified ?? true,
     country: source.country ?? "Pan-African",
     age: source.age ?? null,
     tagline: source.tagline ?? "Contestant",
-    bio: source.bio ?? mockContestantProfile.bio,
+    bio: source.bio ?? FALLBACK_CONTESTANT_PROFILE.bio,
     gallery_photos: buildGalleryPhotos(source, eventContestants),
     video_thumbnail: source.video_thumbnail ?? source.photo_url ?? source.image_url,
     blockchain_hash: source.blockchain_hash,
@@ -112,11 +119,13 @@ export async function generateMetadata({
   params: Promise<{ eventSlug: string; contestantSlug: string }>;
 }): Promise<Metadata> {
   const { eventSlug, contestantSlug } = await params;
-  const event = getEventBySlug(eventSlug);
-  const contestants = getContestantsForEvent(eventSlug);
-  const selectedContestant = contestants.find((item) => item.slug === contestantSlug);
+  const [event, contestants, selectedContestant] = await Promise.all([
+    getEventBySlug(eventSlug),
+    getEventContestants(eventSlug),
+    getContestantProfile(eventSlug, contestantSlug),
+  ]);
   const contestant = normalizeContestant(
-    selectedContestant,
+    selectedContestant || contestants.find((item) => item.slug === contestantSlug),
     eventSlug,
     event?.name ?? "Event",
     contestants
@@ -143,26 +152,33 @@ export default async function ContestantProfilePage({
 }) {
   const { eventSlug, contestantSlug } = await params;
 
-  const event = getEventBySlug(eventSlug);
-  const contestants = getContestantsForEvent(eventSlug);
-  const selectedContestant = contestants.find((c) => c.slug === contestantSlug);
+  const [event, contestants, selectedContestant, sponsors, eventSponsors] =
+    await Promise.all([
+      getEventBySlug(eventSlug),
+      getEventContestants(eventSlug),
+      getContestantProfile(eventSlug, contestantSlug),
+      getContestantSponsorsPublic(eventSlug, contestantSlug),
+      getEventSponsorsPublic(eventSlug),
+    ]);
+
   const contestant = normalizeContestant(
-    selectedContestant,
+    selectedContestant || contestants.find((c) => c.slug === contestantSlug),
     eventSlug,
     event?.name ?? "Event",
     contestants
   );
-  const isPubliclyVisible = isContestantPublicProfileVisible(contestantSlug);
 
   const stats = normalizeStats(contestant);
-  const geoSupport = mockGeographicSupport;
-  const sponsors = getContestantSponsors(eventSlug, contestantSlug);
-  const eventSponsors = getEventSponsors(eventSlug);
-  const verification = getContestantPublicVerification();
-  const cmsContent = getAdminContentState();
-  const contestantProfileBanners = cmsContent.sponsorBanners.filter(
-    (item) => item.active && item.placement === "contestant_profile"
-  );
+  const geoSupport = {
+    trust_score: Number(contestant?.integrityScore || contestant?.trust_score || 0),
+  };
+  const verification = {
+    identityVerified: Boolean(contestant?.is_verified),
+    mediaVerified: Boolean(contestant?.is_verified),
+    payoutReady: Boolean(contestant?.is_verified),
+    fraudReviewClear: Boolean(contestant?.is_verified),
+  };
+  const contestantProfileBanners: any[] = [];
 
   if (!event) {
     return (
@@ -172,13 +188,13 @@ export default async function ContestantProfilePage({
     );
   }
 
-  if (!isPubliclyVisible) {
+  if (!selectedContestant && !contestants.find((c) => c.slug === contestantSlug)) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
-          <h1 className="text-xl font-semibold text-slate-900">Profile Pending Admin Approval</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Contestant not found</h1>
           <p className="mt-2 text-sm text-slate-600">
-            This contestant profile is not publicly available until admin review is approved.
+            This contestant profile is not publicly available.
           </p>
         </div>
       </div>

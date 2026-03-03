@@ -1,21 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { requireRole } from '@/lib/server/api-auth';
-import { getVoterProfile, updateVoterProfile } from '@/lib/voter-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-export async function GET(request: NextRequest) {
-  const access = requireRole(request, ['voter']);
-  if (!access.ok) return access.response;
-  return NextResponse.json(getVoterProfile(access.user));
+export async function GET(request: Request) {
+  return proxyRequest(request, '/voter/profile');
 }
 
-export async function PATCH(request: NextRequest) {
-  const access = requireRole(request, ['voter']);
-  if (!access.ok) return access.response;
-
-  const payload = (await request.json().catch(() => ({}))) as { fullName?: string };
-  const fullName = String(payload.fullName || '').trim();
-  if (!fullName) {
-    return NextResponse.json({ message: 'fullName is required' }, { status: 400 });
-  }
-  return NextResponse.json(updateVoterProfile(access.user, { fullName }));
+export async function PATCH(request: Request) {
+  return proxyRequest(request, '/voter/profile');
 }

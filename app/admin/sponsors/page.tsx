@@ -16,10 +16,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  mockAdminRevenueSeries,
-  mockIntegritySignals,
-  mockMarketplaceContestants,
-} from '@/lib/sponsorship-mock';
+  getAdminSponsorshipInsights,
+  getAdminSponsorshipRegistry,
+} from '@/lib/sponsorship-data';
 import type { Sponsor } from '@/types/contestant';
 
 type EnforcementAction = 'apply_penalty' | 'reduce_integrity' | 'suspend_sponsorship' | 'downgrade_tier';
@@ -34,6 +33,19 @@ const actionLabels: Record<EnforcementAction, string> = {
 export default function AdminSponsorsPage() {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [isSponsorsLoading, setIsSponsorsLoading] = useState(true);
+  const [marketplaceContestants, setMarketplaceContestants] = useState<any[]>([]);
+  const [adminRevenueSeries, setAdminRevenueSeries] = useState<Array<{ month: string; revenue: number; commission: number }>>([]);
+  const [integritySignals, setIntegritySignals] = useState<{
+    voteSpikes: Array<{ time: string; value: number }>;
+    followerSpikes: Array<{ time: string; value: number }>;
+    flaggedContestants: Array<{ slug: string; severity: string; reason: string }>;
+    penaltyHistory: Array<{ date: string; contestant: string; action: string }>;
+  }>({
+    voteSpikes: [],
+    followerSpikes: [],
+    flaggedContestants: [],
+    penaltyHistory: [],
+  });
   const [sponsorSearch, setSponsorSearch] = useState('');
   const [logRows, setLogRows] = useState([
     { at: '2026-02-18 11:22', action: 'Apply penalty', target: 'Yonas H', note: 'Vote anomaly confirmation' },
@@ -41,23 +53,26 @@ export default function AdminSponsorsPage() {
   ]);
 
   const topSds = useMemo(
-    () => [...mockMarketplaceContestants].sort((a, b) => b.sds - a.sds).slice(0, 3),
-    []
+    () => [...marketplaceContestants].sort((a, b) => Number(b.sds || 0) - Number(a.sds || 0)).slice(0, 3),
+    [marketplaceContestants]
   );
   const topTrending = useMemo(
-    () => [...mockMarketplaceContestants].sort((a, b) => b.trendingScore - a.trendingScore).slice(0, 3),
-    []
+    () => [...marketplaceContestants].sort((a, b) => Number(b.trendingScore || 0) - Number(a.trendingScore || 0)).slice(0, 3),
+    [marketplaceContestants]
   );
 
-  const integrityAlerts = mockMarketplaceContestants.filter((c) => c.integrityStatus !== 'verified').length;
+  const integrityAlerts = marketplaceContestants.filter((c) => c.integrityStatus !== 'verified').length;
   const tierDistribution = useMemo(() => {
     const counts = { A: 0, B: 0, C: 0 };
-    for (const row of mockMarketplaceContestants) counts[row.tier] += 1;
+    for (const row of marketplaceContestants) {
+      const tier = String(row.tier || 'C') as 'A' | 'B' | 'C';
+      counts[tier] += 1;
+    }
     return counts;
-  }, []);
+  }, [marketplaceContestants]);
 
-  const totalRevenue = mockAdminRevenueSeries.reduce((acc, row) => acc + row.revenue, 0);
-  const commissionTotal = mockAdminRevenueSeries.reduce((acc, row) => acc + row.commission, 0);
+  const totalRevenue = adminRevenueSeries.reduce((acc, row) => acc + row.revenue, 0);
+  const commissionTotal = adminRevenueSeries.reduce((acc, row) => acc + row.commission, 0);
 
   const revenueByTier = useMemo(() => {
     return {
@@ -86,13 +101,55 @@ export default function AdminSponsorsPage() {
     const loadSponsors = async () => {
       setIsSponsorsLoading(true);
       try {
-        const response = await fetch('/api/admin/sponsors');
-        if (response.ok) {
-          const payload = (await response.json()) as Sponsor[];
-          setSponsors(Array.isArray(payload) ? payload : []);
-        } else {
-          setSponsors([]);
+        const [{ sponsors: sponsorRows, campaigns }, insights] = await Promise.all([
+          getAdminSponsorshipRegistry(),
+          getAdminSponsorshipInsights(),
+        ]);
+
+        setSponsors(Array.isArray(sponsorRows) ? (sponsorRows as Sponsor[]) : []);
+        const contestants = Array.isArray(insights.contestants) ? insights.contestants : [];
+        setMarketplaceContestants(contestants);
+
+        const monthly = new Map<string, { revenue: number; commission: number }>();
+        for (const row of Array.isArray(campaigns) ? campaigns : []) {
+          const month = String(row.month || row.created_at || new Date().toISOString()).slice(0, 7);
+          const current = monthly.get(month) || { revenue: 0, commission: 0 };
+          const spend = Number(row.budget || row.spend || 0);
+          current.revenue += spend;
+          current.commission += spend * 0.1;
+          monthly.set(month, current);
         }
+        setAdminRevenueSeries(
+          Array.from(monthly.entries())
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([month, value]) => ({ month, ...value }))
+        );
+
+        setIntegritySignals({
+          voteSpikes: contestants.slice(0, 6).map((row: any, index: number) => ({
+            time: `T${index + 1}`,
+            value: Number(row.votes7dGrowth || 0),
+          })),
+          followerSpikes: contestants.slice(0, 6).map((row: any, index: number) => ({
+            time: `T${index + 1}`,
+            value: Number(row.followers7dGrowth || 0),
+          })),
+          flaggedContestants: contestants
+            .filter((row: any) => row.integrityStatus && row.integrityStatus !== 'verified')
+            .slice(0, 10)
+            .map((row: any) => ({
+              slug: String(row.slug || row.id || 'unknown'),
+              severity: Number(row.integrityScore || 0) < 50 ? 'high' : 'medium',
+              reason: 'Integrity risk threshold triggered',
+            })),
+          penaltyHistory: (Array.isArray(insights.tracking) ? insights.tracking : [])
+            .slice(0, 10)
+            .map((row: any) => ({
+              date: String(row.updated_at || row.created_at || new Date().toISOString()).slice(0, 10),
+              contestant: String(row.contestantSlug || row.contestant || 'unknown'),
+              action: String(row.adminNotes || row.campaignStatus || 'review'),
+            })),
+        });
       } finally {
         setIsSponsorsLoading(false);
       }
@@ -195,6 +252,8 @@ export default function AdminSponsorsPage() {
       }
 
       const payload = (await response.json()) as {
+        access_token?: string;
+        refresh_token?: string;
         user?: { id: string; email: string; name: string; role: 'sponsor'; avatar?: string };
       };
       if (!payload.user) {
@@ -205,19 +264,12 @@ export default function AdminSponsorsPage() {
       localStorage.setItem('auth_user_id', payload.user.id);
       localStorage.setItem('auth_user_role', payload.user.role);
       localStorage.setItem('auth_impersonation_user', JSON.stringify(payload.user));
-
-      const expiresAt = Date.now() + 60 * 60 * 1000;
-      const token = btoa(
-        JSON.stringify({
-          id: payload.user.id,
-          email: payload.user.email,
-          role: payload.user.role,
-          name: payload.user.name,
-        })
-      );
-      localStorage.setItem('auth_token', `${token}.${Date.now()}`);
-      localStorage.setItem('refresh_token', Math.random().toString(36).slice(2));
-      localStorage.setItem('token_expires_at', String(expiresAt));
+      if (payload.access_token) {
+        localStorage.setItem('auth_token', payload.access_token);
+      }
+      if (payload.refresh_token) {
+        localStorage.setItem('refresh_token', payload.refresh_token);
+      }
 
       window.location.href = '/sponsors';
     } catch {
@@ -380,7 +432,7 @@ export default function AdminSponsorsPage() {
           <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm font-medium text-slate-700">Monthly Graph (cached values)</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
-              {mockAdminRevenueSeries.map((row) => (
+              {adminRevenueSeries.map((row) => (
                 <div key={row.month} className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs">
                   <p className="text-slate-500">{row.month}</p>
                   <p className="font-semibold text-slate-900">Rev: ${row.revenue.toLocaleString()}</p>
@@ -417,7 +469,7 @@ export default function AdminSponsorsPage() {
           <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm font-medium text-slate-700">Vote Spike Graph (lightweight)</p>
             <div className="mt-2 space-y-1 text-xs">
-              {mockIntegritySignals.voteSpikes.map((row) => (
+              {integritySignals.voteSpikes.map((row) => (
                 <Row key={`vote-${row.time}`} left={row.time} right={row.value.toString()} />
               ))}
             </div>
@@ -426,7 +478,7 @@ export default function AdminSponsorsPage() {
           <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm font-medium text-slate-700">Follower Spike Graph (lightweight)</p>
             <div className="mt-2 space-y-1 text-xs">
-              {mockIntegritySignals.followerSpikes.map((row) => (
+              {integritySignals.followerSpikes.map((row) => (
                 <Row key={`follow-${row.time}`} left={row.time} right={row.value.toString()} />
               ))}
             </div>
@@ -435,7 +487,7 @@ export default function AdminSponsorsPage() {
           <div className="mt-3 rounded-xl border border-slate-200 p-3">
             <p className="text-sm font-medium text-slate-700">Flagged Contestants</p>
             <div className="mt-2 space-y-2 text-sm">
-              {mockIntegritySignals.flaggedContestants.map((row) => (
+              {integritySignals.flaggedContestants.map((row) => (
                 <div key={row.slug} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
                   <div className="flex items-center justify-between">
                     <p className="font-medium text-slate-900">{row.slug}</p>
@@ -452,7 +504,7 @@ export default function AdminSponsorsPage() {
           <div className="mt-3 rounded-xl border border-slate-200 p-3">
             <p className="text-sm font-medium text-slate-700">Penalty History</p>
             <div className="mt-2 space-y-1 text-xs">
-              {mockIntegritySignals.penaltyHistory.map((row) => (
+              {integritySignals.penaltyHistory.map((row) => (
                 <Row key={`${row.date}-${row.contestant}`} left={`${row.date} - ${row.contestant}`} right={row.action} />
               ))}
             </div>
@@ -470,7 +522,7 @@ export default function AdminSponsorsPage() {
           </div>
 
           <div className="space-y-3">
-            {mockMarketplaceContestants.map((contestant) => (
+            {marketplaceContestants.map((contestant) => (
               <div key={contestant.slug} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <div>
@@ -622,4 +674,5 @@ function StateBadge({
 
   return <Badge className={className}>{text}</Badge>;
 }
+
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { ArrowDown, ArrowUp, Pencil, Plus, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { AdminContentState, AdminFooterLink } from '@/lib/admin-content-runtime-store';
+import type { AdminContentState, AdminFooterLink } from '@/lib/admin-content-types';
 
 export default function ContentCmsFooterPage() {
   const [state, setState] = useState<AdminContentState | null>(null);
@@ -147,3 +147,4 @@ export default function ContentCmsFooterPage() {
     </section>
   );
 }
+

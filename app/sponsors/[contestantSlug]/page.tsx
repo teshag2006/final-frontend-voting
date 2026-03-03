@@ -7,14 +7,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, ArrowLeft, Flame, ShieldCheck, Sparkles, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { getSponsorCampaignTracking, getSponsorContestantDetail } from '@/lib/api';
 import {
-  mockMarketplaceContestants,
-  mockSponsorCampaignTracking,
-  type MarketplaceContestant,
-  type SocialPlatformMetric,
-  type SponsorCampaignTracking,
-} from '@/lib/sponsorship-mock';
+  getSponsorCampaignTracking,
+  getSponsorContestantDetail,
+  getSponsorDiscoverContestants,
+} from '@/lib/api';
+import type {
+  MarketplaceContestant,
+  SocialPlatformMetric,
+  SponsorCampaignTracking,
+} from '@/lib/types';
 
 const LazyTrendChart = dynamic(
   () => import('@/components/sponsorship/lazy-trend-chart').then((m) => m.LazyTrendChart),
@@ -25,26 +27,32 @@ const TABS = ['General', 'Contact', 'Legal', 'Security'] as const;
 
 export default function SponsorContestantDetailPage() {
   const params = useParams<{ contestantSlug: string }>();
+  const [discoverContestants, setDiscoverContestants] = useState<MarketplaceContestant[]>([]);
   const fallbackContestant = useMemo(
-    () => mockMarketplaceContestants.find((item) => item.slug === params.contestantSlug) || null,
-    [params.contestantSlug]
+    () =>
+      discoverContestants.find((item) => item.slug === params.contestantSlug) || null,
+    [discoverContestants, params.contestantSlug]
   );
 
   const [contestant, setContestant] = useState<MarketplaceContestant | null>(fallbackContestant);
-  const [campaigns, setCampaigns] = useState<SponsorCampaignTracking[]>(
-    mockSponsorCampaignTracking.filter((item) => item.contestantSlug === params.contestantSlug)
-  );
+  const [campaigns, setCampaigns] = useState<SponsorCampaignTracking[]>([]);
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('General');
 
   useEffect(() => {
     let mounted = true;
     if (!params.contestantSlug) return () => { mounted = false; };
 
-    Promise.all([getSponsorContestantDetail(params.contestantSlug), getSponsorCampaignTracking(params.contestantSlug)]).then(
-      ([contestantRes, campaignRes]) => {
+    Promise.all([
+      getSponsorDiscoverContestants(),
+      getSponsorContestantDetail(params.contestantSlug),
+      getSponsorCampaignTracking(params.contestantSlug),
+    ]).then(([discoverRes, contestantRes, campaignRes]) => {
         if (!mounted) return;
-        if (contestantRes) setContestant(contestantRes);
-        if (campaignRes) setCampaigns(campaignRes);
+        if (Array.isArray(discoverRes)) {
+          setDiscoverContestants(discoverRes as MarketplaceContestant[]);
+        }
+        if (contestantRes) setContestant(contestantRes as MarketplaceContestant);
+        if (campaignRes) setCampaigns(campaignRes as SponsorCampaignTracking[]);
       }
     );
 
@@ -69,7 +77,7 @@ export default function SponsorContestantDetailPage() {
 
   const socialPlatforms = withPopularPlatforms(contestant.socialPlatforms);
   const topProfile = socialPlatforms.find((item) => item.followers > 0);
-  const campaignItems = campaigns.length > 0 ? campaigns : mockSponsorCampaignTracking.filter((item) => item.contestantSlug === contestant.slug);
+  const campaignItems = campaigns;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#f8fafc,_#eef2ff_45%,_#e2e8f0_100%)] px-3 py-4 sm:px-6 lg:px-8">

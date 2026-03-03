@@ -1,6 +1,6 @@
 'use client';
 
-import type { ContestantAttributionItem } from '@/lib/contestant-runtime-store';
+import type { ContestantAttributionItem } from '@/lib/contestant-types';
 
 export function DeliverablePerformanceTable({ data }: { data: ContestantAttributionItem[] }) {
   return (
@@ -31,3 +31,4 @@ export function DeliverablePerformanceTable({ data }: { data: ContestantAttribut
     </div>
   );
 }
+

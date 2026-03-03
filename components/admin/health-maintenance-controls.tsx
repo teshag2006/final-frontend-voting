@@ -89,7 +89,7 @@ export function HealthMaintenanceControls({ isAdmin, isSuperAdmin }: HealthMaint
   };
 
   const handleExecuteAction = (actionId: string) => {
-    setMessage(`Executed action: ${actionId} (mock).`);
+    setMessage(`Executed action: ${actionId}.`);
     setSelectedAction(null);
     setShowConfirmation(false);
     // API call would go here

@@ -1,5 +1,5 @@
 import { CheckCircle2, ShieldCheck, BadgeCheck, Lock } from 'lucide-react';
-import type { ContestantPublicVerification } from '@/lib/contestant-runtime-store';
+import type { ContestantPublicVerification } from '@/lib/contestant-types';
 
 export function PublicVerificationBadges({
   verification,
@@ -54,3 +54,4 @@ export function PublicVerificationBadges({
     </div>
   );
 }
+

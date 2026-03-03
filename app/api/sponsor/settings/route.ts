@@ -1,23 +1,21 @@
-import { NextResponse } from 'next/server';
-import { getSponsorSettings, updateSponsorSettings } from '@/lib/sponsor-runtime-store';
-import type { SponsorProfileSettings } from '@/lib/sponsorship-mock';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-export async function GET() {
-  return NextResponse.json(getSponsorSettings());
+export async function GET(request: Request) {
+  return proxyRequest(request, '/sponsor/settings');
+}
+
+export async function POST(request: Request) {
+  return proxyRequest(request, '/sponsor/settings');
 }
 
 export async function PATCH(request: Request) {
-  const body = (await request.json()) as Partial<SponsorProfileSettings>;
-  const current = getSponsorSettings();
-  const merged: SponsorProfileSettings = {
-    ...current,
-    ...body,
-    general: { ...current.general, ...(body.general || {}) },
-    contact: { ...current.contact, ...(body.contact || {}) },
-    legal: { ...current.legal, ...(body.legal || {}) },
-    security: { ...current.security, ...(body.security || {}) },
-    profileCompletion: body.profileCompletion ?? current.profileCompletion,
-  };
+  return proxyRequest(request, '/sponsor/settings');
+}
 
-  return NextResponse.json(updateSponsorSettings(merged));
+export async function PUT(request: Request) {
+  return proxyRequest(request, '/sponsor/settings');
+}
+
+export async function DELETE(request: Request) {
+  return proxyRequest(request, '/sponsor/settings');
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { mockDashboardOverview } from '@/lib/dashboard-mock';
+import { getContestantProfileData, getContestantReadiness, getDashboardOverview } from '@/lib/api';
 import {
   LineChart,
   Line,
@@ -14,10 +14,25 @@ import {
 } from 'recharts';
 import { CheckCircle2 } from 'lucide-react';
 import { VotingReadinessCard } from '@/components/dashboard/voting-readiness-card';
-import type { ContestantProfileComposerData, ContestantReadiness } from '@/lib/contestant-runtime-store';
+import type { ContestantProfileComposerData, ContestantReadiness } from '@/lib/contestant-types';
+import { authService } from '@/lib/services/authService';
 
 export default function DashboardPage() {
-  const { metrics, vote_snapshots, top_countries, integrity_status } = mockDashboardOverview;
+  const [overview, setOverview] = useState<any>({
+    metrics: {
+      total_votes: 0,
+      free_votes: 0,
+      paid_votes: 0,
+      revenue_generated: 0,
+    },
+    vote_snapshots: [],
+    top_countries: [],
+    integrity_status: {
+      blockchain_verified: false,
+      fraud_detected: false,
+      under_review: false,
+    },
+  });
   const [readiness, setReadiness] = useState<ContestantReadiness>({
     score: 0,
     checks: [],
@@ -25,21 +40,18 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<ContestantProfileComposerData | null>(null);
 
   useEffect(() => {
-    fetch('/api/contestant/readiness')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setReadiness(data as ContestantReadiness);
-      })
-      .catch(() => undefined);
-  }, []);
-
-  useEffect(() => {
-    fetch('/api/contestant/profile')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setProfile(data as ContestantProfileComposerData);
-      })
-      .catch(() => undefined);
+    const loadOverview = async () => {
+      const token = authService.getToken() || undefined;
+      const [overviewData, readinessData, profileData] = await Promise.all([
+        getDashboardOverview(token),
+        getContestantReadiness(token),
+        getContestantProfileData(token),
+      ]);
+      if (overviewData) setOverview(overviewData);
+      if (readinessData) setReadiness(readinessData as ContestantReadiness);
+      if (profileData) setProfile(profileData as ContestantProfileComposerData);
+    };
+    void loadOverview();
   }, []);
 
   return (
@@ -49,17 +61,17 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard title="Total Votes" value={metrics.total_votes.toLocaleString()} />
-        <MetricCard title="Free Votes" value={metrics.free_votes.toLocaleString()} />
-        <MetricCard title="Paid Votes" value={metrics.paid_votes.toLocaleString()} />
-        <MetricCard title="Revenue Generated" value={`$${(metrics.revenue_generated / 100).toLocaleString()}`} green />
+        <MetricCard title="Total Votes" value={Number(overview.metrics.total_votes || 0).toLocaleString()} />
+        <MetricCard title="Free Votes" value={Number(overview.metrics.free_votes || 0).toLocaleString()} />
+        <MetricCard title="Paid Votes" value={Number(overview.metrics.paid_votes || 0).toLocaleString()} />
+        <MetricCard title="Revenue Generated" value={`$${(Number(overview.metrics.revenue_generated || 0) / 100).toLocaleString()}`} green />
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="xl:col-span-2 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-slate-800">Votes Over Time</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={vote_snapshots}>
+            <LineChart data={overview.vote_snapshots}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="date" stroke="#64748b" style={{ fontSize: 12 }} />
               <YAxis stroke="#64748b" style={{ fontSize: 12 }} />
@@ -76,7 +88,7 @@ export default function DashboardPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="mb-3 text-base font-semibold text-slate-800">Top Voting Countries</h3>
             <div className="space-y-3">
-              {top_countries.slice(0, 3).map((country) => (
+              {overview.top_countries.slice(0, 3).map((country: any) => (
                 <div key={country.country_code} className="flex items-center justify-between text-sm">
                   <span className="font-medium text-slate-700">{country.country}</span>
                   <span className="font-semibold text-slate-900">{country.votes.toLocaleString()}</span>
@@ -88,9 +100,9 @@ export default function DashboardPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="mb-3 text-base font-semibold text-slate-800">Integrity Status</h3>
             <div className="space-y-2 text-sm">
-              <StatusItem active={integrity_status.blockchain_verified} label="Blockchain Verified" />
-              <StatusItem active={!integrity_status.fraud_detected} label="No Fraud Detected" />
-              <StatusItem active={!integrity_status.under_review} label="No Active Review" />
+              <StatusItem active={Boolean(overview.integrity_status.blockchain_verified)} label="Blockchain Verified" />
+              <StatusItem active={!Boolean(overview.integrity_status.fraud_detected)} label="No Fraud Detected" />
+              <StatusItem active={!Boolean(overview.integrity_status.under_review)} label="No Active Review" />
             </div>
           </div>
 
@@ -165,3 +177,5 @@ function SocialItem({ label, href, value }: { label: string; href: string; value
     </div>
   );
 }
+
+

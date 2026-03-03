@@ -17,7 +17,7 @@ import {
   sortFraudCases,
   paginateFraudCases,
   getEventOptions,
-} from '@/lib/fraud-monitoring-mock';
+} from '@/lib/fraud-monitoring-data';
 
 type ActionType = 'mark_reviewed' | 'block_ip' | 'block_device' | 'override' | 'escalate';
 
@@ -66,19 +66,23 @@ export default function AdminFraudMonitoringPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [eventOptions, setEventOptions] = useState<string[]>([]);
 
   const [selectedCase, setSelectedCase] = useState<FraudCase | undefined>();
   const [detailModal, setDetailModal] = useState(false);
   const [actionModal, setActionModal] = useState<FraudActionState>({ isOpen: false });
 
-  // Initialize mock data
+  // Initialize fraud data from backend
   useEffect(() => {
-    setTimeout(() => {
-      const mockCases = generateMockFraudCases(200);
-      setAllCases(mockCases);
-      setSummary(calculateFraudSummary(mockCases));
+    const loadFraud = async () => {
+      setIsLoading(true);
+      const rows = await generateMockFraudCases(200);
+      setAllCases(rows);
+      setSummary(calculateFraudSummary(rows));
+      setEventOptions(getEventOptions(rows));
       setIsLoading(false);
-    }, 800);
+    };
+    void loadFraud();
   }, []);
 
   // Apply filters and sorting
@@ -97,10 +101,10 @@ export default function AdminFraudMonitoringPage() {
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const mockCases = generateMockFraudCases(200);
-    setAllCases(mockCases);
-    setSummary(calculateFraudSummary(mockCases));
+    const rows = await generateMockFraudCases(200);
+    setAllCases(rows);
+    setSummary(calculateFraudSummary(rows));
+    setEventOptions(getEventOptions(rows));
     setIsRefreshing(false);
   }, []);
 
@@ -335,7 +339,7 @@ export default function AdminFraudMonitoringPage() {
             <div className="lg:col-span-1">
               <FraudFilters
                 onFiltersChange={setFilters}
-                eventOptions={getEventOptions()}
+                eventOptions={eventOptions}
                 isLoading={isLoading}
               />
             </div>
@@ -444,4 +448,5 @@ export default function AdminFraudMonitoringPage() {
     </ProtectedRouteWrapper>
   );
 }
+
 

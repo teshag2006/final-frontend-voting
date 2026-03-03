@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
-import { getGeographicData } from '@/lib/api';
-import { mockGeographicData } from '@/lib/dashboard-mock';
+import { getGeographicDataSafe } from '@/lib/dashboard-data';
 import { Shield, AlertTriangle, Globe } from 'lucide-react';
 import { AudienceInsightsPanel } from '@/components/dashboard/audience-insights-panel';
-import { getContestantAudienceInsights } from '@/lib/contestant-runtime-store';
 
 export const metadata: Metadata = {
   title: 'Geographic Insights | Contestant Portal',
@@ -34,9 +32,16 @@ const COUNTRY_HEATMAP_POINTS: Record<string, { x: number; y: number }> = {
 };
 
 export default async function GeographicPage() {
-  const data = (await getGeographicData()) || mockGeographicData;
+  const data = await getGeographicDataSafe();
   const { countries, vpn_activity } = data;
-  const audienceInsights = getContestantAudienceInsights();
+  const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
+  const audienceInsightsRes = await fetch(
+    `${appBaseUrl}/api/contestant/audience-insights`,
+    { cache: 'no-store' }
+  ).catch(() => null);
+  const audienceInsights = audienceInsightsRes?.ok
+    ? await audienceInsightsRes.json()
+    : [];
   const sortedCountries = [...countries].sort((a, b) => b.votes - a.votes);
   const maxVotes = Math.max(...sortedCountries.map((c) => c.votes), 1);
 
@@ -148,3 +153,4 @@ export default async function GeographicPage() {
     </div>
   );
 }
+

@@ -10,7 +10,7 @@ import type {
   ContestantProfileComposerData,
   ContestantProfileVersion,
   ContestantPublishingState,
-} from '@/lib/contestant-runtime-store';
+} from '@/lib/contestant-types';
 
 export default function ContestantProfileEditorPage() {
   const [profile, setProfile] = useState<ContestantProfileComposerData | null>(null);
@@ -166,3 +166,5 @@ export default function ContestantProfileEditorPage() {
     </div>
   );
 }
+
+

@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server';
-import { getContestantAudit } from '@/lib/contestant-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-export async function GET() {
-  return NextResponse.json(getContestantAudit());
+export async function GET(request: Request) {
+  return proxyRequest(request, '/contestant/audit');
 }

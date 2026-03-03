@@ -1,9 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { requireRole } from '@/lib/server/api-auth';
-import { deleteVoterAccount } from '@/lib/voter-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-export async function DELETE(request: NextRequest) {
-  const access = requireRole(request, ['voter']);
-  if (!access.ok) return access.response;
-  return NextResponse.json(deleteVoterAccount(access.user));
+export async function DELETE(request: Request) {
+  return proxyRequest(request, '/voter/account');
 }

@@ -20,7 +20,7 @@ import {
   JobsOverTimeDataPoint,
   ProcessingLatencyDataPoint,
 } from '@/types/queue-job';
-import { getQueueDisplayName } from '@/lib/queue-job-mock';
+import { getQueueDisplayName } from '@/lib/queue-job-data';
 
 interface QueueMetricsTabProps {
   metrics: QueueMetrics[];

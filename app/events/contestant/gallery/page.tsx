@@ -8,7 +8,7 @@ import type {
   ContestantChangeRequest,
   ContestantMediaItem,
   ContestantPublishingState,
-} from '@/lib/contestant-runtime-store';
+} from '@/lib/contestant-types';
 
 export default function ContestantGalleryPage() {
   const [media, setMedia] = useState<ContestantMediaItem[]>([]);
@@ -271,3 +271,5 @@ export default function ContestantGalleryPage() {
     </div>
   );
 }
+
+

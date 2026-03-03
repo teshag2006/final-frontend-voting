@@ -3,7 +3,7 @@
 import { type ChangeEvent, useRef, useState } from 'react';
 import { Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { ContestantProfileComposerData } from '@/lib/contestant-runtime-store';
+import type { ContestantProfileComposerData } from '@/lib/contestant-types';
 import { sanitizePlainText } from '@/lib/security/frontend-security';
 import { uploadMediaFile } from '@/lib/client/upload-media';
 
@@ -371,3 +371,4 @@ export function ProfileComposerForm({
     </section>
   );
 }
+

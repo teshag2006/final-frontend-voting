@@ -1,6 +1,6 @@
- 'use client';
+'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -10,25 +10,17 @@ import { FailedJobsTab } from '@/components/admin/queue-failed-jobs-tab';
 import { CompletedJobsTab } from '@/components/admin/queue-completed-jobs-tab';
 import { QueueMetricsTab } from '@/components/admin/queue-metrics-tab';
 import { DLQTab } from '@/components/admin/queue-dlq-tab';
-import {
-  generateActiveJobsList,
-  generateFailedJobsList,
-  generateCompletedJobsList,
-  generateDLQJobsList,
-  generateQueueMetrics,
-  generateJobsOverTimeData,
-  generateProcessingLatencyData,
-} from '@/lib/queue-job-mock';
+import { apiFetch } from '@/lib/api';
 import type { PaginationParams } from '@/types/queue-job';
 
 export default function JobsPage() {
-  const [activeJobs, setActiveJobs] = useState(() => generateActiveJobsList(8));
-  const [failedJobs, setFailedJobs] = useState(() => generateFailedJobsList(12));
-  const [completedJobs, setCompletedJobs] = useState(() => generateCompletedJobsList(15));
-  const [dlqJobs, setDlqJobs] = useState(() => generateDLQJobsList(3));
-  const [queueMetrics] = useState(() => generateQueueMetrics());
-  const [jobsOverTime] = useState(() => generateJobsOverTimeData(24));
-  const [processingLatency] = useState(() => generateProcessingLatencyData(24));
+  const [activeJobs, setActiveJobs] = useState<any[]>([]);
+  const [failedJobs, setFailedJobs] = useState<any[]>([]);
+  const [completedJobs, setCompletedJobs] = useState<any[]>([]);
+  const [dlqJobs, setDlqJobs] = useState<any[]>([]);
+  const [queueMetrics, setQueueMetrics] = useState<any[]>([]);
+  const [jobsOverTime, setJobsOverTime] = useState<any[]>([]);
+  const [processingLatency, setProcessingLatency] = useState<any[]>([]);
 
   const [activePagination, setActivePagination] = useState<PaginationParams>({ page: 1, pageSize: 10 });
   const [failedPagination, setFailedPagination] = useState<PaginationParams>({ page: 1, pageSize: 10 });
@@ -37,6 +29,116 @@ export default function JobsPage() {
 
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [logJobId, setLogJobId] = useState<string | null>(null);
+  const [jobLogs, setJobLogs] = useState<string>('');
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const mapStatus = (value: unknown): string => {
+      const status = String(value || '').toUpperCase();
+      if (status.includes('COMPLETE') || status === 'DONE' || status === 'SUCCESS') return 'COMPLETED';
+      if (status.includes('FAIL') || status.includes('ERROR')) return 'FAILED';
+      if (status.includes('DLQ') || status.includes('DEAD')) return 'DLQ';
+      if (status.includes('ACTIVE') || status.includes('RUNNING')) return 'ACTIVE';
+      return 'WAITING';
+    };
+
+    const mapPriority = (value: unknown): string => {
+      const priority = String(value || '').toUpperCase();
+      if (priority === 'CRITICAL' || priority === 'HIGH' || priority === 'NORMAL' || priority === 'LOW') {
+        return priority;
+      }
+      return 'NORMAL';
+    };
+
+    const normalizeJob = (row: any, index: number) => ({
+      id: String(row?.id || row?.job_id || `job-${index}`),
+      queueName: String(row?.queueName || row?.queue_name || row?.queue || 'blockchain_anchor'),
+      jobType: String(row?.jobType || row?.job_type || row?.type || 'ANCHOR_BATCH'),
+      status: mapStatus(row?.status),
+      priority: mapPriority(row?.priority),
+      attempts: Number(row?.attempts || row?.retryAttempts || row?.retry_attempts || 0),
+      maxRetries: Number(row?.maxRetries || row?.max_retries || 3),
+      startedAt: row?.startedAt ? new Date(row.startedAt) : new Date(),
+      completedAt: row?.completedAt ? new Date(row.completedAt) : new Date(),
+      failedAt: row?.failedAt ? new Date(row.failedAt) : new Date(),
+      duration: Number(row?.duration || 0),
+      resultSummary: String(row?.resultSummary || row?.result || ''),
+      failureReason: String(row?.failureReason || row?.error || 'Unknown failure'),
+      retryAttempts: Number(row?.retryAttempts || row?.retry_attempts || row?.attempts || 0),
+    });
+
+    const load = async () => {
+      try {
+        const [queueRows, queueSummary] = await Promise.all([
+          apiFetch<any>('/admin/system/blockchain-job-queue?limit=250'),
+          apiFetch<any>('/admin/system/queue'),
+        ]);
+
+        const rows = Array.isArray(queueRows?.data)
+          ? queueRows.data
+          : Array.isArray(queueRows)
+            ? queueRows
+            : [];
+        const jobs = rows.map((row, index) => normalizeJob(row, index));
+
+        if (!mounted) return;
+
+        setActiveJobs(jobs.filter((job) => job.status === 'ACTIVE' || job.status === 'WAITING'));
+        setFailedJobs(jobs.filter((job) => job.status === 'FAILED'));
+        setCompletedJobs(jobs.filter((job) => job.status === 'COMPLETED'));
+        setDlqJobs(jobs.filter((job) => job.status === 'DLQ'));
+
+        const summary = queueSummary || {};
+        setQueueMetrics([
+          {
+            queueName: 'blockchain_anchor',
+            jobCount: Number(summary?.pendingJobs || jobs.length),
+            failureRate: jobs.length === 0 ? 0 : Math.round((jobs.filter((job) => job.status === 'FAILED').length / jobs.length) * 100),
+            processingRate: Number(summary?.processingJobs || 0),
+            averageDuration: 0,
+            workerCount: 1,
+            backlogSize: Number(summary?.pendingJobs || 0),
+            totalProcessed24h: Number(summary?.completedJobs || jobs.filter((job) => job.status === 'COMPLETED').length || 0),
+            totalFailed24h: Number(summary?.failedJobs || jobs.filter((job) => job.status === 'FAILED').length || 0),
+          },
+        ]);
+
+        const now = Date.now();
+        const points = Array.from({ length: 24 }, (_, idx) => {
+          const ts = new Date(now - (23 - idx) * 60 * 60 * 1000);
+          return {
+            timestamp: ts,
+            processed: Number(summary?.completedJobs || 0),
+            failed: Number(summary?.failedJobs || 0),
+            active: Number(summary?.processingJobs || 0),
+          };
+        });
+        setJobsOverTime(points);
+        setProcessingLatency(points.map((p) => ({ timestamp: p.timestamp, latency: 0 })));
+      } catch {
+        if (!mounted) return;
+        setActiveJobs([]);
+        setFailedJobs([]);
+        setCompletedJobs([]);
+        setDlqJobs([]);
+        setQueueMetrics([]);
+        setJobsOverTime([]);
+        setProcessingLatency([]);
+      }
+    };
+
+    void load();
+    const id = setInterval(() => {
+      void load();
+    }, 30000);
+
+    return () => {
+      mounted = false;
+      clearInterval(id);
+    };
+  }, []);
 
   const pagedActiveJobs = useMemo(() => {
     const start = (activePagination.page - 1) * activePagination.pageSize;
@@ -69,12 +171,52 @@ export default function JobsPage() {
     setSelectedJob(job);
   };
 
-  const mockLogsForJob = (jobId: string) => [
-    `[${new Date().toISOString()}] worker-01: picked job ${jobId}`,
-    `[${new Date().toISOString()}] worker-01: validating payload`,
-    `[${new Date().toISOString()}] worker-01: retry policy checked`,
-    `[${new Date().toISOString()}] worker-01: completed log stream`,
-  ].join('\n');
+  useEffect(() => {
+    let mounted = true;
+    if (!logJobId) {
+      setJobLogs('');
+      setIsLoadingLogs(false);
+      return;
+    }
+
+    const loadLogs = async () => {
+      setIsLoadingLogs(true);
+      try {
+        const response = await apiFetch<any>(
+          `/admin/system/logs?jobId=${encodeURIComponent(logJobId)}&limit=100`
+        );
+        const rows = Array.isArray(response?.data)
+          ? response.data
+          : Array.isArray(response)
+            ? response
+            : [];
+        const parsed = rows
+          .map((row: any) => {
+            const at = row?.timestamp || row?.created_at || new Date().toISOString();
+            const message = row?.message || row?.detail || JSON.stringify(row);
+            return `[${String(at)}] ${String(message)}`;
+          })
+          .join('\n');
+
+        if (mounted) {
+          setJobLogs(parsed || 'No logs available for this job.');
+        }
+      } catch {
+        if (mounted) {
+          setJobLogs('Could not load job logs from backend.');
+        }
+      } finally {
+        if (mounted) {
+          setIsLoadingLogs(false);
+        }
+      }
+    };
+
+    void loadLogs();
+    return () => {
+      mounted = false;
+    };
+  }, [logJobId]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -368,7 +510,7 @@ export default function JobsPage() {
             </DialogHeader>
             {logJobId ? (
               <pre className="max-h-[60vh] overflow-auto rounded-md border border-border bg-muted/30 p-3 text-xs">
-{mockLogsForJob(logJobId)}
+{isLoadingLogs ? 'Loading logs...' : jobLogs}
               </pre>
             ) : null}
           </DialogContent>
@@ -376,3 +518,4 @@ export default function JobsPage() {
       </div>
   );
 }
+

@@ -1,14 +1,15 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { mockEvents } from '@/lib/events-mock';
+import { getAllEvents } from '@/lib/api';
 
 export const metadata = {
   title: 'Start Voting | Enterprise Voting Platform',
   description: 'Pick a live event and start secure, verified voting.',
 };
 
-export default function VotePage() {
-  const liveEvents = mockEvents.filter((event) => event.status === 'LIVE' || event.is_live);
+export default async function VotePage() {
+  const events = await getAllEvents({ limit: 100 });
+  const liveEvents = events.items.filter((event) => event.status === 'LIVE' || event.status === 'active');
 
   return (
     <main className="min-h-screen bg-background">
@@ -64,7 +65,7 @@ export default function VotePage() {
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                   <Link
-                    href={`/leaderboard/${event.id}`}
+                    href={`/events/${event.slug}/leaderboard`}
                     className="inline-flex items-center rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
                   >
                     View Leaderboard

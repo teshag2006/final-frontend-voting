@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
-import { getMockResultsData } from '@/lib/leaderboard-mock';
+import { getAllEvents, getEventLeaderboard } from '@/lib/api';
 import { LeaderboardTable } from '@/components/leaderboard/leaderboard-table';
 import { BlockchainVerification } from '@/components/leaderboard/blockchain-verification';
 import { Badge } from '@/components/ui/badge';
@@ -25,9 +25,49 @@ export async function generateMetadata(
 
 export default async function ResultsPage({ params }: ResultsPageProps) {
   const { eventId } = await params;
-  
-  // Fetch results data - in production, this would call your API
-  const data = getMockResultsData(eventId);
+
+  const events = await getAllEvents({ page: 1, limit: 200 });
+  const event =
+    events.items.find((item) => item.id === eventId || item.slug === eventId) ||
+    events.items[0];
+
+  if (!event) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-slate-600">No results available.</p>
+      </main>
+    );
+  }
+
+  const leaderboard = await getEventLeaderboard(event.slug, 200);
+  const topContestants = leaderboard.slice(0, 20);
+
+  const groupedByCategory = topContestants.reduce<Record<string, any[]>>((acc, row) => {
+    const key = row.categoryName || 'General';
+    acc[key] = acc[key] || [];
+    acc[key].push(row);
+    return acc;
+  }, {});
+
+  const winners = Object.entries(groupedByCategory).map(([category, rows], idx) => ({
+    medallion: idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉',
+    contestant: {
+      ...(rows[0] || {}),
+      categoryName: category,
+    },
+    leaderboard: rows,
+  }));
+
+  const data = {
+    winners,
+    topContestants,
+    event: {
+      votingEndedAt: event.voting_end || event.end_date || new Date().toISOString(),
+      blockchainHash: '',
+      blockchainNetwork: 'Ethereum',
+      blockchainExplorerUrl: '',
+    },
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

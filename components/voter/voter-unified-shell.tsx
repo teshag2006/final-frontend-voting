@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { DashboardHeader } from '@/components/voter-dashboard/dashboard-header';
 import { VoterSidebarNav } from '@/components/voter/voter-sidebar-nav';
-import { mockVoterDashboard } from '@/lib/voter-dashboard-mock';
 
 interface VoterUnifiedShellProps {
   children: ReactNode;
@@ -17,6 +16,7 @@ export function VoterUnifiedShell({ children }: VoterUnifiedShellProps) {
   const [runtimeState, setRuntimeState] = useState(() => ({
     isVerified: false,
     maskedPhone: 'Not verified',
+    eventName: 'Voting Dashboard',
   }));
 
   useEffect(() => {
@@ -35,6 +35,7 @@ export function VoterUnifiedShell({ children }: VoterUnifiedShellProps) {
         setRuntimeState({
           isVerified: Boolean(wallet?.isPhoneVerified),
           maskedPhone,
+          eventName: String(wallet?.eventName || wallet?.event_name || 'Voting Dashboard'),
         });
       } catch {
         // Keep defaults in dev fallback mode.
@@ -54,7 +55,7 @@ export function VoterUnifiedShell({ children }: VoterUnifiedShellProps) {
 
   const headerData = useMemo(
     () => ({
-      eventName: mockVoterDashboard.eventName,
+      eventName: runtimeState.eventName,
       isVerified: runtimeState.isVerified,
       maskedPhone: runtimeState.maskedPhone,
     }),

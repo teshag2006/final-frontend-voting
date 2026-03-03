@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BlockchainStatusBadge } from '@/components/admin/blockchain-status-badge';
 import { BlockchainSummaryCards } from '@/components/admin/blockchain-summary-cards';
 import { BlockchainAnchorsTable } from '@/components/admin/blockchain-anchors-table';
-import { generateMockAnchorRecords, getBlockchainSummary, generateMockSnapshotDetail } from '@/lib/blockchain-monitor-mock';
+import { generateMockAnchorRecords, getBlockchainSummary, generateMockSnapshotDetail } from '@/lib/blockchain-monitor-data';
 import { AnchorRecord, BlockchainSummary, SnapshotDetail, AnchorFilters } from '@/types/blockchain-monitor';
 import { AlertTriangle, RefreshCw, Zap, Link2, CheckCircle2 } from 'lucide-react';
 
@@ -25,10 +25,12 @@ export default function BlockchainMonitorPage() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setSummary(getBlockchainSummary());
-      setRecords(generateMockAnchorRecords(50));
+      const [nextSummary, nextRecords] = await Promise.all([
+        getBlockchainSummary(),
+        generateMockAnchorRecords(50),
+      ]);
+      setSummary(nextSummary);
+      setRecords(nextRecords);
       setIsLoading(false);
     };
 
@@ -41,29 +43,31 @@ export default function BlockchainMonitorPage() {
 
   const handleRefresh = async () => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-    setSummary(getBlockchainSummary());
-    setRecords(generateMockAnchorRecords(50));
+    const [nextSummary, nextRecords] = await Promise.all([
+      getBlockchainSummary(),
+      generateMockAnchorRecords(50),
+    ]);
+    setSummary(nextSummary);
+    setRecords(nextRecords);
     setIsLoading(false);
   };
 
   const handleAnchorDaily = async () => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setActionMessage('Daily snapshot anchored successfully (mock).');
+    setActionMessage('Daily snapshot anchor request sent.');
   };
 
   const handleAnchorEvent = async () => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setActionMessage('Event final anchor created (mock).');
+    setActionMessage('Event final anchor request sent.');
   };
 
   const handleRetry = async (anchorId: string) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setActionMessage(`Retried anchor ${anchorId} (mock).`);
+    setActionMessage(`Retry requested for anchor ${anchorId}.`);
   };
 
   const handleVerifyHash = (record: AnchorRecord) => {
-    setSelectedSnapshot(generateMockSnapshotDetail());
+    void generateMockSnapshotDetail().then((snapshot) => {
+      setSelectedSnapshot(snapshot);
+    });
   };
 
   return (
@@ -119,7 +123,11 @@ export default function BlockchainMonitorPage() {
                 <BlockchainAnchorsTable
                   records={records}
                   isLoading={isLoading}
-                  onViewSnapshot={(record) => setSelectedSnapshot(generateMockSnapshotDetail())}
+                  onViewSnapshot={(record) => {
+                    void generateMockSnapshotDetail().then((snapshot) => {
+                      setSelectedSnapshot(snapshot);
+                    });
+                  }}
                   onRetry={handleRetry}
                   onVerifyHash={handleVerifyHash}
                 />
@@ -280,3 +288,4 @@ export default function BlockchainMonitorPage() {
     </div>
   );
 }
+

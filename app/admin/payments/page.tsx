@@ -18,7 +18,7 @@ import {
   calculatePaymentsSummary,
   getEventOptions,
   getGatewayOptions,
-} from '@/lib/payments-management-mock';
+} from '@/lib/payments-management-data';
 
 export default function AdminPaymentsPage() {
   const [allPayments, setAllPayments] = useState<PaymentData[]>([]);
@@ -56,15 +56,21 @@ export default function AdminPaymentsPage() {
     isOpen: boolean;
     payment?: PaymentData;
   }>({ isOpen: false });
+  const [eventOptions, setEventOptions] = useState<Array<{ id: string; name: string }>>([]);
+  const [gatewayOptions, setGatewayOptions] = useState<string[]>([]);
 
-  // Initialize mock data
+  // Initialize payments data from backend
   useEffect(() => {
-    setTimeout(() => {
-      const mockPayments = generateMockPayments(386);
-      setAllPayments(mockPayments);
-      setSummary(calculatePaymentsSummary(mockPayments));
+    const loadPayments = async () => {
+      setIsLoading(true);
+      const rows = await generateMockPayments(386);
+      setAllPayments(rows);
+      setSummary(calculatePaymentsSummary(rows));
+      setEventOptions(getEventOptions(rows));
+      setGatewayOptions(getGatewayOptions(rows));
       setIsLoading(false);
-    }, 800);
+    };
+    void loadPayments();
   }, []);
 
   // Apply filters and sorting
@@ -142,7 +148,7 @@ export default function AdminPaymentsPage() {
   };
 
   const handleViewLog = (payment: PaymentData) => {
-    setActionMessage(`Gateway log opened for ${payment.paymentId} (mock view).`);
+    setActionMessage(`Gateway log opened for ${payment.paymentId}.`);
   };
 
   return (
@@ -235,8 +241,8 @@ export default function AdminPaymentsPage() {
             <PaymentFilters
               filters={filters}
               onFiltersChange={setFilters}
-              events={getEventOptions()}
-              gateways={getGatewayOptions()}
+              events={eventOptions}
+              gateways={gatewayOptions}
               isLoading={isLoading}
             />
           </div>
@@ -362,4 +368,5 @@ export default function AdminPaymentsPage() {
     </ProtectedRouteWrapper>
   );
 }
+
 

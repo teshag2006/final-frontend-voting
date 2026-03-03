@@ -15,14 +15,13 @@ import { OfferInbox } from '@/components/contestant-sponsors/offer-inbox';
 import { CampaignContractCard } from '@/components/contestant-sponsors/campaign-contract-card';
 import { DeliverablesBoard } from '@/components/contestant-sponsors/deliverables-board';
 import {
-  mockContestantActiveCampaign,
-  mockMarketplaceContestants,
-} from '@/lib/sponsorship-mock';
+  getContestantSponsorOverview,
+} from '@/lib/sponsorship-data';
 import type {
   ContestantDeliverableItem,
   ContestantSponsorContract,
   ContestantSponsorOfferItem,
-} from '@/lib/contestant-runtime-store';
+} from '@/lib/contestant-types';
 
 const tierTone: Record<string, string> = {
   A: 'bg-amber-100 text-amber-800',
@@ -31,7 +30,23 @@ const tierTone: Record<string, string> = {
 };
 
 export default function ContestantSponsorsPage() {
-  const contestant = mockMarketplaceContestants[0];
+  const [contestant, setContestant] = useState<any>({
+    sds: 0,
+    trendingScore: 0,
+    tier: 'C',
+    integrityScore: 0,
+    votes7dGrowth: 0,
+    followers7dGrowth: 0,
+    integrityStatus: 'under_review',
+    sponsored: false,
+  });
+  const [activeCampaign, setActiveCampaign] = useState<any>({
+    sponsorName: 'Unknown',
+    countdownDays: 0,
+    lockedSocialUsername: false,
+    paymentState: 'manual_pending',
+    integrityWarning: '',
+  });
   const [offers, setOffers] = useState<ContestantSponsorOfferItem[]>([]);
   const [deliverables, setDeliverables] = useState<ContestantDeliverableItem[]>([]);
   const [contract, setContract] = useState<ContestantSponsorContract | null>(null);
@@ -43,9 +58,28 @@ export default function ContestantSponsorsPage() {
       fetch('/api/contestant/sponsors/contracts/camp-active-101'),
     ]);
 
+    const overview = await getContestantSponsorOverview();
+
     if (offersRes.ok) setOffers((await offersRes.json()) as ContestantSponsorOfferItem[]);
     if (deliverablesRes.ok) setDeliverables((await deliverablesRes.json()) as ContestantDeliverableItem[]);
     if (contractRes.ok) setContract((await contractRes.json()) as ContestantSponsorContract);
+
+    const firstTracking = Array.isArray(overview.tracking) ? overview.tracking[0] : null;
+    const firstSponsor = Array.isArray(overview.sponsors) ? overview.sponsors[0] : null;
+    const inferred = Array.isArray(overview.tracking) ? overview.tracking[0] : null;
+    setContestant((prev: any) => ({
+      ...prev,
+      sponsored: Boolean(firstSponsor),
+      integrityStatus: inferred?.campaignStatus === 'active' ? 'verified' : 'under_review',
+    }));
+
+    setActiveCampaign({
+      sponsorName: String(firstSponsor?.name || 'Unknown'),
+      countdownDays: 0,
+      lockedSocialUsername: Boolean(firstTracking?.campaignStatus === 'active'),
+      paymentState: String(firstTracking?.paymentStatus || 'manual_pending'),
+      integrityWarning: firstTracking?.adminNotes || '',
+    });
   };
 
   useEffect(() => {
@@ -116,30 +150,30 @@ export default function ContestantSponsorsPage() {
           <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">Active Campaign</h2>
 
-            {mockContestantActiveCampaign.lockedSocialUsername && (
+            {activeCampaign.lockedSocialUsername && (
               <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-800">
                 <Lock className="mr-2 inline h-4 w-4" />
                 Social usernames are locked during active campaign.
               </div>
             )}
 
-            {mockContestantActiveCampaign.paymentState === 'manual_pending' && (
+            {activeCampaign.paymentState === 'manual_pending' && (
               <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
                 <Clock3 className="mr-2 inline h-4 w-4" />
                 Campaign pending payment. Waiting for manual confirmation.
               </div>
             )}
 
-            {mockContestantActiveCampaign.integrityWarning && (
+            {activeCampaign.integrityWarning && (
               <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                 <AlertTriangle className="mr-2 inline h-4 w-4" />
-                {mockContestantActiveCampaign.integrityWarning}
+                {activeCampaign.integrityWarning}
               </div>
             )}
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <KpiCard label="Sponsor" value={mockContestantActiveCampaign.sponsorName} />
-              <KpiCard label="Countdown" value={`${mockContestantActiveCampaign.countdownDays} days`} />
+              <KpiCard label="Sponsor" value={activeCampaign.sponsorName} />
+              <KpiCard label="Countdown" value={`${activeCampaign.countdownDays} days`} />
             </div>
 
             <div className="mt-4">
@@ -193,3 +227,5 @@ function Guardrail({
     </div>
   );
 }
+
+

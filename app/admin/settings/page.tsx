@@ -8,8 +8,8 @@ import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { SettingsGeneralTab } from '@/components/admin/settings-general-tab';
 import { SettingsSecurityTab } from '@/components/admin/settings-security-tab';
 import { DangerZoneSection } from '@/components/admin/danger-zone-section';
-import { getDefaultGeneralSettings, getDefaultSecuritySettings } from '@/lib/settings-mock';
-import type { AdminSettingsBundle, SettingsAuditEntry, SettingsCategory } from '@/lib/admin-settings-runtime-store';
+import { getDefaultGeneralSettings, getDefaultSecuritySettings } from '@/lib/settings-defaults';
+import type { AdminSettingsBundle, SettingsAuditEntry, SettingsCategory } from '@/lib/admin-settings-types';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
@@ -544,3 +544,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+

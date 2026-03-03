@@ -3,7 +3,7 @@ import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySessionToken } from '@/lib/server/session';
 import { SESSION_COOKIE } from '@/lib/server/session-constants';
-import type { UserRole } from '@/lib/mock-users';
+import type { UserRole } from '@/lib/types';
 
 export function getRequestSessionUser(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;

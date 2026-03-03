@@ -93,7 +93,7 @@ export function SignInForm({
   };
 
   const handleSocialSignin = (provider: 'Google' | 'Facebook') => {
-    setError(`${provider} sign-in is unavailable in mock mode. Use email/password for now.`);
+    setError(`${provider} sign-in is unavailable right now. Use email/password for now.`);
   };
 
   return (

@@ -5,27 +5,19 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { AlertTriangle } from 'lucide-react';
-import { mockFraudSummary } from '@/lib/media-mock';
+import { getMediaFraud } from '@/lib/api';
 
-const fraudTrendData = [
-  { day: 'Mon', incidents: 12, resolved: 10 },
-  { day: 'Tue', incidents: 15, resolved: 12 },
-  { day: 'Wed', incidents: 8, resolved: 8 },
-  { day: 'Thu', incidents: 14, resolved: 11 },
-  { day: 'Fri', incidents: 18, resolved: 14 },
-  { day: 'Sat', incidents: 11, resolved: 11 },
-  { day: 'Sun', incidents: 9, resolved: 9 },
-];
+export default async function MediaFraudPage() {
+  const fraud = (await getMediaFraud()) || {};
+  const fraudSummary = {
+    totalReports: Number(fraud?.summary?.totalReports || 0),
+    criticalCases: Number(fraud?.summary?.criticalCases || 0),
+    resolved: Number(fraud?.summary?.resolved || 0),
+    pending: Number(fraud?.summary?.pending || 0),
+  };
+  const fraudTrendData = Array.isArray(fraud?.trend) ? fraud.trend : [];
+  const fraudTypeData = Array.isArray(fraud?.types) ? fraud.types : [];
 
-const fraudTypeData = [
-  { type: 'Velocity Abuse', count: 45, percentage: 28.8 },
-  { type: 'Device Fraud', count: 38, percentage: 24.4 },
-  { type: 'Geographic Anomaly', count: 32, percentage: 20.5 },
-  { type: 'VPN Detection', count: 28, percentage: 17.9 },
-  { type: 'Duplicate Account', count: 13, percentage: 8.3 },
-];
-
-export default function MediaFraudPage() {
   return (
       <main className="space-y-6 px-4 py-8 md:px-8">
         {/* Header */}
@@ -36,7 +28,7 @@ export default function MediaFraudPage() {
 
         {/* Fraud Summary Cards */}
         <section>
-          <FraudSummary data={mockFraudSummary} />
+          <FraudSummary data={fraudSummary} />
         </section>
 
         {/* Trends */}

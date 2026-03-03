@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import { getEventDetails } from '@/lib/api';
-import { mockEventDetails } from '@/lib/dashboard-mock';
+import { getEventDetailsSafe } from '@/lib/dashboard-data';
 
 export const metadata: Metadata = {
   title: 'Event Details | Contestant Portal',
@@ -19,7 +18,7 @@ function formatDate(input: string) {
 }
 
 export default async function EventPage() {
-  const eventData = (await getEventDetails()) || mockEventDetails;
+  const eventData = await getEventDetailsSafe();
 
   return (
     <div className="p-6">
@@ -54,3 +53,4 @@ function Card({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+

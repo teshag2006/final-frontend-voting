@@ -1,4 +1,4 @@
-import type { UserRole } from '@/lib/mock-users';
+import type { UserRole } from '@/lib/types';
 
 export interface EdgeSessionUser {
   id: string;

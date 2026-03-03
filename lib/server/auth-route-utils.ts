@@ -16,9 +16,12 @@ export function jsonError(message: string, status: number) {
   return NextResponse.json({ message }, { status });
 }
 
-export function buildSigninResponse(user: ServerAuthUser) {
+export function buildSigninResponse(
+  user: ServerAuthUser,
+  extra: Record<string, unknown> = {}
+) {
   const token = createSessionToken(user);
-  const response = NextResponse.json({ user });
+  const response = NextResponse.json({ user, ...extra });
   const cookie = getSessionCookieConfig();
   response.cookies.set(cookie.name, token, cookie.options);
   return response;
@@ -33,4 +36,3 @@ export function clearSessionCookie(response: NextResponse) {
 export function readSessionTokenFromRequest(request: NextRequest, cookieName: string) {
   return request.cookies.get(cookieName)?.value;
 }
-

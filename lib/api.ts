@@ -1,147 +1,483 @@
-import type { Event, EventSummary, EventStats, LeaderboardEntry, FAQItem } from "@/types/event";
-import type { Category, CategorySummary, CategoryContestant, CategoryContestantsResponse } from "@/types/category";
-import type { Contestant, ContestantProfile, ContestantStats, VotePackage, GeographicSupport } from "@/types/contestant";
-import type { PublicContestantsResponse, PublicCategory } from "@/types/public-contestant";
 import type {
-  DashboardOverviewData,
-  RankingData,
-  DailyVote,
-  VoteDistributionByHour,
-  FraudDetectionMetrics,
-  RevenueMetrics,
-  RevenueSnapshot,
-  PaymentMethodBreakdown,
-  TrustSecurityMetrics,
-  FraudAlert,
-  GeographicData,
-  VPNProxyActivity,
-  SponsorVisibility,
-  EventDetails,
-  Notification,
-} from "@/types/dashboard";
-import type { Sponsor } from "@/types/contestant";
-import type { PriorityNotification } from "@/components/dashboard/notification-priority-list";
-import type {
-  MarketplaceContestant,
-  SponsorCampaignTracking,
-  SponsorDashboardOverview,
-  SponsorProfileSettings,
-} from "@/lib/sponsorship-mock";
-import type { SponsorAuditEntry } from "@/lib/sponsor-runtime-store";
-import type {
-  VoterPayment,
-  VoterVote,
-  VoterProfile,
-  VoterPaymentsResponse,
-  VoterVotesResponse,
-} from "@/types/voter";
+  ApiEnvelope,
+  AuthUser,
+  BackendAuthLoginResponse,
+  BackendCategory,
+  BackendContestant,
+  BackendEvent,
+  BackendLeaderboardEntry,
+  BackendVoterWallet,
+  PaginatedResult,
+  PaginationMeta,
+  UiCategory,
+  UiContestant,
+  UiEvent,
+  UiLeaderboardEntry,
+  UserRole,
+} from '@/lib/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
+const API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
+const LOGIN_PATH = '/login';
 
-async function fetchFromAPI<T>(endpoint: string): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    next: { revalidate: 60 },
-  });
+type ApiFetchOptions = RequestInit & {
+  skipAuthRedirect?: boolean;
+};
 
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
-  }
+export class ApiError extends Error {
+  status: number;
 
-  return response.json() as Promise<T>;
-}
-
-export async function getActiveEvent(): Promise<Event | null> {
-  try {
-    return await fetchFromAPI<Event>("/public/active-event");
-  } catch {
-    return null;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
   }
 }
 
-export async function getEventSummary(
-  eventId: string
-): Promise<EventSummary | null> {
-  try {
-    return await fetchFromAPI<EventSummary>(
-      `/public/event-summary/${eventId}`
+function resolveApiUrl(): string {
+  if (!API_URL) {
+    throw new Error(
+      'NEXT_PUBLIC_BACKEND_URL (or NEXT_PUBLIC_API_URL) is not configured.'
     );
+  }
+  return API_URL.replace(/\/$/, '');
+}
+
+function getBrowserToken(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  return localStorage.getItem('auth_token') || undefined;
+}
+
+function clearClientSession() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('auth_user_id');
+  localStorage.removeItem('auth_user_role');
+  localStorage.removeItem('auth_user_cache');
+  document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+}
+
+function redirectToLogin() {
+  if (typeof window === 'undefined') return;
+  const current = `${window.location.pathname}${window.location.search}`;
+  if (window.location.pathname.startsWith(LOGIN_PATH)) return;
+  const next = encodeURIComponent(current);
+  window.location.assign(`${LOGIN_PATH}?next=${next}`);
+}
+
+function toHeaders(headers?: HeadersInit): Headers {
+  return new Headers(headers || {});
+}
+
+function toPaginationMeta(
+  pagination: PaginationMeta | undefined,
+  fallbackTotal: number
+): PaginationMeta {
+  const page = Number(pagination?.page || 1);
+  const limit = Number(pagination?.limit || fallbackTotal || 0);
+  const total = Number(pagination?.total || fallbackTotal || 0);
+  const pages =
+    Number(
+      pagination?.pages || pagination?.total_pages || pagination?.totalPages || 0
+    ) || (limit > 0 ? Math.ceil(total / limit) : 1);
+  return {
+    page,
+    limit,
+    total,
+    pages,
+    total_pages: pages,
+    totalPages: pages,
+    hasNextPage: page < pages,
+    hasPrevPage: page > 1,
+  };
+}
+
+async function unwrapEnvelope<T>(res: Response): Promise<T> {
+  const payload = (await res.json().catch(() => null)) as ApiEnvelope<T> | null;
+  if (!res.ok) {
+    const message =
+      (payload as { message?: string } | null)?.message ||
+      `API error (${res.status})`;
+    throw new ApiError(message, res.status);
+  }
+
+  if (!payload || !('data' in payload)) {
+    throw new ApiError('Invalid API envelope response', res.status);
+  }
+  return payload.data;
+}
+
+async function unwrapEnvelopeWithPagination<T>(res: Response): Promise<PaginatedResult<T>> {
+  const payload = (await res.json().catch(() => null)) as ApiEnvelope<T> | null;
+  if (!res.ok) {
+    const message =
+      (payload as { message?: string } | null)?.message ||
+      `API error (${res.status})`;
+    throw new ApiError(message, res.status);
+  }
+  if (!payload || !('data' in payload)) {
+    throw new ApiError('Invalid API envelope response', res.status);
+  }
+
+  const items = Array.isArray(payload.data)
+    ? payload.data
+    : ((payload.data as { data?: T[] })?.data ?? []);
+  const pagination = toPaginationMeta(payload.pagination, items.length);
+
+  return { items, pagination };
+}
+
+async function tryRefreshToken(): Promise<string | undefined> {
+  if (typeof window === 'undefined') return undefined;
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (!refreshToken) return undefined;
+
+  try {
+    const res = await fetch(`${resolveApiUrl()}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+      cache: 'no-store',
+    });
+    const data = await unwrapEnvelope<{
+      access_token: string;
+      refresh_token?: string;
+    }>(res);
+    localStorage.setItem('auth_token', data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem('refresh_token', data.refresh_token);
+    }
+    return data.access_token;
   } catch {
-    return null;
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('refresh_token');
+    return undefined;
   }
 }
 
-export async function getCategories(
-  eventId: string
-): Promise<Category[]> {
+async function requestWithAuthRetry<T>(
+  endpoint: string,
+  options: ApiFetchOptions,
+  token?: string,
+  withPagination = false
+): Promise<T> {
+  const { skipAuthRedirect, ...requestOptions } = options;
+  const headers = toHeaders(requestOptions.headers);
+  if (!headers.has('Content-Type') && requestOptions.body) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  const authToken = token || getBrowserToken();
+  const request = async (auth?: string) =>
+    fetch(`${resolveApiUrl()}${endpoint}`, {
+      ...requestOptions,
+      headers: auth
+        ? new Headers({
+            ...Object.fromEntries(headers.entries()),
+            Authorization: `Bearer ${auth}`,
+          })
+        : headers,
+      cache: 'no-store',
+    });
+
+  let res = await request(authToken);
+
+  if (res.status === 401 && !token) {
+    const refreshed = await tryRefreshToken();
+    if (refreshed) {
+      res = await request(refreshed);
+    }
+  }
+
+  if (res.status === 401 && !skipAuthRedirect && typeof window !== 'undefined') {
+    clearClientSession();
+    redirectToLogin();
+  }
+
+  if (withPagination) {
+    return (await unwrapEnvelopeWithPagination<T>(res)) as T;
+  }
+
+  return unwrapEnvelope<T>(res);
+}
+
+export async function apiFetch<T>(
+  endpoint: string,
+  options: ApiFetchOptions = {},
+  token?: string
+): Promise<T> {
+  return requestWithAuthRetry<T>(endpoint, options, token, false);
+}
+
+export async function apiFetchPaginated<T>(
+  endpoint: string,
+  options: ApiFetchOptions = {},
+  token?: string
+): Promise<PaginatedResult<T>> {
+  return requestWithAuthRetry<PaginatedResult<T>>(endpoint, options, token, true);
+}
+
+function toSlug(value: string | null | undefined, fallback: string): string {
+  if (!value) return fallback;
+  return value;
+}
+
+function toName(contestant: BackendContestant): string {
+  if (contestant.full_name) return contestant.full_name;
+  const first = contestant.first_name || '';
+  const last = contestant.last_name || '';
+  const joined = `${first} ${last}`.trim();
+  return joined || 'Contestant';
+}
+
+export function transformEvent(data: BackendEvent): UiEvent {
+  return {
+    id: String(data.id),
+    slug: data.slug,
+    name: data.name,
+    tagline: data.tagline || undefined,
+    description: data.description || undefined,
+    status: data.status,
+    banner_url: data.banner_url || undefined,
+    start_date: data.start_date || undefined,
+    end_date: data.end_date || undefined,
+    voting_start: data.voting_start || undefined,
+    voting_end: data.voting_end || undefined,
+    registration_start: data.registration_start || undefined,
+    registration_end: data.registration_end || undefined,
+    voting_rules: data.voting_rules || undefined,
+    organizer_name: data.organizer_name || undefined,
+    location: data.location || undefined,
+    vote_price: typeof data.vote_price === 'number' ? data.vote_price : undefined,
+    revenue_share_disclosure: data.revenue_share_disclosure || undefined,
+  };
+}
+
+export function transformCategory(data: BackendCategory): UiCategory {
+  return {
+    id: String(data.id),
+    event_id:
+      typeof data.event_id === 'number' ? String(data.event_id) : undefined,
+    name: data.name,
+    description: data.description || undefined,
+    slug: toSlug(data.slug, String(data.id)),
+  };
+}
+
+export function transformContestant(data: BackendContestant): UiContestant {
+  const image =
+    data.profile_image_url || data.photo_url || data.image_url || '/placeholder.svg';
+  const votes = Number(data.total_votes || 0);
+  const slug = toSlug(data.slug, String(data.id));
+
+  return {
+    id: String(data.id),
+    slug,
+    name: toName(data),
+    image_url: image,
+    photo_url: image,
+    votes,
+    total_votes: votes,
+    rank: typeof data.rank === 'number' ? data.rank : undefined,
+    country: data.country || undefined,
+    category_id:
+      data.category_id !== undefined && data.category_id !== null
+        ? String(data.category_id)
+        : undefined,
+    category: data.category || data.category_name || undefined,
+    category_name: data.category_name || data.category || undefined,
+    is_verified: Boolean(data.is_verified),
+  };
+}
+
+export function transformLeaderboardEntry(
+  data: BackendLeaderboardEntry,
+  rank: number
+): UiLeaderboardEntry {
+  const fullName = data.contestantName || data.contestant_name || 'Contestant';
+  const nameParts = fullName.trim().split(/\s+/);
+  const firstName = nameParts[0] || 'Contestant';
+  const lastName = nameParts.slice(1).join(' ') || '';
+  const totalVotes = Number(data.totalVotes || data.total_votes || 0);
+  const profileImage = data.profileImage || data.profile_image_url || '/placeholder.svg';
+  return {
+    contestantId: String(data.contestantId || data.contestant_id || ''),
+    contestantName: fullName,
+    firstName,
+    lastName,
+    categoryId: data.categoryId
+      ? String(data.categoryId)
+      : data.category_id
+        ? String(data.category_id)
+        : undefined,
+    categoryName: data.categoryName || data.category_name || undefined,
+    profileImage,
+    profileImageUrl: profileImage,
+    freeVotes: Math.round(totalVotes * 0.2),
+    paidVotes: Math.round(totalVotes * 0.8),
+    totalVotes,
+    rank: Number(data.rank || rank),
+    votePercentage: undefined,
+    trend: 'neutral',
+    last24hChange: 0,
+    totalRevenue: 0,
+    verified: true,
+  };
+}
+
+export async function getAllEvents(options?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
   try {
-    return await fetchFromAPI<Category[]>(
-      `/public/categories/${eventId}`
+    const params = new URLSearchParams();
+    if (options?.page) params.set('page', String(options.page));
+    if (options?.limit) params.set('limit', String(options.limit));
+    if (options?.status) params.set('status', options.status);
+    params.set('isPublic', 'true');
+    const qs = params.toString();
+    const result = await apiFetchPaginated<BackendEvent>(
+      `/events${qs ? `?${qs}` : ''}`
     );
+    return {
+      items: result.items.map(transformEvent),
+      pagination: result.pagination,
+    };
   } catch {
-    return [];
+    return { items: [], pagination: { page: 1, limit: 0, total: 0, pages: 1 } };
   }
 }
 
-export async function getFeaturedContestants(
-  eventId: string
-): Promise<Contestant[]> {
+export async function getActiveEvent(): Promise<UiEvent | null> {
   try {
-    return await fetchFromAPI<Contestant[]>(
-      `/public/featured-contestants/${eventId}`
+    const data = await apiFetch<BackendEvent | null>('/public/active-event');
+    return data ? transformEvent(data) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getEventBySlug(slug: string): Promise<UiEvent | null> {
+  try {
+    const data = await apiFetch<BackendEvent>(`/public/event/${slug}`);
+    return transformEvent(data);
+  } catch {
+    return null;
+  }
+}
+
+export async function getEventStats(slug: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>(`/public/event/${slug}/stats`);
+  } catch {
+    return null;
+  }
+}
+
+export async function getEventCategories(
+  slug: string,
+  options?: { page?: number; limit?: number }
+): Promise<UiCategory[]> {
+  try {
+    const params = new URLSearchParams();
+    if (options?.page) params.set('page', String(options.page));
+    if (options?.limit) params.set('limit', String(options.limit));
+    const qs = params.toString();
+    const result = await apiFetchPaginated<BackendCategory>(
+      `/public/event/${slug}/categories${qs ? `?${qs}` : ''}`
     );
+    return result.items.map(transformCategory);
   } catch {
     return [];
   }
 }
 
-export async function getEventBySlug(slug: string): Promise<Event | null> {
+export async function getEventContestants(
+  slug: string,
+  options?: { page?: number; limit?: number }
+): Promise<UiContestant[]> {
   try {
-    return await fetchFromAPI<Event>(`/public/event/${slug}`);
-  } catch {
-    return null;
-  }
-}
-
-export async function getEventStats(slug: string): Promise<EventStats | null> {
-  try {
-    return await fetchFromAPI<EventStats>(`/public/event/${slug}/stats`);
-  } catch {
-    return null;
-  }
-}
-
-export async function getEventCategories(slug: string): Promise<Category[]> {
-  try {
-    return await fetchFromAPI<Category[]>(`/public/event/${slug}/categories`);
+    const params = new URLSearchParams();
+    if (options?.page) params.set('page', String(options.page));
+    if (options?.limit) params.set('limit', String(options.limit));
+    const qs = params.toString();
+    const result = await apiFetchPaginated<BackendContestant>(
+      `/public/event/${slug}/contestants${qs ? `?${qs}` : ''}`
+    );
+    return result.items.map(transformContestant);
   } catch {
     return [];
   }
 }
 
-export async function getEventContestants(slug: string): Promise<Contestant[]> {
+export async function getEventContestantsPaginated(
+  slug: string,
+  options?: { page?: number; limit?: number }
+): Promise<PaginatedResult<UiContestant>> {
   try {
-    return await fetchFromAPI<Contestant[]>(`/public/event/${slug}/contestants`);
+    const params = new URLSearchParams();
+    if (options?.page) params.set('page', String(options.page));
+    if (options?.limit) params.set('limit', String(options.limit));
+    const qs = params.toString();
+    const result = await apiFetchPaginated<BackendContestant>(
+      `/public/event/${slug}/contestants${qs ? `?${qs}` : ''}`
+    );
+    return {
+      items: result.items.map(transformContestant),
+      pagination: result.pagination,
+    };
   } catch {
-    return [];
+    return { items: [], pagination: { page: 1, limit: 0, total: 0, pages: 1 } };
   }
 }
 
 export async function getEventLeaderboard(
   slug: string,
-  limit = 5
-): Promise<LeaderboardEntry[]> {
+  limit = 100,
+  categoryId?: string
+): Promise<UiLeaderboardEntry[]> {
   try {
-    return await fetchFromAPI<LeaderboardEntry[]>(
-      `/public/event/${slug}/leaderboard?limit=${limit}`
+    const params = new URLSearchParams();
+    params.set('limit', String(limit));
+    if (categoryId) params.set('categoryId', categoryId);
+    const rows = await apiFetch<BackendLeaderboardEntry[]>(
+      `/public/event/${slug}/leaderboard?${params.toString()}`
+    );
+    return (rows || []).map((row, index) =>
+      transformLeaderboardEntry(row, index + 1)
     );
   } catch {
     return [];
   }
 }
 
-export async function getEventFAQ(slug: string): Promise<FAQItem[]> {
+export async function getEventFAQ(slug: string): Promise<any[]> {
   try {
-    return await fetchFromAPI<FAQItem[]>(`/public/event/${slug}/faq`);
+    return await apiFetch<any[]>(`/public/event/${slug}/faq`);
+  } catch {
+    return [];
+  }
+}
+
+export async function getEventSponsorsPublic(eventSlug: string): Promise<any[]> {
+  try {
+    return await apiFetch<any[]>(`/public/event/${eventSlug}/sponsors`);
+  } catch {
+    return [];
+  }
+}
+
+export async function getContestantSponsorsPublic(
+  eventSlug: string,
+  contestantSlug: string
+): Promise<any[]> {
+  try {
+    return await apiFetch<any[]>(
+      `/public/event/${eventSlug}/contestant/${contestantSlug}/sponsors`
+    );
   } catch {
     return [];
   }
@@ -150,122 +486,20 @@ export async function getEventFAQ(slug: string): Promise<FAQItem[]> {
 export async function getContestantProfile(
   eventSlug: string,
   contestantSlug: string
-): Promise<ContestantProfile | null> {
+): Promise<UiContestant | null> {
   try {
-    return await fetchFromAPI<ContestantProfile>(
+    const data = await apiFetch<BackendContestant>(
       `/public/event/${eventSlug}/contestant/${contestantSlug}`
     );
+    return transformContestant(data);
   } catch {
     return null;
   }
 }
 
-export async function getContestantStats(
-  eventSlug: string,
-  contestantSlug: string
-): Promise<ContestantStats | null> {
+export async function getPublicCategoryInfo(categoryId: string): Promise<any | null> {
   try {
-    return await fetchFromAPI<ContestantStats>(
-      `/public/event/${eventSlug}/contestant/${contestantSlug}/stats`
-    );
-  } catch {
-    return null;
-  }
-}
-
-export async function getVotePackages(eventSlug: string): Promise<VotePackage[]> {
-  try {
-    return await fetchFromAPI<VotePackage[]>(
-      `/public/event/${eventSlug}/vote-packages`
-    );
-  } catch {
-    return [];
-  }
-}
-
-export async function getGeographicSupport(
-  eventSlug: string,
-  contestantSlug: string
-): Promise<GeographicSupport | null> {
-  try {
-    return await fetchFromAPI<GeographicSupport>(
-      `/public/event/${eventSlug}/contestant/${contestantSlug}/geographic-support`
-    );
-  } catch {
-    return null;
-  }
-}
-
-export async function getRelatedContestants(
-  eventSlug: string,
-  contestantSlug: string
-): Promise<Contestant[]> {
-  try {
-    return await fetchFromAPI<Contestant[]>(
-      `/public/event/${eventSlug}/contestant/${contestantSlug}/related`
-    );
-  } catch {
-    return [];
-  }
-}
-
-export async function getCategory(
-  categoryId: string
-): Promise<Category | null> {
-  try {
-    return await fetchFromAPI<Category>(`/public/category/${categoryId}`);
-  } catch {
-    return null;
-  }
-}
-
-export async function getCategorySummary(
-  categoryId: string
-): Promise<CategorySummary | null> {
-  try {
-    return await fetchFromAPI<CategorySummary>(
-      `/public/category/${categoryId}/summary`
-    );
-  } catch {
-    return null;
-  }
-}
-
-export async function getCategoryContestants(
-  categoryId: string,
-  options?: {
-    page?: number;
-    limit?: number;
-    sort?: "total_votes" | "created_at" | "full_name";
-    country?: string;
-  }
-): Promise<CategoryContestantsResponse> {
-  try {
-    const params = new URLSearchParams();
-    if (options?.page) params.append("page", String(options.page));
-    if (options?.limit) params.append("limit", String(options.limit));
-    if (options?.sort) params.append("sort", options.sort);
-    if (options?.country) params.append("country", options.country);
-
-    const queryString = params.toString();
-    const endpoint = `/public/category/${categoryId}/contestants${
-      queryString ? `?${queryString}` : ""
-    }`;
-
-    return await fetchFromAPI<CategoryContestantsResponse>(endpoint);
-  } catch {
-    return {
-      data: [],
-      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
-    };
-  }
-}
-
-export async function getPublicCategoryInfo(
-  categoryId: string
-): Promise<PublicCategory | null> {
-  try {
-    return await fetchFromAPI<PublicCategory>(`/public/category-info/${categoryId}`);
+    return await apiFetch<any>(`/public/category-info/${categoryId}`);
   } catch {
     return null;
   }
@@ -273,500 +507,603 @@ export async function getPublicCategoryInfo(
 
 export async function getPublicCategoryContestants(
   categoryId: string,
-  options?: {
-    page?: number;
-    limit?: number;
-    sort?: "total_votes" | "alphabetical" | "recent";
-    country?: string;
-  }
-): Promise<PublicContestantsResponse> {
+  options?: { page?: number; limit?: number; sort?: string; country?: string }
+): Promise<PaginatedResult<UiContestant>> {
   try {
     const params = new URLSearchParams();
-    if (options?.page) params.append("page", String(options.page));
-    if (options?.limit) params.append("limit", String(options.limit));
-    if (options?.sort) params.append("sort", options.sort);
-    if (options?.country) params.append("country", options.country);
-
-    const queryString = params.toString();
-    const endpoint = `/public/category-contestants/${categoryId}${
-      queryString ? `?${queryString}` : ""
-    }`;
-
-    return await fetchFromAPI<PublicContestantsResponse>(endpoint);
-  } catch {
+    if (options?.page) params.set('page', String(options.page));
+    if (options?.limit) params.set('limit', String(options.limit));
+    if (options?.sort) params.set('sort', options.sort);
+    if (options?.country) params.set('country', options.country);
+    const qs = params.toString();
+    const data = await apiFetchPaginated<BackendContestant>(
+      `/public/category-contestants/${categoryId}${qs ? `?${qs}` : ''}`
+    );
     return {
-      data: [],
-      total: 0,
-      page: 1,
-      limit: 20,
-      total_pages: 0,
+      items: data.items.map(transformContestant),
+      pagination: data.pagination,
+    };
+  } catch {
+    return { items: [], pagination: { page: 1, limit: 20, total: 0, pages: 1 } };
+  }
+}
+
+export async function getPublicReceipt(
+  receiptNumber: string
+): Promise<any | null> {
+  try {
+    return await apiFetch<any>(
+      `/public/notifications/receipt/${encodeURIComponent(receiptNumber)}`
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function getPublicVerification(
+  receiptNumber: string
+): Promise<any> {
+  try {
+    return await apiFetch<any>(
+      `/public/blockchain/verify-vote/${encodeURIComponent(receiptNumber)}`
+    );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return {
+        error: true,
+        message: error.message,
+        status: error.status,
+      };
+    }
+    return {
+      error: true,
+      message: 'Verification failed',
+      status: 500,
     };
   }
 }
 
-// Dashboard API functions
-export async function getDashboardOverview(): Promise<DashboardOverviewData | null> {
+export async function loginWithBackend(email: string, password: string) {
+  return apiFetch<BackendAuthLoginResponse>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+    skipAuthRedirect: true,
+  });
+}
+
+export async function registerWithBackend(payload: {
+  full_name: string;
+  email: string;
+  password: string;
+  role: Exclude<UserRole, 'public'>;
+  gender?: string;
+}) {
+  const parts = String(payload.full_name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const first_name = parts[0] || 'User';
+  const last_name = parts.slice(1).join(' ') || 'Account';
+
+  await apiFetch<{ id: number | string; email: string }>('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      first_name,
+      last_name,
+      email: payload.email,
+      password: payload.password,
+      role: payload.role,
+      gender: payload.gender,
+    }),
+    skipAuthRedirect: true,
+  });
+
+  return loginWithBackend(payload.email, payload.password);
+}
+
+export async function getAuthProfile(token?: string): Promise<AuthUser | null> {
   try {
-    return await fetchFromAPI<DashboardOverviewData>(
-      "/contestant/dashboard/overview"
+    const data = await apiFetch<any>('/auth/profile', {}, token);
+    return {
+      id: String(data.id),
+      email: String(data.email || ''),
+      name: String(data.full_name || data.name || 'User'),
+      role: data.role as UserRole,
+      avatar: data.avatar_url || undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getVoterDashboard(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/voter/dashboard', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getVoterWallet(token?: string): Promise<BackendVoterWallet | null> {
+  try {
+    return await apiFetch<BackendVoterWallet>('/voter/wallet', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getVoterPayments(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/voter/payments', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getVoterVotes(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/voter/my-votes', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function createCheckoutSession(
+  payload: { contestantId: string; quantity: number },
+  token?: string
+): Promise<{ unitPrice: number; totalAmount: number; transactionToken: string } | null> {
+  try {
+    return await apiFetch<{ unitPrice: number; totalAmount: number; transactionToken: string }>(
+      '/payments/checkout-session',
+      { method: 'POST', body: JSON.stringify(payload) },
+      token
     );
   } catch {
     return null;
   }
 }
 
-export async function getRankingData(): Promise<RankingData | null> {
+export async function getVoterProfile(token?: string): Promise<any | null> {
   try {
-    return await fetchFromAPI<RankingData>("/contestant/ranking");
-  } catch {
-    return null;
-  }
-}
-
-export async function getAnalyticsData(): Promise<{
-  daily_votes: DailyVote[];
-  hourly_distribution: VoteDistributionByHour[];
-  fraud_metrics: FraudDetectionMetrics;
-} | null> {
-  try {
-    return await fetchFromAPI("/contestant/analytics");
-  } catch {
-    return null;
-  }
-}
-
-export async function getRevenueData(): Promise<{
-  metrics: RevenueMetrics;
-  snapshots: RevenueSnapshot[];
-  payment_methods: PaymentMethodBreakdown;
-} | null> {
-  try {
-    return await fetchFromAPI("/contestant/revenue");
-  } catch {
-    return null;
-  }
-}
-
-export async function getSecurityData(): Promise<{
-  metrics: TrustSecurityMetrics;
-  alerts: FraudAlert[];
-} | null> {
-  try {
-    return await fetchFromAPI("/contestant/security");
-  } catch {
-    return null;
-  }
-}
-
-export async function getGeographicData(): Promise<{
-  countries: GeographicData[];
-  vpn_activity: VPNProxyActivity;
-} | null> {
-  try {
-    return await fetchFromAPI("/contestant/geographic");
-  } catch {
-    return null;
-  }
-}
-
-export async function getSponsorsData(): Promise<SponsorVisibility[] | null> {
-  try {
-    return await fetchFromAPI<SponsorVisibility[]>("/contestant/sponsors");
-  } catch {
-    return null;
-  }
-}
-
-export async function getAdminSponsors(): Promise<Sponsor[] | null> {
-  try {
-    return await fetchFromAPI<Sponsor[]>("/admin/sponsors");
-  } catch {
-    return null;
-  }
-}
-
-export async function getAdminSponsorCampaigns(eventSlug?: string): Promise<any[] | null> {
-  try {
-    const query = eventSlug ? `?eventSlug=${encodeURIComponent(eventSlug)}` : "";
-    return await fetchFromAPI<any[]>(`/admin/sponsor-campaigns${query}`);
-  } catch {
-    return null;
-  }
-}
-
-export async function getAdminSponsorPlacements(contestantSlug?: string): Promise<any[] | null> {
-  try {
-    const query = contestantSlug ? `?contestantSlug=${encodeURIComponent(contestantSlug)}` : "";
-    return await fetchFromAPI<any[]>(`/admin/sponsor-placements${query}`);
-  } catch {
-    return null;
-  }
-}
-
-export async function getSponsorDashboardOverview(): Promise<SponsorDashboardOverview | null> {
-  try {
-    return await fetchFromAPI<SponsorDashboardOverview>("/sponsor/overview");
-  } catch {
-    return null;
-  }
-}
-
-export async function getSponsorDiscoverContestants(options?: {
-  query?: string;
-  tier?: "ALL" | "A" | "B" | "C";
-  gender?: "ALL" | "female" | "male" | "non_binary" | "prefer_not_to_say";
-  ageMin?: number;
-  ageMax?: number;
-  categories?: string[];
-  country?: string;
-  city?: string;
-  region?: string;
-  budgetMin?: number;
-  budgetMax?: number;
-  sponsoredStatus?: "ALL" | "SPONSORED" | "UNSPONSORED";
-  votesGrowthMin?: number;
-  followersGrowthMin?: number;
-  integrityScoreMin?: number;
-  integrityScoreMax?: number;
-  instagramFollowersMin?: number;
-  tiktokFollowersMin?: number;
-  youtubeFollowersMin?: number;
-  xFollowersMin?: number;
-  facebookFollowersMin?: number;
-  snapchatFollowersMin?: number;
-  engagementQualityMin?: number;
-  fraudRiskMax?: number;
-  profileCompletionMin?: number;
-  responseRateMin?: number;
-  deliverableCompletionMin?: number;
-  readyNowOnly?: boolean;
-  availableFrom?: string;
-  availableTo?: string;
-  trendingOnly?: boolean;
-  highIntegrityOnly?: boolean;
-  votesMin?: number;
-  followersMin?: number;
-  engagementMin?: number;
-  industryCategory?: string;
-}): Promise<MarketplaceContestant[] | null> {
-  try {
-    const params = new URLSearchParams();
-    if (options?.query) params.set("query", options.query);
-    if (options?.tier) params.set("tier", options.tier);
-    if (options?.gender) params.set("gender", options.gender);
-    if (typeof options?.ageMin === "number" && options.ageMin > 0) params.set("ageMin", String(options.ageMin));
-    if (typeof options?.ageMax === "number" && options.ageMax > 0) params.set("ageMax", String(options.ageMax));
-    if (Array.isArray(options?.categories) && options.categories.length > 0) params.set("categories", options.categories.join(","));
-    if (options?.country) params.set("country", options.country);
-    if (options?.city) params.set("city", options.city);
-    if (options?.region) params.set("region", options.region);
-    if (typeof options?.budgetMin === "number" && options.budgetMin > 0) params.set("budgetMin", String(options.budgetMin));
-    if (typeof options?.budgetMax === "number" && options.budgetMax > 0) params.set("budgetMax", String(options.budgetMax));
-    if (options?.sponsoredStatus) params.set("sponsoredStatus", options.sponsoredStatus);
-    if (typeof options?.votesGrowthMin === "number") params.set("votesGrowthMin", String(options.votesGrowthMin));
-    if (typeof options?.followersGrowthMin === "number") params.set("followersGrowthMin", String(options.followersGrowthMin));
-    if (typeof options?.integrityScoreMin === "number") params.set("integrityScoreMin", String(options.integrityScoreMin));
-    if (typeof options?.integrityScoreMax === "number") params.set("integrityScoreMax", String(options.integrityScoreMax));
-    if (typeof options?.instagramFollowersMin === "number" && options.instagramFollowersMin > 0) params.set("instagramFollowersMin", String(options.instagramFollowersMin));
-    if (typeof options?.tiktokFollowersMin === "number" && options.tiktokFollowersMin > 0) params.set("tiktokFollowersMin", String(options.tiktokFollowersMin));
-    if (typeof options?.youtubeFollowersMin === "number" && options.youtubeFollowersMin > 0) params.set("youtubeFollowersMin", String(options.youtubeFollowersMin));
-    if (typeof options?.xFollowersMin === "number" && options.xFollowersMin > 0) params.set("xFollowersMin", String(options.xFollowersMin));
-    if (typeof options?.facebookFollowersMin === "number" && options.facebookFollowersMin > 0) params.set("facebookFollowersMin", String(options.facebookFollowersMin));
-    if (typeof options?.snapchatFollowersMin === "number" && options.snapchatFollowersMin > 0) params.set("snapchatFollowersMin", String(options.snapchatFollowersMin));
-    if (typeof options?.engagementQualityMin === "number") params.set("engagementQualityMin", String(options.engagementQualityMin));
-    if (typeof options?.fraudRiskMax === "number") params.set("fraudRiskMax", String(options.fraudRiskMax));
-    if (typeof options?.profileCompletionMin === "number") params.set("profileCompletionMin", String(options.profileCompletionMin));
-    if (typeof options?.responseRateMin === "number") params.set("responseRateMin", String(options.responseRateMin));
-    if (typeof options?.deliverableCompletionMin === "number") params.set("deliverableCompletionMin", String(options.deliverableCompletionMin));
-    if (typeof options?.readyNowOnly === "boolean") params.set("readyNowOnly", String(options.readyNowOnly));
-    if (options?.availableFrom) params.set("availableFrom", options.availableFrom);
-    if (options?.availableTo) params.set("availableTo", options.availableTo);
-    if (typeof options?.trendingOnly === "boolean") params.set("trendingOnly", String(options.trendingOnly));
-    if (typeof options?.highIntegrityOnly === "boolean") params.set("highIntegrityOnly", String(options.highIntegrityOnly));
-    if (typeof options?.votesMin === "number" && options.votesMin > 0) params.set("votesMin", String(options.votesMin));
-    if (typeof options?.followersMin === "number" && options.followersMin > 0) params.set("followersMin", String(options.followersMin));
-    if (typeof options?.engagementMin === "number" && options.engagementMin > 0) params.set("engagementMin", String(options.engagementMin));
-    if (options?.industryCategory) params.set("industryCategory", options.industryCategory);
-
-    const query = params.toString();
-    return await fetchFromAPI<MarketplaceContestant[]>(`/sponsor/discover${query ? `?${query}` : ""}`);
-  } catch {
-    return null;
-  }
-}
-
-export async function getSponsorProfileSettings(): Promise<SponsorProfileSettings | null> {
-  try {
-    return await fetchFromAPI<SponsorProfileSettings>("/sponsor/settings");
-  } catch {
-    return null;
-  }
-}
-
-export async function getSponsorCampaignTracking(contestantSlug?: string): Promise<SponsorCampaignTracking[] | null> {
-  try {
-    const query = contestantSlug ? `?contestant=${encodeURIComponent(contestantSlug)}` : "";
-    return await fetchFromAPI<SponsorCampaignTracking[]>(`/sponsor/campaigns${query}`);
-  } catch {
-    return null;
-  }
-}
-
-export async function createSponsorCampaignRequest(payload: {
-  action: "save_draft" | "submit_review";
-  sponsorName: string;
-  contestantSlug: string;
-  campaignTitle: string;
-  paymentReference?: string;
-  deliverablesTotal: number;
-}): Promise<SponsorCampaignTracking | null> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/sponsor/campaigns`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-export async function saveSponsorProfileSettings(
-  payload: SponsorProfileSettings
-): Promise<SponsorProfileSettings | null> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/sponsor/settings`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-export async function getSponsorAuditTrail(): Promise<SponsorAuditEntry[] | null> {
-  try {
-    return await fetchFromAPI<SponsorAuditEntry[]>("/sponsor/audit");
-  } catch {
-    return null;
-  }
-}
-
-export async function getSponsorContestantDetail(contestantSlug: string): Promise<MarketplaceContestant | null> {
-  try {
-    return await fetchFromAPI<MarketplaceContestant>(`/sponsor/contestants/${encodeURIComponent(contestantSlug)}`);
-  } catch {
-    return null;
-  }
-}
-
-export async function getEventSponsorsPublic(eventSlug: string): Promise<Sponsor[] | null> {
-  try {
-    return await fetchFromAPI<Sponsor[]>(`/public/event/${eventSlug}/sponsors`);
-  } catch {
-    return null;
-  }
-}
-
-export async function getContestantSponsorsPublic(
-  eventSlug: string,
-  contestantSlug: string
-): Promise<Sponsor[] | null> {
-  try {
-    return await fetchFromAPI<Sponsor[]>(
-      `/public/event/${eventSlug}/contestant/${contestantSlug}/sponsors`
-    );
-  } catch {
-    return null;
-  }
-}
-
-export async function trackSponsorImpression(payload: {
-  sponsorId: string;
-  placementId?: string;
-  sourcePage: string;
-  eventSlug?: string;
-  contestantSlug?: string;
-}): Promise<boolean> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/public/sponsor-impression`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-export async function trackSponsorClick(payload: {
-  sponsorId: string;
-  placementId?: string;
-  sourcePage: string;
-  eventSlug?: string;
-  contestantSlug?: string;
-  targetUrl?: string;
-}): Promise<boolean> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/public/sponsor-click`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-export async function getEventDetails(): Promise<EventDetails | null> {
-  try {
-    return await fetchFromAPI<EventDetails>("/contestant/event");
-  } catch {
-    return null;
-  }
-}
-
-export async function getNotifications(): Promise<Notification[] | null> {
-  try {
-    return await fetchFromAPI<Notification[]>("/contestant/notifications");
-  } catch {
-    return null;
-  }
-}
-
-export async function getContestantPriorityNotifications(): Promise<PriorityNotification[] | null> {
-  try {
-    return await fetchFromAPI<PriorityNotification[]>("/contestant/notifications-priority");
-  } catch {
-    return null;
-  }
-}
-
-// Voter API functions
-export async function getVoterPayments(): Promise<VoterPaymentsResponse | null> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/voter/payments`, { cache: 'no-store' });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-export async function getVoterVotes(): Promise<VoterVotesResponse | null> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/voter/my-votes`, { cache: 'no-store' });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-export async function getVoterProfile(): Promise<VoterProfile | null> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/voter/profile`, { cache: 'no-store' });
-    if (!response.ok) return null;
-    return await response.json();
+    return await apiFetch<any>('/voter/profile', {}, token);
   } catch {
     return null;
   }
 }
 
 export async function updateVoterProfile(
-  fullName: string
-): Promise<VoterProfile | null> {
+  fullName: string,
+  token?: string
+): Promise<any | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/voter/profile`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fullName }),
+    return await apiFetch<any>(
+      '/voter/profile',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ fullName }),
+      },
+      token
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function triggerPhoneVerification(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>(
+      '/voter/verify-phone',
+      { method: 'POST' },
+      token
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function submitVoterVote(
+  payload: {
+    categoryId: string;
+    contestantId?: string;
+    isPaid: boolean;
+    quantity?: number;
+  },
+  token?: string
+): Promise<any | null> {
+  try {
+    return await apiFetch<any>(
+      '/voter/vote',
+      { method: 'POST', body: JSON.stringify(payload) },
+      token
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteVoterAccount(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/voter/account', { method: 'DELETE' }, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getDashboardOverview(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/contestant/dashboard/overview', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getContestantReadiness(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/contestant/readiness', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getContestantProfileData(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/contestant/profile', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getRankingData(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/contestant/ranking', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getAnalyticsData(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/contestant/analytics', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getRevenueData(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/contestant/revenue', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getSecurityData(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/contestant/security', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getGeographicData(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/contestant/geographic', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getSponsorsData(token?: string): Promise<any[] | null> {
+  try {
+    return await apiFetch<any[]>('/contestant/sponsors', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getEventDetails(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/contestant/event', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getNotifications(token?: string): Promise<any[] | null> {
+  try {
+    return await apiFetch<any[]>('/contestant/notifications', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getContestantPriorityNotifications(
+  token?: string
+): Promise<any[] | null> {
+  try {
+    return await apiFetch<any[]>('/contestant/notifications-priority', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getAdminDashboard(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/admin/dashboard', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getAdminSponsors(token?: string): Promise<any[] | null> {
+  try {
+    return await apiFetch<any[]>('/sponsors', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getAdminSponsorCampaigns(
+  eventSlug?: string,
+  token?: string
+): Promise<any[] | null> {
+  try {
+    const query = eventSlug ? `?eventSlug=${encodeURIComponent(eventSlug)}` : '';
+    return await apiFetch<any[]>(`/sponsors/campaigns${query}`, {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getAdminSponsorPlacements(
+  contestantSlug?: string,
+  token?: string
+): Promise<any[] | null> {
+  try {
+    const query = contestantSlug
+      ? `?contestantSlug=${encodeURIComponent(contestantSlug)}`
+      : '';
+    return await apiFetch<any[]>(`/sponsors/campaigns${query}`, {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getSponsorDashboardOverview(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/sponsor/overview', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getSponsorDiscoverContestants(
+  options?: Record<string, string | number | boolean | string[] | undefined>,
+  token?: string
+): Promise<any[] | null> {
+  try {
+    const params = new URLSearchParams();
+    Object.entries(options || {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (Array.isArray(value)) {
+          params.set(key, value.join(','));
+        } else {
+          params.set(key, String(value));
+        }
+      }
     });
-    if (!response.ok) return null;
-    return await response.json();
+    const query = params.toString();
+    return await apiFetch<any[]>(`/sponsor/discover${query ? `?${query}` : ''}`, {}, token);
   } catch {
     return null;
   }
 }
 
-export async function triggerPhoneVerification(): Promise<{ success: boolean } | null> {
+export async function getSponsorProfileSettings(token?: string): Promise<any | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/voter/verify-phone`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!response.ok) return null;
-    return await response.json();
+    return await apiFetch<any>('/sponsor/settings', {}, token);
   } catch {
     return null;
   }
 }
 
-export async function deleteVoterAccount(): Promise<{ success: boolean } | null> {
+export async function saveSponsorProfileSettings(
+  payload: any,
+  token?: string
+): Promise<any | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/voter/account`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!response.ok) return null;
-    return await response.json();
+    return await apiFetch<any>(
+      '/sponsor/settings',
+      { method: 'PATCH', body: JSON.stringify(payload) },
+      token
+    );
   } catch {
     return null;
   }
 }
 
-export async function getVoterWallet(): Promise<any | null> {
+export async function getSponsorCampaignTracking(
+  contestantSlug?: string,
+  token?: string
+): Promise<any[] | null> {
   try {
-    return await fetchFromAPI<any>('/voter/wallet');
+    const query = contestantSlug
+      ? `?contestant=${encodeURIComponent(contestantSlug)}`
+      : '';
+    return await apiFetch<any[]>(`/sponsor/campaigns${query}`, {}, token);
   } catch {
     return null;
   }
 }
 
-export async function submitVoterVote(payload: {
-  categoryId: string;
-  categoryName?: string;
-  contestantName?: string;
-  isPaid: boolean;
-  quantity?: number;
-}): Promise<any | null> {
+export async function createSponsorCampaignRequest(
+  payload: Record<string, unknown>,
+  token?: string
+): Promise<any | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/voter/vote`, {
+    return await apiFetch<any>(
+      '/sponsor/campaigns',
+      { method: 'POST', body: JSON.stringify(payload) },
+      token
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function getSponsorAuditTrail(token?: string): Promise<any[] | null> {
+  try {
+    return await apiFetch<any[]>('/sponsor/audit', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getSponsorContestantDetail(
+  contestantSlug: string,
+  token?: string
+): Promise<any | null> {
+  try {
+    return await apiFetch<any>(
+      `/sponsor/contestants/${encodeURIComponent(contestantSlug)}`,
+      {},
+      token
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function trackSponsorImpression(payload: Record<string, unknown>) {
+  try {
+    await apiFetch<any>('/public/sponsor-impression', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!response.ok) return null;
-    return await response.json();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function trackSponsorClick(payload: Record<string, unknown>) {
+  try {
+    await apiFetch<any>('/public/sponsor-click', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getMediaDashboard(token?: string): Promise<any | null> {
+  try {
+    const leaderboard = await apiFetch<any[]>('/media/leaderboard', {}, token);
+    const rows = Array.isArray(leaderboard) ? leaderboard : [];
+    const totalVotes = rows.reduce(
+      (sum, row) => sum + Number(row?.totalVotes || row?.total_votes || 0),
+      0
+    );
+    return {
+      overview: {
+        totalVotes,
+        activeContestants: rows.length,
+        votesToday: totalVotes,
+        totalRevenue: 0,
+        avgVotePrice: 0,
+        totalTransactions: 0,
+      },
+      voteTrends: [],
+      topContestants: rows.slice(0, 10).map((row, index) => {
+        const transformed = transformLeaderboardEntry(row, index + 1);
+        return {
+          id: transformed.contestantId,
+          name: transformed.contestantName,
+          votes: transformed.totalVotes,
+          rank: transformed.rank,
+          category: transformed.categoryName || 'General',
+          imageUrl: transformed.profileImageUrl,
+        };
+      }),
+      paymentProviders: [],
+      blockchainStatus: {},
+    };
   } catch {
     return null;
   }
 }
 
-export async function registerVoterPayment(payload: {
-  paymentId: string;
-  votesPurchased: number;
-  amount: number;
-  currency?: string;
-  paymentMethod?: string;
-  eventName?: string;
-  status?: 'pending' | 'confirmed' | 'failed' | 'refunded';
-}): Promise<any | null> {
+export async function getMediaGeographic(token?: string): Promise<any[] | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/voter/payments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+    const leaderboard = await apiFetch<any[]>('/media/leaderboard', {}, token);
+    const rows = Array.isArray(leaderboard) ? leaderboard : [];
+    const buckets = new Map<string, { voteCount: number }>();
+
+    rows.forEach((row) => {
+      const country = String(row?.country || row?.country_name || 'Unknown');
+      const votes = Number(row?.totalVotes || row?.total_votes || 0);
+      const current = buckets.get(country) || { voteCount: 0 };
+      current.voteCount += votes;
+      buckets.set(country, current);
     });
-    if (!response.ok) return null;
-    return await response.json();
+
+    const totalVotes = Array.from(buckets.values()).reduce((sum, item) => sum + item.voteCount, 0) || 1;
+    return Array.from(buckets.entries()).map(([country, item]) => ({
+      country,
+      voteCount: item.voteCount,
+      percentage: (item.voteCount / totalVotes) * 100,
+      uniqueDevices: item.voteCount,
+      revenue: 0,
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function getMediaFraud(token?: string): Promise<any | null> {
+  try {
+    return await apiFetch<any>('/media/fraud', {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function getMediaBlockchain(token?: string): Promise<any | null> {
+  try {
+    const activeEvent = await getActiveEvent();
+    const eventId = Number(activeEvent?.id || 0);
+    if (!eventId) return null;
+    const summary = await apiFetch<any>(`/public/blockchain/summary/${eventId}`, {}, token);
+    return {
+      status: {
+        networkStatus: summary?.network_status || summary?.networkStatus || 'Unknown',
+        currentBlockHeight: Number(summary?.latest_block || summary?.currentBlockHeight || 0),
+        totalAnchoredBatches: Number(summary?.anchored_batches || summary?.totalAnchoredBatches || 0),
+        networkName: String(summary?.network_name || summary?.networkName || 'Unknown'),
+        contractAddress: String(summary?.contract_address || summary?.contractAddress || ''),
+      },
+      recentBatches: Array.isArray(summary?.recent_batches) ? summary.recent_batches : [],
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getMediaNotifications(token?: string): Promise<any[] | null> {
+  try {
+    const summary = await apiFetch<any>('/media/fraud/summary', {}, token);
+    return [
+      {
+        id: 'fraud-summary',
+        type: 'fraud',
+        title: 'Fraud monitoring updated',
+        description: `Pending alerts: ${Number(summary?.pendingAlerts || 0)}, high severity: ${Number(summary?.highSeverityAlerts || 0)}`,
+        createdAt: new Date().toISOString(),
+        read: false,
+      },
+    ];
   } catch {
     return null;
   }

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
-import { paymentMethods } from '@/lib/vote-checkout-mock';
+import { PAYMENT_METHODS } from '@/lib/payment-methods';
 
 export default function PaymentMethodCheckoutPage() {
   const params = useParams();
@@ -12,7 +12,7 @@ export default function PaymentMethodCheckoutPage() {
   const searchParams = useSearchParams();
 
   const method = String(params.method || '').trim();
-  const methodMeta = paymentMethods.find((item) => item.id === method);
+  const methodMeta = PAYMENT_METHODS.find((item) => item.id === method);
 
   const quantity = Number(searchParams.get('quantity') || 1);
   const totalAmount = Number(searchParams.get('totalAmount') || 0);
@@ -76,27 +76,7 @@ export default function PaymentMethodCheckoutPage() {
     setInfoMessage('Payment return received. Finalizing...');
     setErrorMessage(null);
 
-    const paymentId = `txn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    void fetch('/api/voter/payments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({
-        paymentId,
-        votesPurchased: quantity,
-        amount: totalAmount,
-        currency,
-        paymentMethod: method,
-        eventName,
-        eventSlug,
-        contestantSlug,
-        purchaseType: contestantSlug ? 'direct' : 'package',
-        status: 'confirmed',
-      }),
-    })
-      .finally(() => {
-        router.replace('/voter/dashboard');
-      });
+    router.replace('/voter/dashboard');
   }, [returnStatus, quantity, totalAmount, currency, method, eventName, router]);
 
   const handleContinueToProvider = async () => {

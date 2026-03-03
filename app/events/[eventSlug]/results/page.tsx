@@ -1,10 +1,9 @@
 import { Metadata } from "next";
 import Image from "next/image";
-import { getMockResultsData } from "@/lib/leaderboard-mock";
+import { getEventBySlug, getEventLeaderboard } from "@/lib/api";
 import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
 import { BlockchainVerification } from "@/components/leaderboard/blockchain-verification";
 import { Badge } from "@/components/ui/badge";
-import { mockEvents } from "@/lib/events-mock";
 
 interface ResultsPageProps {
   params: Promise<{
@@ -16,7 +15,7 @@ export async function generateMetadata({
   params,
 }: ResultsPageProps): Promise<Metadata> {
   const { eventSlug } = await params;
-  const event = mockEvents.find((e) => e.slug === eventSlug);
+  const event = await getEventBySlug(eventSlug);
 
   return {
     title: `Final Results - ${event?.name || "Event"}`,
@@ -31,7 +30,7 @@ export async function generateMetadata({
 export default async function ResultsPage({ params }: ResultsPageProps) {
   const { eventSlug } = await params;
 
-  const event = mockEvents.find((e) => e.slug === eventSlug);
+  const event = await getEventBySlug(eventSlug);
 
   if (!event) {
     return (
@@ -41,9 +40,17 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
     );
   }
 
-  const data = getMockResultsData(event.id);
-  const winners = data?.winners ?? [];
-  const leaderboard = data?.leaderboard ?? [];
+  const leaderboard = await getEventLeaderboard(event.slug, 200);
+  const groupedByCategory = leaderboard.reduce<Record<string, any[]>>((acc, row) => {
+    const key = row.categoryName || "General";
+    acc[key] = acc[key] || [];
+    acc[key].push(row);
+    return acc;
+  }, {});
+  const winners = Object.values(groupedByCategory)
+    .map((rows) => ({ contestant: rows[0], leaderboard: rows }))
+    .filter((row) => row.contestant)
+    .slice(0, 6);
 
   const normalizeWinner = (winner: any, idx: number) => {
     const w = winner?.contestant ?? winner ?? {};

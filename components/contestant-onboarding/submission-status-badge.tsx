@@ -1,7 +1,7 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import type { ContestantSubmissionStatus } from '@/lib/contestant-runtime-store';
+import type { ContestantSubmissionStatus } from '@/lib/contestant-types';
 
 export function SubmissionStatusBadge({ status }: { status: ContestantSubmissionStatus }) {
   const tone =
@@ -15,3 +15,4 @@ export function SubmissionStatusBadge({ status }: { status: ContestantSubmission
 
   return <Badge className={tone}>{status.replace('_', ' ')}</Badge>;
 }
+

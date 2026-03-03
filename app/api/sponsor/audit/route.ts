@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server';
-import { getSponsorAuditTrail } from '@/lib/sponsor-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
-export async function GET() {
-  return NextResponse.json(getSponsorAuditTrail());
+export async function GET(request: Request) {
+  return proxyRequest(request, '/sponsor/audit');
 }

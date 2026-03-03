@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getMockLeaderboardData } from '@/lib/leaderboard-mock';
+import { getAllEvents, getEventLeaderboard } from '@/lib/api';
 import { LeaderboardPodium } from '@/components/leaderboard/leaderboard-podium';
 import { LeaderboardTable } from '@/components/leaderboard/leaderboard-table';
 import { LeaderboardFilters } from '@/components/leaderboard/leaderboard-filters';
@@ -26,9 +26,62 @@ export async function generateMetadata(
 
 export default async function LeaderboardPage({ params }: LeaderboardPageProps) {
   const { eventId } = await params;
-  
-  // Fetch leaderboard data - in production, this would call your API
-  const data = getMockLeaderboardData(eventId);
+
+  const events = await getAllEvents({ page: 1, limit: 200 });
+  const event =
+    events.items.find((item) => item.id === eventId || item.slug === eventId) ||
+    events.items[0];
+
+  if (!event) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-slate-600">No events found.</p>
+      </main>
+    );
+  }
+
+  const leaderboard = await getEventLeaderboard(event.slug, 100);
+  const categories = Array.from(
+    new Map(
+      leaderboard
+        .filter((entry) => entry.categoryId && entry.categoryName)
+        .map((entry) => [entry.categoryId as string, { id: entry.categoryId as string, name: entry.categoryName as string }])
+    ).values()
+  );
+
+  const podium =
+    leaderboard.length >= 3
+      ? {
+          first: leaderboard[0],
+          second: leaderboard[1],
+          third: leaderboard[2],
+        }
+      : null;
+
+  const totalVotes = leaderboard.reduce((sum, row) => sum + Number(row.totalVotes || 0), 0);
+  const countdownSeconds = event.voting_end
+    ? Math.max(0, Math.floor((new Date(event.voting_end).getTime() - Date.now()) / 1000))
+    : undefined;
+
+  const normalizedStatus: 'live' | 'pending' | 'closed' =
+    event.status === 'LIVE' || event.status === 'active'
+      ? 'live'
+      : event.status === 'UPCOMING' || event.status === 'coming_soon'
+        ? 'pending'
+        : 'closed';
+
+  const data = {
+    event: {
+      name: event.name,
+      status: normalizedStatus,
+      countdownSeconds,
+    },
+    lastUpdated: new Date().toISOString(),
+    totalVotes,
+    categories,
+    podium,
+    leaderboard,
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -70,7 +123,7 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
         </div>
 
         {/* Podium Section */}
-        {data.podium && (
+        {data.podium && data.podium.first && data.podium.second && data.podium.third && (
           <div className="bg-white rounded-lg border border-slate-200 p-6 md:p-8 mb-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-8">Top 3 Performers</h2>
             <LeaderboardPodium

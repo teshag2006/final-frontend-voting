@@ -12,20 +12,21 @@ import {
   generateExternalIntegrations,
   generateResourceMetrics,
   generateWebhookStatus,
-} from '@/lib/health-monitor-mock';
+} from '@/lib/health-monitor-data';
 
 export const metadata: Metadata = {
   title: 'System Health Monitor - Admin Dashboard',
   description: 'Real-time system health monitoring, service status, and maintenance controls',
 };
 
-export default function HealthMonitorPage() {
-  // Generate all mock data
-  const systemHealth = generateSystemHealthOverview();
-  const coreServices = generateCoreServices();
-  const integrations = generateExternalIntegrations();
-  const resources = generateResourceMetrics();
-  const webhooks = generateWebhookStatus();
+export default async function HealthMonitorPage() {
+  const [systemHealth, coreServices, integrations, resources, webhooks] = await Promise.all([
+    generateSystemHealthOverview(),
+    generateCoreServices(),
+    generateExternalIntegrations(),
+    generateResourceMetrics(),
+    generateWebhookStatus(),
+  ]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -63,3 +64,4 @@ export default function HealthMonitorPage() {
     </div>
   );
 }
+

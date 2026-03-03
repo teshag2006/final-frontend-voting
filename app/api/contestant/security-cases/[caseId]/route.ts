@@ -1,15 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { updateContestantSecurityCase } from '@/lib/contestant-runtime-store';
+import { proxyRequest } from '@/app/api/_shared/proxy';
+
+function resolvePath(params: { caseId: string }) {
+  return `/contestant/security-cases/${encodeURIComponent(params.caseId)}`;
+}
 
 export async function PATCH(
-  request: NextRequest,
+  request: Request,
   context: { params: Promise<{ caseId: string }> }
 ) {
-  const { caseId } = await context.params;
-  const payload = await request.json();
-  const updated = updateContestantSecurityCase(caseId, payload || {});
-  if (!updated) {
-    return NextResponse.json({ message: 'Security case not found' }, { status: 404 });
-  }
-  return NextResponse.json(updated);
+  const params = await context.params;
+  return proxyRequest(request, resolvePath(params));
 }

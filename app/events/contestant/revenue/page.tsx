@@ -1,6 +1,7 @@
 'use client';
 
-import { mockRevenueData } from '@/lib/dashboard-mock';
+import { useEffect, useState } from 'react';
+import { getRevenueDataSafe } from '@/lib/dashboard-data';
 import {
   LineChart,
   Line,
@@ -17,7 +18,23 @@ import {
 const COLORS = ['#2563eb', '#f59e0b', '#64748b'];
 
 export default function RevenuePage() {
-  const { metrics, snapshots, payment_methods } = mockRevenueData;
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    const loadRevenue = async () => {
+      const loaded = await getRevenueDataSafe();
+      setData(loaded);
+    };
+    void loadRevenue();
+  }, []);
+
+  const metrics = data?.metrics || { total_revenue: 0, revenue_this_week: 0, revenue_this_month: 0 };
+  const snapshots = Array.isArray(data?.snapshots) ? data.snapshots : [];
+  const payment_methods = data?.payment_methods || {
+    stripe_percentage: 0,
+    paypal_percentage: 0,
+    other_percentage: 0,
+  };
   const pieData = [
     { name: 'Stripe', value: payment_methods.stripe_percentage },
     { name: 'PayPal', value: payment_methods.paypal_percentage },
@@ -76,3 +93,4 @@ function Metric({ title, value }: { title: string; value: string }) {
     </div>
   );
 }
+

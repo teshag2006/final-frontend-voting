@@ -1,11 +1,21 @@
-import { NextResponse } from 'next/server';
-import { mockSponsorPlacements } from '@/lib/sponsorship-mock';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const contestantSlug = searchParams.get('contestantSlug');
-  const data = contestantSlug
-    ? mockSponsorPlacements.filter((placement) => placement.contestantSlug === contestantSlug)
-    : mockSponsorPlacements;
-  return NextResponse.json(data);
+  return proxyRequest(request, '/sponsors/campaigns');
+}
+
+export async function POST(request: Request) {
+  return proxyRequest(request, '/sponsors/campaigns');
+}
+
+export async function PATCH(request: Request) {
+  return proxyRequest(request, '/sponsors/campaigns');
+}
+
+export async function PUT(request: Request) {
+  return proxyRequest(request, '/sponsors/campaigns');
+}
+
+export async function DELETE(request: Request) {
+  return proxyRequest(request, '/sponsors/campaigns');
 }

@@ -20,7 +20,7 @@ import {
   generateCacheMetrics,
   generateMetricsTimeseries,
   getMaintenanceTasks,
-} from '@/lib/cache-monitor-mock';
+} from '@/lib/cache-monitor-data';
 import { useAuth } from '@/context/AuthContext';
 
 export default function RedisCacheMonitorPage() {
@@ -30,24 +30,53 @@ export default function RedisCacheMonitorPage() {
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const isSuperAdmin = userRole === 'admin';
 
-  // Mock data states
-  const [overview, setOverview] = useState(generateRedisOverview());
-  const [keys, setKeys] = useState(generateCacheKeys());
-  const [rateLimits, setRateLimits] = useState(generateRateLimitCounters());
-  const [metrics, setMetrics] = useState(generateCacheMetrics());
-  const [timeseries, setTimeseries] = useState(generateMetricsTimeseries());
+  const [overview, setOverview] = useState<any>({
+    status: 'UNKNOWN',
+    memoryUsage: 0,
+    memoryLimit: 1,
+    uptime: 0,
+    lastUpdated: new Date(),
+    keyCount: 0,
+    connectedClients: 0,
+    hitRatio: 0,
+    missRatio: 0,
+    evictedKeys: 0,
+  });
+  const [keys, setKeys] = useState<any[]>([]);
+  const [rateLimits, setRateLimits] = useState<any[]>([]);
+  const [metrics, setMetrics] = useState<any>({
+    hitsPerMinute: 0,
+    missesPerMinute: 0,
+    evictionsPerMinute: 0,
+    avgLatency: 0,
+    networkThroughput: 0,
+    peakMemoryUsage: 0,
+    commandsProcessed: 0,
+  });
+  const [timeseries, setTimeseries] = useState<any>({
+    hitMissRatio: [],
+    memoryUsage: [],
+    latency: [],
+  });
   const [maintenanceTasks] = useState(getMaintenanceTasks());
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const handleRefresh = async () => {
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setOverview(generateRedisOverview());
-      setKeys(generateCacheKeys());
-      setRateLimits(generateRateLimitCounters());
-      setMetrics(generateCacheMetrics());
-      setTimeseries(generateMetricsTimeseries());
+      const [nextOverview, nextKeys, nextRateLimits, nextMetrics, nextTimeseries] =
+        await Promise.all([
+          generateRedisOverview(),
+          generateCacheKeys(),
+          generateRateLimitCounters(),
+          generateCacheMetrics(),
+          generateMetricsTimeseries(),
+        ]);
+      setOverview(nextOverview);
+      setKeys(nextKeys);
+      setRateLimits(nextRateLimits);
+      setMetrics(nextMetrics);
+      setTimeseries(nextTimeseries);
       setLastRefresh(new Date());
       setActionMessage('Cache dashboard refreshed.');
     } catch (error) {
@@ -88,8 +117,9 @@ export default function RedisCacheMonitorPage() {
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
+    void handleRefresh();
     const interval = setInterval(() => {
-      handleRefresh();
+      void handleRefresh();
     }, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -217,3 +247,4 @@ export default function RedisCacheMonitorPage() {
     </div>
   );
 }
+

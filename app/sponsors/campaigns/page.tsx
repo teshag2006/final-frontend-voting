@@ -6,13 +6,13 @@ import { AlertTriangle, Clock3, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { createSponsorCampaignRequest, getSponsorCampaignTracking } from '@/lib/api';
 import {
-  mockMarketplaceContestants,
-  mockSponsorCampaignTracking,
-  mockSponsorDashboardOverview,
-  type SponsorCampaignTracking,
-} from '@/lib/sponsorship-mock';
+  createSponsorCampaignRequest,
+  getSponsorCampaignTracking,
+  getSponsorDashboardOverview,
+  getSponsorDiscoverContestants,
+} from '@/lib/api';
+import type { MarketplaceContestant, SponsorCampaignTracking } from '@/lib/types';
 
 const statusTone: Record<string, string> = {
   draft: 'bg-slate-100 text-slate-700',
@@ -39,21 +39,12 @@ function SponsorCampaignTrackingContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const contestantParam = searchParams.get('contestant') || '';
-  const lockedContestant =
-    mockMarketplaceContestants.find((item) => item.slug === contestantParam) || null;
-  const initialContestant =
-    lockedContestant?.slug ||
-    mockMarketplaceContestants[0]?.slug ||
-    '';
-  const contestantOptions = lockedContestant ? [lockedContestant] : mockMarketplaceContestants;
-  const isContestantLocked = Boolean(lockedContestant);
-  const [selectedContestantSlug, setSelectedContestantSlug] = useState(initialContestant);
-
-  const [rows, setRows] = useState<SponsorCampaignTracking[]>(
-    selectedContestantSlug
-      ? mockSponsorCampaignTracking.filter((item) => item.contestantSlug === selectedContestantSlug)
-      : mockSponsorCampaignTracking
-  );
+  const [contestantOptions, setContestantOptions] = useState<MarketplaceContestant[]>([]);
+  const [selectedContestantSlug, setSelectedContestantSlug] = useState(contestantParam);
+  const [rows, setRows] = useState<SponsorCampaignTracking[]>([]);
+  const [sponsorName, setSponsorName] = useState('Sponsor');
+  const isContestantLocked = Boolean(contestantParam);
+  const lockedContestant = contestantOptions.find((item) => item.slug === contestantParam) || null;
 
   const [campaignTitle, setCampaignTitle] = useState('');
   const [objective, setObjective] = useState<'awareness' | 'conversion' | 'engagement'>('awareness');
@@ -73,9 +64,31 @@ function SponsorCampaignTrackingContent() {
 
   useEffect(() => {
     let mounted = true;
+    Promise.all([getSponsorDiscoverContestants(), getSponsorDashboardOverview()]).then(
+      ([discoverRes, overviewRes]) => {
+        if (!mounted) return;
+        const allContestants = Array.isArray(discoverRes)
+          ? (discoverRes as MarketplaceContestant[])
+          : [];
+        setContestantOptions(allContestants);
+        if (!selectedContestantSlug && allContestants.length > 0) {
+          setSelectedContestantSlug(allContestants[0].slug);
+        }
+        if (overviewRes?.sponsorName) {
+          setSponsorName(String(overviewRes.sponsorName));
+        }
+      }
+    );
+    return () => {
+      mounted = false;
+    };
+  }, [selectedContestantSlug]);
+
+  useEffect(() => {
+    let mounted = true;
     getSponsorCampaignTracking(selectedContestantSlug || undefined).then((res) => {
       if (!mounted || !res) return;
-      setRows(res);
+      setRows(res as SponsorCampaignTracking[]);
     });
     return () => {
       mounted = false;
@@ -90,8 +103,8 @@ function SponsorCampaignTrackingContent() {
   }, [selectedContestantSlug, pathname, router, searchParams]);
 
   const contestant = useMemo(
-    () => mockMarketplaceContestants.find((item) => item.slug === selectedContestantSlug) || null,
-    [selectedContestantSlug]
+    () => contestantOptions.find((item) => item.slug === selectedContestantSlug) || null,
+    [contestantOptions, selectedContestantSlug]
   );
 
   const durationDays = useMemo(() => {
@@ -148,7 +161,7 @@ function SponsorCampaignTrackingContent() {
     setIsSaving(true);
     const created = await createSponsorCampaignRequest({
       action: 'save_draft',
-      sponsorName: mockSponsorDashboardOverview.sponsorName,
+      sponsorName,
       contestantSlug: selectedContestantSlug,
       campaignTitle: campaignTitle.trim() || 'Untitled Draft',
       paymentReference: paymentReference.trim(),
@@ -175,7 +188,7 @@ function SponsorCampaignTrackingContent() {
     setIsSaving(true);
     const created = await createSponsorCampaignRequest({
       action: 'submit_review',
-      sponsorName: mockSponsorDashboardOverview.sponsorName,
+      sponsorName,
       contestantSlug: selectedContestantSlug,
       campaignTitle: campaignTitle.trim(),
       paymentReference: paymentReference.trim(),

@@ -1,6 +1,6 @@
 'use client';
 
-import { ComponentType } from 'react';
+import { ComponentType, useEffect, useState } from 'react';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { SystemMetrics } from '@/components/admin/system-metrics';
 import { VoteActivityChart } from '@/components/admin/vote-activity-chart';
@@ -13,27 +13,68 @@ import { Button } from '@/components/ui/button';
 import { ImagePlus, LayoutTemplate, Link2, PanelsTopLeft } from 'lucide-react';
 import Link from 'next/link';
 import {
-  generateSystemMetrics,
-  generateVoteActivityData,
-  generateRevenueAnalytics,
-  generateFraudSummary,
-  generateFraudAlerts,
-  generateDeviceRiskOverview,
-  generateBlockchainStatus,
-  generateSystemEventsFeed,
-} from '@/lib/admin-overview-mock';
+  getAdminDashboard,
+} from '@/lib/api';
+import { authService } from '@/lib/services/authService';
 
 export default function AdminDashboardPage() {
-  // Generate all mock data for this session
-  const metrics = generateSystemMetrics();
-  const voteActivity24h = generateVoteActivityData('24h');
-  const voteActivity7d = generateVoteActivityData('7d');
-  const revenue = generateRevenueAnalytics();
-  const fraudSummary = generateFraudSummary();
-  const fraudAlerts = generateFraudAlerts();
-  const deviceRisk = generateDeviceRiskOverview();
-  const blockchain = generateBlockchainStatus();
-  const systemEvents = generateSystemEventsFeed(1, 20);
+  const [dashboard, setDashboard] = useState<any>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      const token = authService.getToken() || undefined;
+      const data = await getAdminDashboard(token);
+      setDashboard(data);
+    };
+    void load();
+  }, []);
+
+  const metrics = dashboard?.systemMetrics || {
+    activeEvents: 0,
+    totalVotes: 0,
+    paidVotes: 0,
+    totalRevenue: 0,
+    fraudReports: 0,
+    confirmedAnchors: 0,
+    totalUsers: 0,
+    totalContestants: 0,
+  };
+  const voteActivity24h = dashboard?.voteActivity?.day || { range: '24h', data: [] };
+  const voteActivity7d = dashboard?.voteActivity?.week || { range: '7d', data: [] };
+  const revenue = dashboard?.revenueAnalytics || {
+    totalRevenue: 0,
+    averageTransaction: 0,
+    byProvider: [],
+    trend: [],
+  };
+  const fraudSummary = dashboard?.fraudSummary || {
+    total: 0,
+    critical: 0,
+    high: 0,
+    pending: 0,
+    resolved: 0,
+    criticalPercentage: 0,
+    fraudVotesRemoved: 0,
+  };
+  const fraudAlerts = dashboard?.fraudAlerts || [];
+  const deviceRisk = dashboard?.deviceRisk || {
+    highRiskDevices: 0,
+    botFlaggedDevices: 0,
+    averageTrustScore: 0,
+    riskDistribution: [],
+  };
+  const blockchain = dashboard?.blockchainStatus || {
+    totalBatches: 0,
+    confirmedAnchors: 0,
+    pendingAnchors: 0,
+    averageTimeToAnchor: 0,
+    networkUsed: 'N/A',
+    lastAnchorTime: new Date().toISOString(),
+  };
+  const systemEvents = dashboard?.systemFeed || {
+    events: [],
+    pagination: { total: 0, hasMore: false },
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -92,8 +133,7 @@ export default function AdminDashboardPage() {
         <SystemFeed
           data={systemEvents}
           onLoadMore={() => {
-            // Handle load more
-            generateSystemEventsFeed(2, 20);
+            // Page-level load more is handled server-side through /admin/dashboard range endpoint.
           }}
         />
       </main>

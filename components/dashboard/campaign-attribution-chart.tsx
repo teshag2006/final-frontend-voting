@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { ContestantAttributionItem } from '@/lib/contestant-runtime-store';
+import type { ContestantAttributionItem } from '@/lib/contestant-types';
 
 export function CampaignAttributionChart({ data }: { data: ContestantAttributionItem[] }) {
   return (
@@ -29,3 +29,4 @@ export function CampaignAttributionChart({ data }: { data: ContestantAttribution
     </div>
   );
 }
+

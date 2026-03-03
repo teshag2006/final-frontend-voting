@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { getMockReceipt } from '@/lib/receipt-mock'
+import { getPublicReceipt } from '@/lib/api'
 import { ReceiptStatus } from '@/components/receipt/receipt-status'
 import { ReceiptSummary } from '@/components/receipt/receipt-summary'
 import { ContestantDetails } from '@/components/receipt/contestant-details'
@@ -34,9 +34,7 @@ export default async function ReceiptPage({ params }: PageProps) {
     return <ReceiptError statusCode={400} />
   }
 
-  // Server-side fetch of receipt data
-  // In production, this would call: GET /api/public/receipt/:receiptNumber
-  const receipt = await getMockReceipt(receiptNumber)
+  const receipt = await getPublicReceipt(receiptNumber)
 
   if (!receipt) {
     return <ReceiptError statusCode={404} />

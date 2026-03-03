@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import type { ContestantComplianceData } from '@/lib/contestant-runtime-store';
+import type { ContestantComplianceData } from '@/lib/contestant-types';
 
 export function IdentityComplianceForm({
   value,
@@ -89,3 +89,4 @@ export function IdentityComplianceForm({
     </section>
   );
 }
+

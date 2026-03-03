@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { OfferThread } from '@/components/contestant-sponsors/offer-thread';
-import type { ContestantSponsorOfferItem } from '@/lib/contestant-runtime-store';
+import type { ContestantSponsorOfferItem } from '@/lib/contestant-types';
 
 export function OfferInbox({
   offers,
@@ -67,3 +67,4 @@ export function OfferInbox({
     </div>
   );
 }
+

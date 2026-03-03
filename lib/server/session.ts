@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { createHmac, timingSafeEqual } from 'crypto';
-import type { UserRole } from '@/lib/mock-users';
+import type { UserRole } from '@/lib/types';
 import { SESSION_COOKIE } from '@/lib/server/session-constants';
 
 export interface SessionUser {

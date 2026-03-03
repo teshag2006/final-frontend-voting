@@ -1,8 +1,10 @@
 import { MetadataRoute } from 'next';
-import { mockEvents } from '@/lib/events-mock';
+import { getAllEvents } from '@/lib/api';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://votingplatform.com';
+  const events = await getAllEvents({ page: 1, limit: 300 });
+  const eventItems = events.items;
 
   // Static pages
   const staticPages = [
@@ -23,7 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   // Event pages (excluding archived for now)
-  const eventPages = mockEvents
+  const eventPages = eventItems
     .filter((event) => event.status !== 'ARCHIVED')
     .map((event) => ({
       url: `${baseUrl}/events/${event.slug}`,
@@ -33,7 +35,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }));
 
   // Archive pages
-  const archivePages = mockEvents
+  const archivePages = eventItems
     .filter((event) => event.status === 'ARCHIVED')
     .map((event) => ({
       url: `${baseUrl}/events/${event.slug}`,
@@ -44,3 +46,4 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [...staticPages, ...eventPages, ...archivePages];
 }
+

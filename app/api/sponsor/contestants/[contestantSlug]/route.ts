@@ -1,14 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { mockMarketplaceContestants } from '@/lib/sponsorship-mock';
+import { proxyRequest } from '@/app/api/_shared/proxy';
 
 export async function GET(
-  _request: NextRequest,
+  request: Request,
   context: { params: Promise<{ contestantSlug: string }> }
 ) {
   const { contestantSlug } = await context.params;
-  const contestant = mockMarketplaceContestants.find((item) => item.slug === contestantSlug);
-  if (!contestant) {
-    return NextResponse.json({ message: 'Contestant not found' }, { status: 404 });
-  }
-  return NextResponse.json(contestant);
+  return proxyRequest(
+    request,
+    `/sponsor/contestants/${encodeURIComponent(contestantSlug)}`
+  );
 }

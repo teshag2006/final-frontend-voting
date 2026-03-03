@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import type { ContestantReadiness } from '@/lib/contestant-runtime-store';
+import type { ContestantReadiness } from '@/lib/contestant-types';
 
 export function VotingReadinessCard({ readiness }: { readiness: ContestantReadiness }) {
   return (
@@ -24,3 +24,4 @@ export function VotingReadinessCard({ readiness }: { readiness: ContestantReadin
     </article>
   );
 }
+

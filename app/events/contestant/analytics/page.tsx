@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { mockAnalyticsData } from '@/lib/dashboard-mock';
+import { getAnalyticsData } from '@/lib/api';
 import { CampaignAttributionChart } from '@/components/dashboard/campaign-attribution-chart';
 import { DeliverablePerformanceTable } from '@/components/dashboard/deliverable-performance-table';
 import {
@@ -15,18 +15,39 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import type { ContestantAttributionItem } from '@/lib/contestant-runtime-store';
+import type { ContestantAttributionItem } from '@/lib/contestant-types';
 
 export default function AnalyticsPage() {
-  const { daily_votes, hourly_distribution, fraud_metrics } = mockAnalyticsData;
+  const [analytics, setAnalytics] = useState<any>({
+    daily_votes: [],
+    hourly_distribution: [],
+    fraud_metrics: {
+      total_votes: 0,
+      suspicious_votes: 0,
+      confirmed_fraud: 0,
+      flagged_votes: 0,
+    },
+  });
   const [attribution, setAttribution] = useState<ContestantAttributionItem[]>([]);
 
   useEffect(() => {
+    getAnalyticsData().then((data) => {
+      if (data) setAnalytics(data);
+    });
     fetch('/api/contestant/sponsors/attribution')
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => setAttribution((data as ContestantAttributionItem[]) || []))
       .catch(() => setAttribution([]));
   }, []);
+
+  const daily_votes = Array.isArray(analytics?.daily_votes) ? analytics.daily_votes : [];
+  const hourly_distribution = Array.isArray(analytics?.hourly_distribution) ? analytics.hourly_distribution : [];
+  const fraud_metrics = analytics?.fraud_metrics || {
+    total_votes: 0,
+    suspicious_votes: 0,
+    confirmed_fraud: 0,
+    flagged_votes: 0,
+  };
 
   return (
     <div className="p-6">
@@ -89,3 +110,5 @@ function InfoTile({ label, value, accent = 'text-slate-900' }: { label: string; 
     </div>
   );
 }
+
+
